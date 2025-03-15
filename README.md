@@ -62,7 +62,7 @@ git clone https://github.com/yourusername/tripchaos.git
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the GNU GENERAL PUBLIC LICENSE License - see the LICENSE file for details.
 
 ---
 
