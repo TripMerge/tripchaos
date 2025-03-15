@@ -71,9 +71,12 @@ let clouds = [];
 
 // Decision system
 let decisionTimer = 0;
-let decisionInterval = 600; // Show decision every 10 seconds (60fps)
+let decisionInterval = 600; // Show decision every 10 seconds (60fps) - no longer used with the new system
 let currentDecision = null;
 let showingDecision = false;
+let decisionsThisLevel = 0; // Track decisions made in current level
+let decisionPositions = [0.6, 0.8]; // Trigger decisions at 60% and 80% of level length
+let decisionTriggeredAt = [false, false]; // Track which decision points have been triggered
 
 // Game objects
 let platforms = [];
@@ -353,6 +356,8 @@ function resetGame() {
   decisionTimer = 0;
   showingDecision = false;
   currentDecision = null;
+  decisionsThisLevel = 0;
+  decisionTriggeredAt = [false, false];
   
   // Clear all game objects
   platforms = [];
@@ -373,6 +378,8 @@ function resetGame() {
   
   // Reset cloud effect
   cloudSlowdownEndTime = 0;
+  
+  console.log("Game reset to initial state:", gameState);  // Debug log
 }
 
 // Generate a complete level
@@ -989,6 +996,8 @@ function updateGame() {
       decisionTimer = 0;
       showingDecision = false;
       currentDecision = null;
+      decisionsThisLevel = 0;
+      decisionTriggeredAt = [false, false];
     }
   }
   
@@ -1009,11 +1018,16 @@ function updateGame() {
     window.gameState = 'gameOver';
   }
   
-  // Update decision timer ONLY if not in a decision
+  // Update decision timer ONLY if not in a decision - replaced with position-based trigger
   if (!showingDecision) {
-    decisionTimer++;
-    if (decisionTimer >= decisionInterval) {
-      triggerRandomDecision();
+    // Check if player has reached a decision point
+    for (let i = 0; i < decisionPositions.length; i++) {
+      let decisionX = levelLength * decisionPositions[i];
+      if (!decisionTriggeredAt[i] && player.worldX >= decisionX) {
+        triggerRandomDecision();
+        decisionTriggeredAt[i] = true;
+        break;
+      }
     }
   }
 }
@@ -2607,6 +2621,8 @@ function startGame() {
   decisionTimer = 0;
   showingDecision = false;
   currentDecision = null;
+  decisionsThisLevel = 0;
+  decisionTriggeredAt = [false, false];
   
   console.log("Game reset to initial state:", gameState);  // Debug log
 }
