@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripChaos: The Unprepared Traveler</title>
+    
+    <!-- Load p5.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    
+    <!-- Load Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Load Geist font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a2e;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #ffffff;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 1000px;
+            height: 600px;
+            margin: 0 auto;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #ffffff;
+            text-align: center;
+            display: none;
+        }
+        
+        #error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #ff4444;
+            text-align: center;
+            display: none;
+        }
+        
+        .input-field {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            color: #333;
+            font-size: 16px;
+            padding: 8px 12px;
+            width: 100%;
+            margin-bottom: 10px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .input-field::placeholder {
+            color: #888;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #2980b9;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Loading message -->
+        <div id="loading">Loading game...</div>
+        
+        <!-- Error message -->
+        <div id="error">Unable to load the game. Please refresh the page.</div>
+    </div>
+
+    <!-- Game script -->
+    <script>
+        // Show loading message
+        document.getElementById('loading').style.display = 'block';
+        
+        // Handle loading errors
+        window.onerror = function() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        };
+        
+        // Hide loading message when p5.js is ready
+        window.addEventListener('load', function() {
+            document.getElementById('loading').style.display = 'none';
+        });
+    </script>
+    
+    <!-- Supabase configuration -->
+    <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://mvjxplzxzpegfmmekrlo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12anhwbHp4enBlZ2ZtbWVrcmxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE4MTQxMTgsImV4cCI6MjA1NzM5MDExOH0.ts2Hfsnc0zUM4uqJuPLNwVDSYqq2ULNJuuLVmXbfq1U';
+        
+        // Create Supabase client (fixed variable naming)
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Create global leaderboard functions
+        window.leaderboard = {
+            // Submit score to leaderboard
+            submitScore: async function(email, score, levelsCompleted, satisfaction, budget, achievement) {
+                try {
+                    // Validate email
+                    if (!email || !email.match(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/)) {
+                        return { success: false, error: 'Invalid email format' };
+                    }
+                    
+                    // Submit to Supabase (using the renamed client)
+                    const { data, error } = await supabaseClient
+                        .from('leaderboard')
+                        .insert([{ 
+                            email: email,
+                            score: score,
+                            levels_completed: levelsCompleted,
+                            satisfaction: satisfaction,
+                            budget: budget,
+                            achievement: achievement
+                        }]);
+                    
+                    if (error) throw error;
+                    
+                    return { success: true, data };
+                } catch (error) {
+                    console.error('Error submitting score:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            
+            // Get top scores
+            getTopScores: async function(limit = 10) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('leaderboard')
+                        .select('*')
+                        .order('score', { ascending: false })
+                        .limit(limit);
+                    
+                    if (error) throw error;
+                    
+                    return { success: true, data };
+                } catch (error) {
+                    console.error('Error fetching scores:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+        };
+    </script>
+    
+    <script src="sketch.js"></script>
+</body>
+</html>
+    
