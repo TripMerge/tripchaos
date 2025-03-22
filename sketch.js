@@ -296,7 +296,7 @@ let decisions = [
 
 // Setup function
 function setup() {
-  let canvas;
+let canvas;
   
   if (isMobileDevice()) {
     // For mobile devices, use full window dimensions
@@ -311,8 +311,8 @@ function setup() {
     window.gameScale = 1;
   }
   
-  canvas.parent('game-container');
-  
+    canvas.parent('game-container');
+    
   // Initialize game objects and settings
   resetGame();
   
