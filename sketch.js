@@ -296,35 +296,22 @@ let decisions = [
 
 // Setup function
 function setup() {
-  // Create canvas with responsive dimensions
+  let canvas;
+  
   if (isMobileDevice()) {
-    // For mobile devices in landscape, use screen dimensions
-    let screenWidth = window.innerWidth;
-    let screenHeight = window.innerHeight;
-    
-    // Calculate the best fit while maintaining aspect ratio
-    let gameRatio = 1000/600; // Original game ratio
-    let screenRatio = screenWidth/screenHeight;
-    
-    let canvasWidth, canvasHeight;
-    if (screenRatio > gameRatio) {
-      // Screen is wider than needed
-      canvasHeight = screenHeight;
-      canvasWidth = screenHeight * gameRatio;
-    } else {
-      // Screen is taller than needed
-      canvasWidth = screenWidth;
-      canvasHeight = screenWidth / gameRatio;
-    }
-    
-    createCanvas(canvasWidth, canvasHeight);
-    // Scale all game elements according to screen size
-    window.gameScale = canvasWidth / 1000; // Store global scale factor
+    // For mobile devices, use full window dimensions
+    canvas = createCanvas(windowWidth, windowHeight);
+    // Calculate game scale based on viewport size while maintaining aspect ratio
+    let scaleX = windowWidth / 1000;
+    let scaleY = windowHeight / 600;
+    window.gameScale = min(scaleX, scaleY);
   } else {
     // For desktop, use fixed dimensions
-    createCanvas(1000, 600);
+    canvas = createCanvas(1000, 600);
     window.gameScale = 1;
   }
+  
+  canvas.parent('game-container');
   
   // Initialize game objects and settings
   resetGame();
@@ -336,29 +323,25 @@ function setup() {
 // Handle window resize events
 function windowResized() {
   if (isMobileDevice()) {
-    let screenWidth = window.innerWidth;
-    let screenHeight = window.innerHeight;
-    
-    let gameRatio = 1000/600;
-    let screenRatio = screenWidth/screenHeight;
-    
-    let canvasWidth, canvasHeight;
-    if (screenRatio > gameRatio) {
-      canvasHeight = screenHeight;
-      canvasWidth = screenHeight * gameRatio;
-    } else {
-      canvasWidth = screenWidth;
-      canvasHeight = screenWidth / gameRatio;
-    }
-    
-    resizeCanvas(canvasWidth, canvasHeight);
-    window.gameScale = canvasWidth / 1000;
+    // Only resize canvas on mobile devices
+    resizeCanvas(windowWidth, windowHeight);
+    // Recalculate game scale
+    let scaleX = windowWidth / 1000;
+    let scaleY = windowHeight / 600;
+    window.gameScale = min(scaleX, scaleY);
   }
+  // Desktop keeps fixed size, no resize needed
 }
 
-// Update mobile detection to include orientation check
+// Update mobile detection to be more reliable
 function isMobileDevice() {
-  return (touches.length > 0 || (window.innerWidth <= 768)) && window.matchMedia("(orientation: landscape)").matches;
+  return (
+    touches.length > 0 || 
+    (typeof window.orientation !== 'undefined') || 
+    (navigator.userAgent.indexOf('IEMobile') !== -1) ||
+    (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) ||
+    (window.innerWidth <= 768)
+  );
 }
 
 // Add orientation change handler
@@ -724,20 +707,20 @@ function drawStartScreen() {
   // Title and subtitle - centered and higher up
   fill('#c72a09');  // Updated to bold red
   textStyle(BOLD);
-  textSize(titleFontSize);
+  textSize(titleFontSize * window.gameScale);
   textAlign(CENTER, CENTER);
   text("WELCOME TO TRIPCHAOS!", width/2, height/10);
   
   // Welcome text - centered with proper spacing
   fill('#000000');  // Updated to black
   textStyle(NORMAL);
-  textSize(bodyFontSize);
+  textSize(bodyFontSize * window.gameScale);
   textAlign(CENTER, CENTER);
   
   // Draw each line separately for better control
-  text("Navigate through beaches, cities, and adventures", width/2, height/6 + 20);
-  text("while managing your budget, satisfaction, and time.", width/2, height/6 + 50);
-  text("Collect items, avoid mishaps, and make smart decisions to succeed!", width/2, height/6 + 80);
+  text("Navigate through beaches, cities, and adventures", width/2, height/6 + 20 * window.gameScale);
+  text("while managing your budget, satisfaction, and time.", width/2, height/6 + 50 * window.gameScale);
+  text("Collect items, avoid mishaps, and make smart decisions to succeed!", width/2, height/6 + 80 * window.gameScale);
   
   // Game elements table - moved down slightly
   drawElementsTable();
@@ -745,27 +728,27 @@ function drawStartScreen() {
   // Controls legend
   drawControlsLegend();
   
-  // Start button - moved down
-  let startBtnX = width/2 - 100;
-  let startBtnY = height - 100;
-  let startBtnW = 200;
-  let startBtnH = 40;
+  // Start button - moved down and scaled
+  let startBtnX = width/2 - (100 * window.gameScale);
+  let startBtnY = height - (100 * window.gameScale);
+  let startBtnW = 200 * window.gameScale;
+  let startBtnH = 40 * window.gameScale;
   
   // Button with hover effect
   let isHovering = mouseX >= startBtnX && mouseX <= startBtnX + startBtnW && 
                    mouseY >= startBtnY && mouseY <= startBtnY + startBtnH;
   
-  fill(isHovering ? '#c72a09' : '#f5f7f8');  // Updated button colors
+  fill(isHovering ? '#c72a09' : '#f5f7f8');
   stroke('#000000');
-  strokeWeight(3);
-  rect(startBtnX, startBtnY, startBtnW, startBtnH, 10);
+  strokeWeight(3 * window.gameScale);
+  rect(startBtnX, startBtnY, startBtnW, startBtnH, 10 * window.gameScale);
   
   // Button text
   noStroke();
-  fill(isHovering ? '#ffffff' : '#000000');  // Updated text color based on hover
-  textSize(20);
+  fill(isHovering ? '#ffffff' : '#000000');
+  textSize(20 * window.gameScale);
   textAlign(CENTER, CENTER);
-  text("START GAME", width/2, startBtnY + 20);
+  text("START GAME", width/2, startBtnY + 20 * window.gameScale);
   
   // Cursor
   if (isHovering) {
@@ -776,10 +759,10 @@ function drawStartScreen() {
   
   // Tripmerge note
   textAlign(CENTER);
-  textSize(20);
-  fill('#c72a09');  // Updated to bold red
+  textSize(20 * window.gameScale);
+  fill('#c72a09');
   strokeWeight(0);
-  text("Struggling? TripMerge.com has tools to win in real life trip planning!", width/2, height - 40);
+  text("Struggling? TripMerge.com has tools to win in real life trip planning!", width/2, height - 40 * window.gameScale);
 }
 
 // Draw elements table with improved layout
@@ -2127,8 +2110,20 @@ function makeDecision(optionIndex) {
 
 // Draw game UI with improved readability
 function drawGameUI() {
-  // Draw UI elements at the top
   push();
+  
+  if (isMobileDevice()) {
+    // Calculate the game viewport center offset for mobile
+    let gameWidth = 1000 * window.gameScale;
+    let gameHeight = 600 * window.gameScale;
+    let offsetX = (width - gameWidth) / 2;
+    let offsetY = (height - gameHeight) / 2;
+    
+    // Apply translation to center the game viewport
+    translate(offsetX, offsetY);
+  }
+  
+  // Draw UI elements
   fill(0);
   textSize(20 * window.gameScale);
   textAlign(LEFT, TOP);
@@ -2137,7 +2132,7 @@ function drawGameUI() {
   text(`Level ${currentLevelNumber}/3`, 20 * window.gameScale, 20 * window.gameScale);
   
   // Draw meters horizontally across the top
-  let meterSpacing = width / 5;
+  let meterSpacing = (isMobileDevice() ? 1000 * window.gameScale : width) / 5;
   drawMeter("Budget", budget, meterSpacing, 20 * window.gameScale);
   drawMeter("Satisfaction", satisfaction, meterSpacing * 2, 20 * window.gameScale);
   drawMeter("Time", timeLeft, meterSpacing * 3, 20 * window.gameScale);
@@ -2148,7 +2143,7 @@ function drawGameUI() {
     push();
     // Common button properties with scaling
     let btnSize = 60 * window.gameScale;
-    let btnY = height - btnSize - (30 * window.gameScale);
+    let btnY = (isMobileDevice() ? 600 * window.gameScale : height) - btnSize - (30 * window.gameScale);
     drawingContext.shadowBlur = 5 * window.gameScale;
     drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
     
@@ -2169,7 +2164,7 @@ function drawGameUI() {
     endShape(CLOSE);
     
     // Left arrow button
-    let leftBtnX = width - (btnSize * 2) - (50 * window.gameScale);
+    let leftBtnX = (isMobileDevice() ? 1000 * window.gameScale : width) - (btnSize * 2) - (50 * window.gameScale);
     fill('#f5f7f8');
     stroke('#000000');
     strokeWeight(2 * window.gameScale);
@@ -2185,7 +2180,7 @@ function drawGameUI() {
     endShape(CLOSE);
     
     // Right arrow button
-    let rightBtnX = width - btnSize - (30 * window.gameScale);
+    let rightBtnX = (isMobileDevice() ? 1000 * window.gameScale : width) - btnSize - (30 * window.gameScale);
     fill('#f5f7f8');
     stroke('#000000');
     strokeWeight(2 * window.gameScale);
@@ -3158,18 +3153,18 @@ function mouseClicked() {
   console.log("Mouse clicked, current game state:", gameState);  // Debug log
   
   if (gameState === 'start') {
-    // Check if start button was clicked
-    let startBtnX = width/2 - 100;
-    let startBtnY = height - 100;
-    let startBtnW = 200;
-    let startBtnH = 40;
+    // Check if start button was clicked - with mobile scaling
+    let startBtnX = width/2 - (100 * window.gameScale);
+    let startBtnY = height - (100 * window.gameScale);
+    let startBtnW = 200 * window.gameScale;
+    let startBtnH = 40 * window.gameScale;
     
     if (mouseX >= startBtnX && mouseX <= startBtnX + startBtnW && 
         mouseY >= startBtnY && mouseY <= startBtnY + startBtnH) {
       console.log("Start button clicked");  // Debug log
-      gameState = 'playing';  // Directly set to playing state
+      gameState = 'playing';
       window.gameState = 'playing';
-      resetGame();  // Initialize game objects
+      resetGame();
       return false;
     }
   } else if (gameState === 'gameOver' || gameState === 'win') {
@@ -3354,10 +3349,47 @@ function drawEffectNotifications() {
 
 // Add touch support for mobile
 function touchStarted() {
-  if (gameState === 'playing' && !showingDecision && touches.length > 0) {
-    let btnSize = 60 * window.gameScale; // Scale button size
-    let btnY = height - btnSize - (30 * window.gameScale); // Scale padding
+  // Calculate the game viewport offset
+  let gameWidth = 1000 * window.gameScale;
+  let gameHeight = 600 * window.gameScale;
+  let offsetX = (width - gameWidth) / 2;
+  let offsetY = (height - gameHeight) / 2;
+  
+  if (gameState === 'start' && touches.length > 0) {
     let touch = touches[0];
+    // Adjust touch coordinates to account for viewport offset
+    let adjustedX = touch.x - offsetX;
+    let adjustedY = touch.y - offsetY;
+    
+    let startBtnX = gameWidth/2 - (100 * window.gameScale);
+    let startBtnY = gameHeight - (100 * window.gameScale);
+    let startBtnW = 200 * window.gameScale;
+    let startBtnH = 40 * window.gameScale;
+    
+    // Add extra touch area for better touch response
+    let touchArea = 20 * window.gameScale;
+    
+    if (adjustedX >= startBtnX - touchArea && 
+        adjustedX <= startBtnX + startBtnW + touchArea && 
+        adjustedY >= startBtnY - touchArea && 
+        adjustedY <= startBtnY + startBtnH + touchArea) {
+      console.log("Start button touched");  // Debug log
+      gameState = 'playing';
+      window.gameState = 'playing';
+      resetGame();
+      return false;
+    }
+  }
+  
+  // Handle gameplay touch controls with adjusted coordinates
+  if (gameState === 'playing' && !showingDecision && touches.length > 0) {
+    let touch = touches[0];
+    // Adjust touch coordinates
+    let adjustedX = touch.x - offsetX;
+    let adjustedY = touch.y - offsetY;
+    
+    let btnSize = 60 * window.gameScale;
+    let btnY = gameHeight - btnSize - (30 * window.gameScale);
     
     // Add touch feedback with scaling
     let touchFeedback = (x, y) => {
@@ -3371,11 +3403,11 @@ function touchStarted() {
     
     // Jump button check with scaled positions
     let jumpBtnX = 30 * window.gameScale;
-    let jumpTouchArea = 15 * window.gameScale; // Increased touch area
-    if (touch.x >= jumpBtnX - jumpTouchArea && 
-        touch.x <= jumpBtnX + btnSize + jumpTouchArea &&
-        touch.y >= btnY - jumpTouchArea && 
-        touch.y <= btnY + btnSize + jumpTouchArea) {
+    let jumpTouchArea = 15 * window.gameScale;
+    if (adjustedX >= jumpBtnX - jumpTouchArea && 
+        adjustedX <= jumpBtnX + btnSize + jumpTouchArea &&
+        adjustedY >= btnY - jumpTouchArea && 
+        adjustedY <= btnY + btnSize + jumpTouchArea) {
       if (!player.isJumping) {
         player.velocityY = -player.jumpForce;
         player.isJumping = true;
@@ -3385,11 +3417,11 @@ function touchStarted() {
     }
     
     // Left arrow button check with scaled positions
-    let leftBtnX = width - (btnSize * 2) - (50 * window.gameScale);
-    if (touch.x >= leftBtnX - jumpTouchArea && 
-        touch.x <= leftBtnX + btnSize + jumpTouchArea &&
-        touch.y >= btnY - jumpTouchArea && 
-        touch.y <= btnY + btnSize + jumpTouchArea) {
+    let leftBtnX = gameWidth - (btnSize * 2) - (50 * window.gameScale);
+    if (adjustedX >= leftBtnX - jumpTouchArea && 
+        adjustedX <= leftBtnX + btnSize + jumpTouchArea &&
+        adjustedY >= btnY - jumpTouchArea && 
+        adjustedY <= btnY + btnSize + jumpTouchArea) {
       if (player.worldX > 100) {
         player.worldX -= player.speed;
         player.facingRight = false;
