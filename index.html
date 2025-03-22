@@ -420,71 +420,101 @@
         </div>
         <div id="game-controls">
             <div class="control-group-left">
-                <button class="game-button jump-button" id="jumpBtn" ontouchstart="handleButton('jump', true)" ontouchend="handleButton('jump', false)">JUMP</button>
+                <button class="game-button jump-button" id="jumpBtn">↑</button>
             </div>
             <div class="control-group-right">
-                <button class="game-button" id="rightBtn" ontouchstart="handleButton('right', true)" ontouchend="handleButton('right', false)">→</button>
+                <button class="game-button" id="leftBtn">←</button>
+                <button class="game-button" id="rightBtn">→</button>
             </div>
         </div>
     </div>
 
     <!-- Game script -->
     <script>
-        // Show loading message
-        document.getElementById('loading').style.display = 'block';
-        
-        // Handle loading errors
-        window.onerror = function() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-        };
-        
-        // Hide loading message when p5.js is ready
-        window.addEventListener('load', function() {
-            document.getElementById('loading').style.display = 'none';
-        });
-
-        // Handle button events
-        let buttonStates = {
+        // Mobile control state
+        let controlState = {
+            left: false,
             right: false,
             jump: false
         };
 
-        function handleButton(direction, isPressed) {
-            buttonStates[direction] = isPressed;
-            
-            // Prevent default behavior to avoid scrolling
-            event.preventDefault();
-            
-            // Update the game's movement state
-            if (window.updateMovement) {
-                window.updateMovement(direction, isPressed);
-            }
-        }
-
-        // Add keyboard support
-        document.addEventListener('keydown', function(event) {
-            switch(event.key) {
-                case 'ArrowRight':
-                    handleButton('right', true);
-                    break;
-                case ' ':
-                case 'ArrowUp':
-                    handleButton('jump', true);
-                    break;
+        // Touch event handlers for buttons
+        document.getElementById('jumpBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!window.player.isJumping) {
+                window.player.velocityY = -window.player.jumpForce;
+                window.player.isJumping = true;
             }
         });
 
-        document.addEventListener('keyup', function(event) {
-            switch(event.key) {
-                case 'ArrowRight':
-                    handleButton('right', false);
-                    break;
-                case ' ':
-                case 'ArrowUp':
-                    handleButton('jump', false);
-                    break;
+        document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            controlState.left = true;
+        });
+
+        document.getElementById('leftBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            controlState.left = false;
+        });
+
+        document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            controlState.right = true;
+        });
+
+        document.getElementById('rightBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            controlState.right = false;
+        });
+
+        // Function to update player movement based on control state
+        function updatePlayerMovement() {
+            if (window.gameState === 'playing' && !window.showingDecision) {
+                if (controlState.left && window.player.worldX > 100) {
+                    window.player.worldX -= window.player.speed;
+                    window.player.facingRight = false;
+                }
+                if (controlState.right) {
+                    window.player.worldX += window.player.speed;
+                    window.player.facingRight = true;
+                }
             }
+        }
+
+        // Add the movement update to the game loop
+        if (window.draw) {
+            const originalDraw = window.draw;
+            window.draw = function() {
+                updatePlayerMovement();
+                originalDraw();
+            };
+        }
+
+        // Prevent default touch behavior to avoid scrolling
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.closest('#game-controls')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Handle button visual feedback
+        const buttons = document.querySelectorAll('.game-button');
+        buttons.forEach(button => {
+            button.addEventListener('touchstart', () => {
+                button.style.transform = 'scale(0.95)';
+                button.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+            });
+            
+            button.addEventListener('touchend', () => {
+                button.style.transform = 'scale(1)';
+                button.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+            });
+            
+            // Cancel the button press if touch moves out
+            button.addEventListener('touchcancel', () => {
+                button.style.transform = 'scale(1)';
+                button.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+            });
         });
     </script>
     

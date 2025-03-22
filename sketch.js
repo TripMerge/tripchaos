@@ -313,11 +313,11 @@ let canvas;
   
     canvas.parent('game-container');
     
-  // Initialize game objects and settings
-  resetGame();
-  
-  // Add window resize handler
-  window.addEventListener('resize', windowResized);
+    // Initialize game objects and settings
+    resetGame();
+    
+    // Add window resize handler
+    window.addEventListener('resize', windowResized);
 }
 
 // Handle window resize events
@@ -2147,12 +2147,6 @@ function drawGameUI() {
     drawingContext.shadowBlur = 5 * window.gameScale;
     drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
     
-    // Jump button (left side)
-    let jumpBtnX = 30 * window.gameScale;
-    fill('#f5f7f8');
-    stroke('#000000');
-    strokeWeight(2 * window.gameScale);
-    rect(jumpBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
     
     // Up arrow for jump
     fill('#000000');
@@ -2163,12 +2157,6 @@ function drawGameUI() {
     vertex(jumpBtnX + 3*btnSize/4, btnY + 3*btnSize/4);
     endShape(CLOSE);
     
-    // Left arrow button
-    let leftBtnX = (isMobileDevice() ? 1000 * window.gameScale : width) - (btnSize * 2) - (50 * window.gameScale);
-    fill('#f5f7f8');
-    stroke('#000000');
-    strokeWeight(2 * window.gameScale);
-    rect(leftBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
     
     // Left arrow symbol
     fill('#000000');
@@ -2178,13 +2166,6 @@ function drawGameUI() {
     vertex(leftBtnX + 3*btnSize/4, btnY + btnSize/4);
     vertex(leftBtnX + 3*btnSize/4, btnY + 3*btnSize/4);
     endShape(CLOSE);
-    
-    // Right arrow button
-    let rightBtnX = (isMobileDevice() ? 1000 * window.gameScale : width) - btnSize - (30 * window.gameScale);
-    fill('#f5f7f8');
-    stroke('#000000');
-    strokeWeight(2 * window.gameScale);
-    rect(rightBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
     
     // Right arrow symbol
     fill('#000000');
