@@ -495,20 +495,27 @@
                     window.player.facingRight = true;
                 }
             }
+            
+            // Request the next animation frame to keep updating
+            requestAnimationFrame(updatePlayerMovement);
         }
 
-        // Add the movement update to the game loop
+        // Start the player movement loop
+        requestAnimationFrame(updatePlayerMovement);
+
+        // Also make the window player object directly accessible to ensure we can reference it
         window.addEventListener('load', function() {
-            // Make sure sketch.js is fully loaded
+            // Wait until sketch.js has fully loaded and initialized
             setTimeout(function() {
-                if (window.draw) {
-                    const originalDraw = window.draw;
-                    window.draw = function() {
-                        updatePlayerMovement();
-                        originalDraw();
-                    };
+                if (typeof player !== 'undefined') {
+                    // Make sure player object is accessible globally
+                    window.player = player;
+                    window.gameState = gameState;
+                    window.showingDecision = showingDecision;
+                    
+                    console.log("Game controls initialized");
                 }
-            }, 500);
+            }, 1000);
         });
 
         // Prevent default touch behavior to avoid scrolling
