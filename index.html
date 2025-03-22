@@ -49,6 +49,8 @@
             position: relative;
             width: 100%;
             height: 100vh;
+            width: 100%;
+            height: 100vh;
             margin: 0 auto;
             background-color: #1a1a2e;
             border-radius: 10px;
@@ -74,6 +76,43 @@
             left: 0;
             width: 100%;
             height: 100%;
+            background-color: #1a1a2e;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        #rotation-message img {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            animation: rotate 2s infinite linear;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @media screen and (max-width: 768px) and (orientation: portrait) {
+            #rotation-message {
+                display: flex;
+            }
+            #game-container {
+                display: none;
+            }
+        }
+        
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            body {
+                padding: 0;
+            }
+            #game-container {
+                border-radius: 0;
+            }
             background-color: #1a1a2e;
             z-index: 1000;
             justify-content: center;
@@ -164,7 +203,14 @@
         <h2>Please Rotate Your Device</h2>
         <p>This game works best in landscape mode</p>
     </div>
+    <div id="rotation-message">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjEgMnY2aC02Ii8+PHBhdGggZD0iTTMgMTJ2LTJhOSA5IDAgMCAxIDE1LTYuN2wzIDIuN00zIDIydi02aDYiLz48cGF0aCBkPSJNMjEgMTJ2MmE5IDkgMCAwIDEtMTUgNi43bC0zLTIuNyIvPjwvc3ZnPg==" alt="Rotate Device">
+        <h2>Please Rotate Your Device</h2>
+        <p>This game works best in landscape mode</p>
+    </div>
     <div id="game-container">
+        <div id="loading">Loading...</div>
+        <div id="error"></div>
         <div id="loading">Loading...</div>
         <div id="error"></div>
     </div>
