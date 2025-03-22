@@ -62,22 +62,54 @@
         }
         
         canvas {
-            position: relative; /* Change from absolute to relative */
-            top: auto; /* Remove absolute positioning */
+            position: relative;
+            top: auto;
             left: auto;
             transform: none;
             width: 100%;
             height: 100%;
-            max-width: 800px; /* Set a reasonable max-width */
-            max-height: 450px; /* Set a reasonable max-height */
-            aspect-ratio: 16/9; /* Force 16:9 aspect ratio */
+            max-width: 1920px; /* Increased PC size to 1080p */
+            max-height: 1080px; /* Increased PC size - 16:9 ratio */
+            aspect-ratio: 16/9;
             object-fit: contain;
             margin: auto;
-            image-rendering: pixelated; /* Better for pixel art if you're using it */
+            image-rendering: pixelated;
             touch-action: none;
         }
         
-        /* iPhone and similar devices in landscape */
+        /* Desktop screens */
+        @media screen and (min-width: 1920px) {
+            canvas {
+                width: 1920px;
+                height: 1080px;
+            }
+        }
+        
+        /* Large desktop screens */
+        @media screen and (max-width: 1919px) and (min-width: 1440px) {
+            canvas {
+                max-width: 1600px;
+                max-height: 900px;
+            }
+        }
+        
+        /* Medium desktop screens */
+        @media screen and (max-width: 1439px) and (min-width: 1280px) {
+            canvas {
+                max-width: 1280px;
+                max-height: 720px;
+            }
+        }
+        
+        /* Smaller desktop screens */
+        @media screen and (max-width: 1279px) and (min-width: 927px) {
+            canvas {
+                max-width: 1024px;
+                max-height: 576px;
+            }
+        }
+        
+        /* iPhone and similar devices in landscape - keeping the small sizes */
         @media screen and (max-width: 926px) and (orientation: landscape) {
             body {
                 padding: 0;
@@ -91,24 +123,24 @@
             canvas {
                 width: 100%;
                 height: 100%;
-                max-width: 667px; /* Smaller max-width for mobile */
-                max-height: 375px; /* Smaller max-height for mobile */
+                max-width: 480px;
+                max-height: 270px;
             }
         }
         
         /* Smaller iPhone models in landscape */
         @media screen and (max-width: 844px) and (orientation: landscape) {
             canvas {
-                max-width: 600px;
-                max-height: 337px;
+                max-width: 426px; /* Reduced from 600px */
+                max-height: 240px; /* Reduced from 337px */
             }
         }
         
         /* iPhone SE and smaller devices */
         @media screen and (max-width: 667px) and (orientation: landscape) {
             canvas {
-                max-width: 568px;
-                max-height: 320px;
+                max-width: 384px; /* Reduced from 568px */
+                max-height: 216px; /* Reduced from 320px */
             }
         }
         
