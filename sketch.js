@@ -296,42 +296,52 @@ let decisions = [
 
 // Setup function
 function setup() {
-  console.log("Setup function called");
-  
-  // Create canvas and add it to the game container
-  let canvas = createCanvas(1000, 600);
-  canvas.parent('game-container');
-  
-  // Set font
-  textFont('Inter');
-  
-  // Initialize ocean waves
-  for (let i = 0; i < 10; i++) {
-    oceanWaves.push({
-      x: random(0, levelLength),
-      speed: random(0.5, 2)
-    });
+  // Create canvas with responsive dimensions
+  if (isMobileDevice()) {
+    // For mobile devices in landscape, use full screen width while maintaining aspect ratio
+    let canvasWidth = window.innerWidth;
+    let canvasHeight = (canvasWidth * 0.6); // Maintain 5:3 aspect ratio
+    // Ensure the height doesn't exceed the viewport height
+    if (canvasHeight > window.innerHeight) {
+      canvasHeight = window.innerHeight;
+      canvasWidth = (canvasHeight / 0.6);
+    }
+    createCanvas(canvasWidth, canvasHeight);
+  } else {
+    // For desktop, use fixed dimensions
+    createCanvas(1000, 600);
   }
   
-  // Initialize clouds
-  for (let i = 0; i < 5; i++) {
-    clouds.push({
-      x: random(0, levelLength),
-      y: random(50, 150),
-      width: random(60, 120),
-      speed: random(0.2, 0.5)
-    });
-  }
-  
-  // Set initial game state
-  gameState = 'start';
-  window.gameState = gameState;
-  
-  // Initialize game objects
+  // Initialize game objects and settings
   resetGame();
   
-  console.log("Game initialized with state:", gameState);
+  // Add window resize handler
+  window.addEventListener('resize', windowResized);
 }
+
+// Handle window resize events
+function windowResized() {
+  if (isMobileDevice()) {
+    let canvasWidth = window.innerWidth;
+    let canvasHeight = (canvasWidth * 0.6);
+    if (canvasHeight > window.innerHeight) {
+      canvasHeight = window.innerHeight;
+      canvasWidth = (canvasHeight / 0.6);
+    }
+    resizeCanvas(canvasWidth, canvasHeight);
+  }
+}
+
+// Update mobile detection to include orientation check
+function isMobileDevice() {
+  return (touches.length > 0 || (window.innerWidth <= 768)) && window.matchMedia("(orientation: landscape)").matches;
+}
+
+// Add orientation change handler
+window.addEventListener('orientationchange', function() {
+  // Small delay to ensure new dimensions are available
+  setTimeout(windowResized, 100);
+});
 
 // Reset game state
 function resetGame() {
@@ -2109,21 +2119,21 @@ function drawGameUI() {
   drawMeter("Time", timeLeft, meterSpacing * 3, 20);
   drawMeter("Score", score, meterSpacing * 4, 20);
   
-  // Draw control buttons when playing
-  if (gameState === 'playing' && !showingDecision) {
+  // Draw control buttons only on mobile when playing
+  if (gameState === 'playing' && !showingDecision && isMobileDevice()) {
     push();
-    // Common button properties
-    let btnSize = 45;
-    let btnY = height - btnSize - 20;
+    // Common button properties - Increased size for better touch targets
+    let btnSize = 60;
+    let btnY = height - btnSize - 30;
     drawingContext.shadowBlur = 5;
     drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
     
     // Jump button (left side)
-    let jumpBtnX = 20;
+    let jumpBtnX = 30;
     fill('#f5f7f8');
     stroke('#000000');
     strokeWeight(2);
-    rect(jumpBtnX, btnY, btnSize, btnSize, 8);
+    rect(jumpBtnX, btnY, btnSize, btnSize, 12);
     
     // Up arrow for jump
     fill('#000000');
@@ -2135,11 +2145,11 @@ function drawGameUI() {
     endShape(CLOSE);
     
     // Left arrow button
-    let leftBtnX = width - (btnSize * 2) - 40; // Moved left by adjusting gap
+    let leftBtnX = width - (btnSize * 2) - 50;
     fill('#f5f7f8');
     stroke('#000000');
     strokeWeight(2);
-    rect(leftBtnX, btnY, btnSize, btnSize, 8);
+    rect(leftBtnX, btnY, btnSize, btnSize, 12);
     
     // Left arrow symbol
     fill('#000000');
@@ -2151,11 +2161,11 @@ function drawGameUI() {
     endShape(CLOSE);
     
     // Right arrow button
-    let rightBtnX = width - btnSize - 20; // Moved left by adjusting gap
+    let rightBtnX = width - btnSize - 30;
     fill('#f5f7f8');
     stroke('#000000');
     strokeWeight(2);
-    rect(rightBtnX, btnY, btnSize, btnSize, 8);
+    rect(rightBtnX, btnY, btnSize, btnSize, 12);
     
     // Right arrow symbol
     fill('#000000');
@@ -3322,40 +3332,58 @@ function drawEffectNotifications() {
 function touchStarted() {
   // Check control buttons for playing state
   if (gameState === 'playing' && !showingDecision && touches.length > 0) {
-    let btnSize = 45;
-    let btnY = height - btnSize - 20;
+    let btnSize = 60; // Match the new button size
+    let btnY = height - btnSize - 30;
     let touch = touches[0];
     
-    // Jump button check
-    let jumpBtnX = 20;
-    if (touch.x >= jumpBtnX && touch.x <= jumpBtnX + btnSize &&
-        touch.y >= btnY && touch.y <= btnY + btnSize) {
+    // Add touch feedback
+    let touchFeedback = (x, y) => {
+      push();
+      noFill();
+      stroke('#c72a09');
+      strokeWeight(3);
+      ellipse(x + btnSize/2, y + btnSize/2, btnSize/2);
+      pop();
+    };
+    
+    // Jump button check with increased touch area
+    let jumpBtnX = 30;
+    if (touch.x >= jumpBtnX - 10 && touch.x <= jumpBtnX + btnSize + 10 &&
+        touch.y >= btnY - 10 && touch.y <= btnY + btnSize + 10) {
       if (!player.isJumping) {
         player.velocityY = -player.jumpForce;
         player.isJumping = true;
+        touchFeedback(jumpBtnX, btnY);
       }
       return false;
     }
     
-    // Left arrow button check
-    let leftBtnX = width - (btnSize * 2) - 30;
-    if (touch.x >= leftBtnX && touch.x <= leftBtnX + btnSize &&
-        touch.y >= btnY && touch.y <= btnY + btnSize) {
+    // Left arrow button check with increased touch area
+    let leftBtnX = width - (btnSize * 2) - 50;
+    if (touch.x >= leftBtnX - 10 && touch.x <= leftBtnX + btnSize + 10 &&
+        touch.y >= btnY - 10 && touch.y <= btnY + btnSize + 10) {
       if (player.worldX > 100) {
         player.worldX -= player.speed;
         player.facingRight = false;
+        touchFeedback(leftBtnX, btnY);
       }
       return false;
     }
     
-    // Right arrow button check
-    let rightBtnX = width - btnSize - 10;
-    if (touch.x >= rightBtnX && touch.x <= rightBtnX + btnSize &&
-        touch.y >= btnY && touch.y <= btnY + btnSize) {
+    // Right arrow button check with increased touch area
+    let rightBtnX = width - btnSize - 30;
+    if (touch.x >= rightBtnX - 10 && touch.x <= rightBtnX + btnSize + 10 &&
+        touch.y >= btnY - 10 && touch.y <= btnY + btnSize + 10) {
       player.worldX += player.speed;
       player.facingRight = true;
+      touchFeedback(rightBtnX, btnY);
       return false;
     }
   }
   return true;
+}
+
+// Add mobile detection function
+function isMobileDevice() {
+  return (touches.length > 0 || (window.innerWidth <= 768)) && window.matchMedia("(orientation: landscape)").matches;
 }
