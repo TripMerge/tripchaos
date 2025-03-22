@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="description" content="TripChaos: Group Traveler - A fun game about group travel planning mishaps">
     <meta name="theme-color" content="#1a1a2e">
     
@@ -33,30 +35,31 @@
         
         body {
             margin: 0;
-            padding: 20px;
+            padding: 0; /* Remove padding for mobile */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            height: -webkit-fill-available; /* Fix for Safari mobile viewport */
             background-color: #1a1a2e;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #ffffff;
             overflow: hidden;
-            touch-action: none; /* Prevent default touch actions on mobile */
+            touch-action: none;
         }
         
         #game-container {
             position: relative;
             width: 100%;
-            height: 100vh;
-            width: 100%;
-            height: 100vh;
+            height: 100%;
             margin: 0 auto;
             background-color: #1a1a2e;
             border-radius: 10px;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
             overflow: hidden;
-            touch-action: none; /* Prevent default touch actions on mobile */
+            touch-action: none;
+            /* Add padding for iOS safe areas */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         
         canvas {
@@ -66,24 +69,44 @@
             transform: translate(-50%, -50%);
             max-width: 100%;
             max-height: 100%;
-            width: 1280px; /* Base width for desktop */
-            height: 720px; /* 16:9 aspect ratio */
-            touch-action: none; /* Prevent default touch actions on mobile */
+            width: 100%; /* Make canvas responsive */
+            height: auto; /* Maintain aspect ratio */
+            touch-action: none;
         }
         
-        /* iPhone 14 and similar devices in landscape */
+        /* iPhone and similar devices in landscape */
         @media screen and (max-width: 926px) and (orientation: landscape) {
+            body {
+                padding: 0;
+                height: 100vh;
+            }
+            
+            #game-container {
+                border-radius: 0;
+                height: 100vh;
+            }
+            
             canvas {
-                width: 926px; /* iPhone 14 Pro Max height in landscape */
-                height: 428px; /* Maintaining aspect ratio */
+                width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right));
+                height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+                max-height: 428px; /* Max height for iPhone 14 Pro Max */
+                max-width: 926px; /* Max width in landscape */
             }
         }
         
         /* Smaller iPhone models in landscape */
         @media screen and (max-width: 844px) and (orientation: landscape) {
             canvas {
-                width: 844px;
-                height: 390px;
+                max-width: 844px;
+                max-height: 390px;
+            }
+        }
+        
+        /* iPhone SE and smaller devices */
+        @media screen and (max-width: 667px) and (orientation: landscape) {
+            canvas {
+                max-width: 667px;
+                max-height: 375px;
             }
         }
         
