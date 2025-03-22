@@ -9,6 +9,11 @@ let satisfaction = 100;
 let timeLeft = 60;
 let greyAtmosphere = 0; // Track grey atmosphere effect (0 to 1)
 
+// Effect notification system
+let effectNotifications = [];
+const NOTIFICATION_DURATION = 60; // Duration in frames (1 second at 60fps)
+const NOTIFICATION_RISE_SPEED = 1; // How fast notifications float up
+
 // Global variables for leaderboard
 let playerEmail = "";
 let showLeaderboard = false;
@@ -103,61 +108,62 @@ let fontFamily = 'Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
 
 // Game elements for the legend
 let gameElements = [
-  { name: "Blue Star", description: "Boost score", draw: (x, y) => { 
-    // Glowing star
-    fill(100, 100, 255, 50);
-    star(x, y, 12, 18, 5);
-    fill(0, 0, 255);
-    star(x, y, 8, 15, 5);
+  { name: "Souvenir", description: "Boost score", draw: (x, y) => { 
+    // Souvenir gift box
     fill(100, 100, 255);
-    star(x, y, 4, 8, 5);
+    rect(x - 8, y - 8, 16, 16, 2); // Box
+    
+    // Ribbon
+    fill(0, 0, 255);
+    rect(x - 8, y - 2, 16, 4); // Horizontal ribbon
+    rect(x - 2, y - 8, 4, 16); // Vertical ribbon
+    
+    // Gift bow
+    fill(100, 100, 255);
+    ellipse(x, y, 6, 6); // Center of bow
+    
+    // Knot details
+    fill(0, 0, 255);
+    ellipse(x - 3, y - 3, 3, 3); // Top left knot
+    ellipse(x + 3, y - 3, 3, 3); // Top right knot
+    ellipse(x - 3, y + 3, 3, 3); // Bottom left knot
+    ellipse(x + 3, y + 3, 3, 3); // Bottom right knot
   }},
-  { name: "Gold Coin", description: "Refill budget & score", draw: (x, y) => { 
+  { name: "Coin", description: "Refill budget & score", draw: (x, y) => { 
     // Gold coin with shine
     fill(255, 215, 0);
     ellipse(x, y, 16, 16);
     fill(255, 235, 100);
     ellipse(x, y, 13, 13);
     fill(255, 215, 0);
-    textAlign(CENTER, CENTER);
-    textSize(12);
-    text("$", x, y);
     fill(255, 255, 255, 150);
     ellipse(x - 4, y - 4, 4, 4);
   }},
-  { name: "Green Map", description: "Refill satisfaction & score", draw: (x, y) => { 
-    // Green folded paper
+  { name: "Map", description: "Refill satisfaction & score", draw: (x, y) => { 
+    // Map base
     fill(50, 205, 50);  // Green color
     rect(x - 8, y - 8, 16, 16, 2);
     
-    // Fold lines
-    stroke(40, 180, 40);
-    strokeWeight(1);
-    // Diagonal fold
-    line(x - 8, y - 8, x + 8, y + 8);
-    // Horizontal fold
-    line(x - 8, y, x + 8, y);
-    
-    // Corner fold
-    fill(40, 180, 40);
-    noStroke();
-    triangle(x + 8, y - 8,  // Top right corner
-            x + 8, y - 4,
-            x + 4, y - 8);
+    // Direction arrow
+    stroke(255);  // White arrow for contrast
+    strokeWeight(2);
+    line(x - 4, y, x + 4, y);      // Arrow body
+    line(x + 4, y, x + 1, y - 3);  // Arrow head top
+    line(x + 4, y, x + 1, y + 3);  // Arrow head bottom
   }},
-  { name: "Red Dollar", description: "Drain budget", draw: (x, y) => { 
+  { name: "Unexpected Expenses", description: "Drain budget", draw: (x, y) => { 
     // Red dollar sign
     fill(220, 20, 60);
     textAlign(CENTER, CENTER);
     textSize(20);
     textStyle(BOLD);
-    text("$", x, y);
+    text("💳", x, y);
     textStyle(NORMAL);
     // Subtle glow
     noFill();
     stroke(220, 20, 60, 100);
     strokeWeight(2);
-    ellipse(x, y, 14, 14);
+    // Remove circle
     noStroke();
   }},
   { name: "Gray Cloud", description: "Slow moves & lose satisfaction", draw: (x, y) => { 
@@ -171,22 +177,29 @@ let gameElements = [
     triangle(x, y + 7, x - 3, y + 14, x + 3, y + 14);
     triangle(x + 7, y + 7, x + 4, y + 14, x + 10, y + 14);
   }},
-  { name: "Brown Suitcase", description: "Lose satisfaction", draw: (x, y) => { 
-    // Brown suitcase with handle and details
+  { name: "Lost Luggage", description: "Lose satisfaction", draw: (x, y) => { 
+    // Tilted lost suitcase with question mark
+    push();
+    translate(x, y);
+    rotate(PI/12); // Slight tilt
+    
+    // Brown suitcase base
     fill(139, 69, 19);  // Saddle brown
-    rect(x - 8, y - 8, 16, 16, 2);
+    rect(-8, -8, 16, 16, 2);
     
     // Handle
     stroke(101, 67, 33);  // Darker brown
     strokeWeight(2);
     noFill();
-    arc(x, y - 8, 8, 4, PI, TWO_PI);
+    arc(0, -8, 8, 4, PI, TWO_PI);
     
-    // Horizontal lines for texture
-    strokeWeight(1);
-    line(x - 8, y - 4, x + 8, y - 4);
-    line(x - 8, y + 0, x + 8, y + 0);
-    line(x - 8, y + 4, x + 8, y + 4);
+    // Question mark
+    fill(255);  // White question mark
+    textAlign(CENTER, CENTER);
+    textSize(12);
+    text("?", 0, 0);
+    
+    pop();
     noStroke();
   }},
 ];
@@ -283,42 +296,59 @@ let decisions = [
 
 // Setup function
 function setup() {
-  console.log("Setup function called");
+  let canvas;
   
-  // Create canvas and add it to the game container
-  let canvas = createCanvas(1000, 600);
+  if (isMobileDevice()) {
+    // For mobile devices, use full window dimensions
+    canvas = createCanvas(windowWidth, windowHeight);
+    // Calculate game scale based on viewport size while maintaining aspect ratio
+    let scaleX = windowWidth / 1000;
+    let scaleY = windowHeight / 600;
+    window.gameScale = min(scaleX, scaleY);
+  } else {
+    // For desktop, use fixed dimensions
+    canvas = createCanvas(1000, 600);
+    window.gameScale = 1;
+  }
+  
   canvas.parent('game-container');
   
-  // Set font
-  textFont('Inter');
-  
-  // Initialize ocean waves
-  for (let i = 0; i < 10; i++) {
-    oceanWaves.push({
-      x: random(0, levelLength),
-      speed: random(0.5, 2)
-    });
-  }
-  
-  // Initialize clouds
-  for (let i = 0; i < 5; i++) {
-    clouds.push({
-      x: random(0, levelLength),
-      y: random(50, 150),
-      width: random(60, 120),
-      speed: random(0.2, 0.5)
-    });
-  }
-  
-  // Set initial game state
-  gameState = 'start';
-  window.gameState = gameState;
-  
-  // Initialize game objects
+  // Initialize game objects and settings
   resetGame();
   
-  console.log("Game initialized with state:", gameState);
+  // Add window resize handler
+  window.addEventListener('resize', windowResized);
 }
+
+// Handle window resize events
+function windowResized() {
+  if (isMobileDevice()) {
+    // Only resize canvas on mobile devices
+    resizeCanvas(windowWidth, windowHeight);
+    // Recalculate game scale
+    let scaleX = windowWidth / 1000;
+    let scaleY = windowHeight / 600;
+    window.gameScale = min(scaleX, scaleY);
+  }
+  // Desktop keeps fixed size, no resize needed
+}
+
+// Update mobile detection to be more reliable
+function isMobileDevice() {
+  return (
+    touches.length > 0 || 
+    (typeof window.orientation !== 'undefined') || 
+    (navigator.userAgent.indexOf('IEMobile') !== -1) ||
+    (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) ||
+    (window.innerWidth <= 768)
+  );
+}
+
+// Add orientation change handler
+window.addEventListener('orientationchange', function() {
+  // Small delay to ensure new dimensions are available
+  setTimeout(windowResized, 100);
+});
 
 // Reset game state
 function resetGame() {
@@ -390,39 +420,68 @@ function generateLevel() {
   perks = [];
   mishaps = [];
   
-  // Create platforms at varying heights with better spacing
-  let lastPlatformX = firstPlatform.x + firstPlatform.width;
-  let lastPlatformY = firstPlatform.y;
+  let lastPlatformX = 0;
+  let lastPlatformY = 400;
   
-  // Calculate max jump distance based on player physics - updated for new jump force
-  let maxJumpDistance = (player.speed * player.jumpForce) / 0.5;
-  let maxJumpHeight = (player.jumpForce * player.jumpForce) / (2 * 0.5);
+  // Adjust probabilities based on level
+  let perkChance = 0.4 - (currentLevelNumber - 1) * 0.05; // Decrease perks with level (0.4, 0.35, 0.3)
+  let mishapChance = 0.2 + (currentLevelNumber - 1) * 0.1; // Increase mishaps with level (0.2, 0.3, 0.4)
+  
+  // Adjust perk type probabilities based on level
+  let coinChance = 0.4 - (currentLevelNumber - 1) * 0.1; // Decrease helpful perks
+  let mapChance = 0.3 - (currentLevelNumber - 1) * 0.05;
+  
+  // Height variation settings
+  let baseHeightMin = 250; // Base minimum height
+  let baseHeightMax = 400; // Base maximum height
+  let heightTrend = 0; // Used to create gradual height changes
   
   while (lastPlatformX < levelLength - 200) {
-    // Random platform width between 60 and 100 (even smaller platforms)
+    // Random platform width between 60 and 100
     let platformWidth = random(60, 100);
+    let platformX = lastPlatformX + random(100, 200);
     
-    // Increase minimum and maximum gaps between platforms - adjusted to be more forgiving
-    let minGap = 90 + currentLevelNumber * 2;  // Reduced from 120 for easier jumps
-    let maxGap = min(maxJumpDistance * 0.8, 190 + currentLevelNumber * 4);  // Reduced slightly, using 80% of max 
-    let horizontalGap = random(minGap, maxGap);
+    // Calculate new height with more variation
+    let heightVariation = 80 + (currentLevelNumber - 1) * 30; // Increased variation
     
-    // Calculate new platform position
-    let platformX = lastPlatformX + horizontalGap;
+    // Update height trend (creates smoother transitions)
+    heightTrend += random(-30, 30);
+    heightTrend = constrain(heightTrend, -50, 50);
     
-    // Calculate vertical position - adjusted to be more forgiving
-    let maxHeightDiff = min(maxJumpHeight * 0.7, 110);  // Reduced from 0.8 and 120 for easier jumps
-    let minY = max(lastPlatformY - maxHeightDiff, 150);  // Higher platforms possible
-    let maxY = min(lastPlatformY + maxHeightDiff, 450);
-    let platformY = random(minY, maxY);
+    // Calculate platform Y with trend and variation
+    let platformY = constrain(
+      lastPlatformY + heightTrend + random(-heightVariation, heightVariation),
+      baseHeightMin,
+      baseHeightMax
+    );
     
-    // Check for overlap with existing platforms with increased margin
+    // Occasionally create high platforms
+    if (random() < 0.2) { // 20% chance
+      platformY = random(150, 250);
+    }
+    
+    // Check for playability (ensure platforms aren't too far apart vertically)
+    let maxJumpHeight = 120; // Maximum height player can jump
+    if (abs(platformY - lastPlatformY) > maxJumpHeight) {
+      // Add an intermediate platform if gap is too large
+      let midX = (lastPlatformX + platformX) / 2;
+      let midY = (lastPlatformY + platformY) / 2;
+      platforms.push({
+        x: midX,
+        y: midY,
+        width: random(60, 80),
+        height: 20,
+        theme: currentTheme
+      });
+    }
+    
+    // Check for overlap with existing platforms
     let overlap = false;
     for (let platform of platforms) {
-      if (abs(platformX - platform.x) < platformWidth + 60 && 
-          abs(platformY - platform.y) < 100) {
+      if (abs(platformX - platform.x) < platformWidth &&
+          abs(platformY - platform.y) < 50) {
         overlap = true;
-      break;
+        break;
       }
     }
     
@@ -451,16 +510,18 @@ function generateLevel() {
         return false;
       }
       
-      // Add perk with spacing check (reduced chance)
-      if (random() < 0.3) {  // Reduced from 0.4
+      // Add perk with level-based probability
+      if (random() < perkChance) {
         let perkX = platformX + random(10, platformWidth - 30);
         let perkY = platformY - 30;
         
         if (!checkPerkOverlap(perkX, perkY)) {
           let rand = random();
           let perkType;
-          if (rand < 0.2) perkType = 'coin';  // Reduced good perk chances
-          else if (rand < 0.4) perkType = 'map';
+          
+          // Distribute perk types based on level-adjusted probabilities
+          if (rand < coinChance) perkType = 'coin';
+          else if (rand < coinChance + mapChance) perkType = 'map';
           else perkType = 'star';
           
           perks.push({
@@ -473,20 +534,37 @@ function generateLevel() {
         }
       }
       
-      // Add mishap with spacing check (increased chance)
-      if (random() < 0.4) {  // Increased from 0.3
+      // Add mishap with level-based probability
+      if (random() < mishapChance) {
         let mishapX = platformX + random(10, platformWidth - 30);
         let mishapY = platformY - 30;
         
         if (!checkPerkOverlap(mishapX, mishapY)) {
+          // Adjust mishap type distribution based on level
+          let mishapType;
+          let typeRand = random();
+          
+          if (currentLevelNumber === 1) {
+            // Level 1: 40% clouds (was 80%), 60% dollars (was 20%), no suitcases
+            mishapType = typeRand < 0.4 ? 'cloud' : 'dollar';
+          } else if (currentLevelNumber === 2) {
+            // Level 2: 40% clouds, 40% dollars, 20% suitcases
+            if (typeRand < 0.4) mishapType = 'cloud';
+            else if (typeRand < 0.8) mishapType = 'dollar';
+            else mishapType = 'suitcase';
+          } else {
+            // Level 3: 20% clouds, 40% dollars, 40% suitcases
+            if (typeRand < 0.2) mishapType = 'cloud';
+            else if (typeRand < 0.6) mishapType = 'dollar';
+            else mishapType = 'suitcase';
+          }
+          
           mishaps.push({
             x: mishapX,
             y: mishapY,
             width: 20,
             height: 20,
-            type: random(['cloud', 'dollar', 'suitcase']),
-            velocityY: 0,
-            gravity: 0,
+            type: mishapType,
             isStatic: true,
             creationTime: millis()
           });
@@ -501,7 +579,7 @@ function generateLevel() {
   // Add final platform and level end marker
   let finalPlatform = {
     x: levelLength - 150,
-    y: random(250, 350),  // Place at medium height for challenge
+    y: random(250, 350),
     width: 100,
     height: 20,
     theme: currentTheme
@@ -511,14 +589,15 @@ function generateLevel() {
   
   // Place level end marker on the final platform
   levelEndMarker = {
-    x: finalPlatform.x + finalPlatform.width/2 - 25,  // Centered on platform
-    y: finalPlatform.y - 50,  // Above the platform
+    x: finalPlatform.x + finalPlatform.width/2 - 25,
+    y: finalPlatform.y - 50,
     width: 50,
     height: 50
   };
   
-  // Add fewer but more challenging bonus platforms
-  for (let i = 0; i < 2; i++) {  // Reduced from 3
+  // Add bonus platforms with adjusted difficulty
+  let bonusPlatforms = 3 - (currentLevelNumber - 1); // Fewer bonus platforms in higher levels
+  for (let i = 0; i < bonusPlatforms; i++) {
     let platformX = random(300, levelLength - 300);
     let platformY = random(150, 250);  // Higher platforms
     let platformWidth = random(40, 60);  // Smaller platforms
@@ -542,7 +621,7 @@ function generateLevel() {
         theme: currentTheme
       });
       
-      // Add special perk (star) with mishap nearby
+      // Add special perk (star) with scaled reward
       perks.push({
         x: platformX + platformWidth/2 - 10,
         y: platformY - 30,
@@ -550,21 +629,6 @@ function generateLevel() {
         height: 20,
         type: 'star'
       });
-      
-      // Add multiple falling mishaps near the star
-      for (let j = 0; j < 2; j++) {
-        mishaps.push({
-          x: platformX + platformWidth/2 + random(-50, 50),
-          y: -50,  // Start above the screen
-          width: 20,
-          height: 20,
-          type: random(['cloud', 'dollar', 'suitcase']),
-          velocityY: 0,
-          gravity: 0,
-          isStatic: false,
-          creationTime: millis()
-        });
-      }
     }
   }
 }
@@ -574,6 +638,55 @@ function draw() {
   // Keep global gameState in sync
   window.gameState = gameState;
   
+  // Handle continuous button presses
+  if (gameState === 'playing' && !showingDecision) {
+    let btnSize = 45;
+    let btnY = height - btnSize - 20;
+    
+    // Check for mouse press on arrow buttons
+    if (mouseIsPressed) {
+      // Left arrow button check
+      let leftBtnX = width - (btnSize * 2) - 40;
+      if (mouseX >= leftBtnX && mouseX <= leftBtnX + btnSize &&
+          mouseY >= btnY && mouseY <= btnY + btnSize) {
+        if (player.worldX > 100) {
+          player.worldX -= player.speed;
+          player.facingRight = false;
+        }
+      }
+      
+      // Right arrow button check
+      let rightBtnX = width - btnSize - 20;
+      if (mouseX >= rightBtnX && mouseX <= rightBtnX + btnSize &&
+          mouseY >= btnY && mouseY <= btnY + btnSize) {
+        player.worldX += player.speed;
+        player.facingRight = true;
+      }
+    }
+    
+    // Check for touch on arrow buttons
+    for (let touch of touches) {
+      // Left arrow button check
+      let leftBtnX = width - (btnSize * 2) - 40;
+      if (touch.x >= leftBtnX && touch.x <= leftBtnX + btnSize &&
+          touch.y >= btnY && touch.y <= btnY + btnSize) {
+        if (player.worldX > 100) {
+          player.worldX -= player.speed;
+          player.facingRight = false;
+        }
+      }
+      
+      // Right arrow button check
+      let rightBtnX = width - btnSize - 20;
+      if (touch.x >= rightBtnX && touch.x <= rightBtnX + btnSize &&
+          touch.y >= btnY && touch.y <= btnY + btnSize) {
+        player.worldX += player.speed;
+        player.facingRight = true;
+      }
+    }
+  }
+  
+  // Continue with existing draw states
   if (gameState === 'start') {
     drawStartScreen();
   } else if (gameState === 'playing') {
@@ -594,20 +707,20 @@ function drawStartScreen() {
   // Title and subtitle - centered and higher up
   fill('#c72a09');  // Updated to bold red
   textStyle(BOLD);
-  textSize(titleFontSize);
+  textSize(titleFontSize * window.gameScale);
   textAlign(CENTER, CENTER);
   text("WELCOME TO TRIPCHAOS!", width/2, height/10);
   
   // Welcome text - centered with proper spacing
   fill('#000000');  // Updated to black
   textStyle(NORMAL);
-  textSize(bodyFontSize);
+  textSize(bodyFontSize * window.gameScale);
   textAlign(CENTER, CENTER);
   
   // Draw each line separately for better control
-  text("Navigate through beaches, cities, and adventures", width/2, height/6 + 20);
-  text("while managing your budget, satisfaction, and time.", width/2, height/6 + 50);
-  text("Collect items, avoid mishaps, and make smart decisions to succeed!", width/2, height/6 + 80);
+  text("Navigate through beaches, cities, and adventures", width/2, height/6 + 20 * window.gameScale);
+  text("while managing your budget, satisfaction, and time.", width/2, height/6 + 50 * window.gameScale);
+  text("Collect items, avoid mishaps, and make smart decisions to succeed!", width/2, height/6 + 80 * window.gameScale);
   
   // Game elements table - moved down slightly
   drawElementsTable();
@@ -615,27 +728,27 @@ function drawStartScreen() {
   // Controls legend
   drawControlsLegend();
   
-  // Start button - moved down
-  let startBtnX = width/2 - 100;
-  let startBtnY = height - 100;
-  let startBtnW = 200;
-  let startBtnH = 40;
+  // Start button - moved down and scaled
+  let startBtnX = width/2 - (100 * window.gameScale);
+  let startBtnY = height - (100 * window.gameScale);
+  let startBtnW = 200 * window.gameScale;
+  let startBtnH = 40 * window.gameScale;
   
   // Button with hover effect
   let isHovering = mouseX >= startBtnX && mouseX <= startBtnX + startBtnW && 
                    mouseY >= startBtnY && mouseY <= startBtnY + startBtnH;
   
-  fill(isHovering ? '#c72a09' : '#f5f7f8');  // Updated button colors
+  fill(isHovering ? '#c72a09' : '#f5f7f8');
   stroke('#000000');
-  strokeWeight(3);
-  rect(startBtnX, startBtnY, startBtnW, startBtnH, 10);
+  strokeWeight(3 * window.gameScale);
+  rect(startBtnX, startBtnY, startBtnW, startBtnH, 10 * window.gameScale);
   
   // Button text
   noStroke();
-  fill(isHovering ? '#ffffff' : '#000000');  // Updated text color based on hover
-  textSize(20);
+  fill(isHovering ? '#ffffff' : '#000000');
+  textSize(20 * window.gameScale);
   textAlign(CENTER, CENTER);
-  text("START GAME", width/2, startBtnY + 20);
+  text("START GAME", width/2, startBtnY + 20 * window.gameScale);
   
   // Cursor
   if (isHovering) {
@@ -646,10 +759,10 @@ function drawStartScreen() {
   
   // Tripmerge note
   textAlign(CENTER);
-  textSize(20);
-  fill('#c72a09');  // Updated to bold red
+  textSize(20 * window.gameScale);
+  fill('#c72a09');
   strokeWeight(0);
-  text("Struggling? TripMerge.com has tools to win in real life trip planning!", width/2, height - 40);
+  text("Struggling? TripMerge.com has tools to win in real life trip planning!", width/2, height - 40 * window.gameScale);
 }
 
 // Draw elements table with improved layout
@@ -808,7 +921,7 @@ function updateGame() {
   if (player.cloudEffectCounter > 0) {
     // Make sure player is slowed
     if (!player.isSlowed) {
-      player.speed = 2; // Changed from 3 to 2 as requested
+      player.speed = 2.5; // Match the speed set in collision
       player.isSlowed = true;
       console.log("Player slowed: " + player.speed);
     }
@@ -888,18 +1001,49 @@ function updateGame() {
         player.y < perkWorldY + perkHeight &&
         player.y + player.height > perkWorldY) {
       
+      // Store initial values
+      let oldBudget = budget;
+      let oldSatisfaction = satisfaction;
+      let oldScore = score;
+      
       // Apply effect based on type
       if (perk.type === 'coin') {
-        budget += 3;
-        score += 3;
-        console.log("Collected coin! Budget:", budget);
+        budget += 5;
+        score += 5;
       } else if (perk.type === 'map') {
-        satisfaction += 3;
-        score += 3;
-        console.log("Collected map! Satisfaction:", satisfaction);
+        satisfaction += 5;
+        score += 5;
       } else if (perk.type === 'star') {
-        score += 10;
-        console.log("Collected star! Score:", score);
+        score += 15;
+      }
+      
+      // Create effect notifications
+      if (budget !== oldBudget) {
+        effectNotifications.push({
+          type: "Budget",
+          value: budget - oldBudget,
+          x: width/2,
+          y: player.y - 30,
+          duration: NOTIFICATION_DURATION
+        });
+      }
+      if (satisfaction !== oldSatisfaction) {
+        effectNotifications.push({
+          type: "Satisfaction",
+          value: satisfaction - oldSatisfaction,
+          x: width/2,
+          y: player.y - 50,
+          duration: NOTIFICATION_DURATION
+        });
+      }
+      if (score !== oldScore) {
+        effectNotifications.push({
+          type: "Score",
+          value: score - oldScore,
+          x: width/2,
+          y: player.y - 70,
+          duration: NOTIFICATION_DURATION
+        });
       }
       
       perks.splice(i, 1);
@@ -919,21 +1063,58 @@ function updateGame() {
         player.y < mishapWorldY + mishapHeight &&
         player.y + player.height > mishapWorldY) {
       
-      // Apply effect based on type
+      // Store initial values
+      let oldBudget = budget;
+      let oldSatisfaction = satisfaction;
+      
+      // Apply effect based on type with scaled impact
       if (mishap.type === 'cloud') {
-        satisfaction -= 5;
-        // Set cloud effect - only slow down the speed
-        player.speed = 2; // Changed from 3 to 2 as requested
+        satisfaction -= 15;
+        // Set cloud effect
+        player.speed = 2.5;
         player.isSlowed = true;
-        player.cloudEffectCounter = 180; // 3 seconds at 60fps
-        
-        console.log("HIT CLOUD! Speed reduced to: " + player.speed);
+        player.cloudEffectCounter = 180; // Changed to exactly 3 seconds (60fps * 3)
+        greyAtmosphere = 1;
+        effectNotifications.push({
+          type: "Speed",
+          value: "SLOWED DOWN BECAUSE OF THE RAIN",
+          x: width/2,
+          y: player.y - 70,
+          duration: NOTIFICATION_DURATION
+        });
       } else if (mishap.type === 'dollar') {
-        budget -= 5;
-        console.log("Hit dollar! Budget -5");
+        budget -= 15; // Was 8
       } else if (mishap.type === 'suitcase') {
-        satisfaction -= 5;
-        console.log("Hit suitcase! Satisfaction -5");
+        satisfaction -= 15; // Was 8
+      }
+      
+      // Create effect notifications
+      if (budget !== oldBudget) {
+        effectNotifications.push({
+          type: "Budget",
+          value: budget - oldBudget,
+          x: width/2,
+          y: player.y - 30,
+          duration: NOTIFICATION_DURATION
+        });
+      }
+      if (satisfaction !== oldSatisfaction) {
+        effectNotifications.push({
+          type: "Satisfaction",
+          value: satisfaction - oldSatisfaction,
+          x: width/2,
+          y: player.y - 50,
+          duration: NOTIFICATION_DURATION
+        });
+      }
+      if (mishap.type === 'cloud') {
+        effectNotifications.push({
+          type: "Speed",
+          value: "SLOWED DOWN BECAUSE OF THE RAIN",
+          x: width/2,
+          y: player.y - 70,
+          duration: NOTIFICATION_DURATION
+        });
       }
       
       // Remove the mishap after collision
@@ -1098,18 +1279,21 @@ function drawPlayingScreen() {
   // Draw UI elements (not affected by camera)
   drawGameUI();
   
-  // Draw decision UI if active
-  if (showingDecision) {
-    drawDecisionUI();
-  }
-  
-  // Draw slowdown message if active
-  drawSlowdownMessage();
-  
   // Apply fog effect if active (on top of everything)
   if (player.cloudEffectCounter > 0) {
     drawFogEffect();
   }
+  
+  // Draw decision UI if active (should be on top of fog)
+  if (showingDecision) {
+    drawDecisionUI();
+  }
+  
+  // Draw effect notifications
+  drawEffectNotifications();
+  
+  // Draw slowdown message if active
+  drawSlowdownMessage();
 }
 
 // Helper function to draw background elements
@@ -1151,7 +1335,7 @@ function drawSlowdownMessage() {
     textAlign(CENTER, CENTER);
     textSize(24);
     fill(255, 0, 0);
-    text("SLOWED DOWN!", width/2, 50);
+    text("SLOWED DOWN BECAUSE OF THE RAIN!", width/2, 50);
     pop();
   }
 }
@@ -1668,31 +1852,42 @@ function drawPerk(perk) {
     fill(255, 235, 100);
     ellipse(0, 0, perk.width * 0.8, perk.height * 0.8);
     fill(255, 215, 0);
-    textAlign(CENTER, CENTER);
-  textSize(12);
-    text("$", 0, 0);
     fill(255, 255, 255, 150);
     ellipse(-perk.width/4, -perk.height/4, perk.width/4, perk.height/4);
   } 
   else if (perk.type === 'map') {
-    // Green folded paper
+    // Map base
     fill(50, 205, 50);  // Green color
     rect(-perk.width/2, -perk.height/2, perk.width, perk.height, 2);
     
-    // Diagonal fold only
-    fill(40, 180, 40);
-    triangle(perk.width/2, -perk.height/2,  // Top right corner
-            perk.width/2, -perk.height/4,
-            perk.width/4, -perk.height/2);
+    // Direction arrow
+    stroke(255);  // White arrow for contrast
+    strokeWeight(perk.width/8);
+    line(-perk.width/4, 0, perk.width/4, 0);           // Arrow body
+    line(perk.width/4, 0, 0, -perk.height/4);          // Arrow head top
+    line(perk.width/4, 0, 0, perk.height/4);           // Arrow head bottom
   } 
   else if (perk.type === 'star') {
-    // Glowing star
-    fill(100, 100, 255, 50);
-    star(0, 0, 12, 18, 5);
-    fill(0, 0, 255);
-    star(0, 0, 8, 15, 5);
+    // Souvenir gift box
     fill(100, 100, 255);
-    star(0, 0, 4, 8, 5);
+    rect(-perk.width/2, -perk.height/2, perk.width, perk.height, 2); // Box
+    
+    // Ribbon
+    fill(0, 0, 255);
+    rect(-perk.width/2, -perk.height/8, perk.width, perk.height/4); // Horizontal ribbon
+    rect(-perk.width/8, -perk.height/2, perk.width/4, perk.height); // Vertical ribbon
+    
+    // Gift bow
+    fill(100, 100, 255);
+    ellipse(0, 0, perk.width/3, perk.height/3); // Center of bow
+    
+    // Knot details
+    fill(0, 0, 255);
+    let knotSize = perk.width/6;
+    ellipse(-knotSize*1.5, -knotSize*1.5, knotSize, knotSize); // Top left knot
+    ellipse(knotSize*1.5, -knotSize*1.5, knotSize, knotSize); // Top right knot
+    ellipse(-knotSize*1.5, knotSize*1.5, knotSize, knotSize); // Bottom left knot
+    ellipse(knotSize*1.5, knotSize*1.5, knotSize, knotSize); // Bottom right knot
   }
   
   pop();
@@ -1728,11 +1923,15 @@ function drawMishap(mishap) {
     textAlign(CENTER, CENTER);
   textSize(20);
     textStyle(BOLD);
-    text("$", 0, 0);
+    text("💳", 0, 0);
     textStyle(NORMAL);
   } 
   else if (mishap.type === 'suitcase') {
-    // Brown suitcase with handle and details
+    // Tilted lost suitcase with question mark
+    push();
+    rotate(PI/12); // Slight tilt
+    
+    // Brown suitcase base
     fill(139, 69, 19);  // Saddle brown
     rect(-mishap.width/2, -mishap.height/2, mishap.width, mishap.height, 2);
     
@@ -1742,11 +1941,13 @@ function drawMishap(mishap) {
     noFill();
     arc(0, -mishap.height/2, mishap.width/2, mishap.height/4, PI, TWO_PI);
     
-    // Horizontal lines for texture
-    strokeWeight(1);
-    line(-mishap.width/2, -mishap.height/4, mishap.width/2, -mishap.height/4);
-    line(-mishap.width/2, 0, mishap.width/2, 0);
-    line(-mishap.width/2, mishap.height/4, mishap.width/2, mishap.height/4);
+    // Question mark
+    fill(255);  // White question mark
+    textAlign(CENTER, CENTER);
+    textSize(mishap.width/2);
+    text("?", 0, 0);
+    
+    pop();
     noStroke();
   }
   
@@ -1841,8 +2042,61 @@ function triggerRandomDecision() {
 // Make a decision
 function makeDecision(optionIndex) {
   if (currentDecision && currentDecision.options[optionIndex]) {
+    // Store initial values
+    let oldBudget = budget;
+    let oldSatisfaction = satisfaction;
+    let oldTimeLeft = timeLeft;
+    
     // Apply the effect
     currentDecision.options[optionIndex].effect();
+    
+    // Calculate changes
+    let budgetChange = budget - oldBudget;
+    let satisfactionChange = satisfaction - oldSatisfaction;
+    let timeChange = timeLeft - oldTimeLeft;
+    
+    // Count how many changes we'll show to calculate vertical spacing
+    let changes = 0;
+    if (budgetChange !== 0) changes++;
+    if (satisfactionChange !== 0) changes++;
+    if (timeChange !== 0) changes++;
+    
+    // Calculate starting Y position based on number of notifications
+    let startY = height/2 - (changes - 1) * 25; // 25 pixels between each notification
+    let currentY = startY;
+    
+    // Create notifications with stacked positioning
+    if (budgetChange !== 0) {
+      effectNotifications.push({
+        type: "Budget",
+        value: Math.round(budgetChange),
+        x: width/2,
+        y: currentY,
+        duration: NOTIFICATION_DURATION
+      });
+      currentY += 25;
+    }
+    
+    if (satisfactionChange !== 0) {
+      effectNotifications.push({
+        type: "Satisfaction",
+        value: Math.round(satisfactionChange),
+        x: width/2,
+        y: currentY,
+        duration: NOTIFICATION_DURATION
+      });
+      currentY += 25;
+    }
+    
+    if (timeChange !== 0) {
+      effectNotifications.push({
+        type: "Time",
+        value: Math.round(timeChange),
+        x: width/2,
+        y: currentY,
+        duration: NOTIFICATION_DURATION
+      });
+    }
     
     // Resume game and properly clear decision state
     showingDecision = false;
@@ -1856,72 +2110,122 @@ function makeDecision(optionIndex) {
 
 // Draw game UI with improved readability
 function drawGameUI() {
-  // Semi-transparent overlay for UI
-  fill(0, 0, 0, 150);
-  noStroke();
-  rect(0, 0, width, 60);
+  push();
   
-  // Score and level
-  fill(255);
-  textAlign(LEFT);
-  textSize(bodyFontSize);
-  text(`Score: ${score}`, 20, 38);
-  text(`Level: ${currentLevelNumber}`, 180, 38);
+  if (isMobileDevice()) {
+    // Calculate the game viewport center offset for mobile
+    let gameWidth = 1000 * window.gameScale;
+    let gameHeight = 600 * window.gameScale;
+    let offsetX = (width - gameWidth) / 2;
+    let offsetY = (height - gameHeight) / 2;
+    
+    // Apply translation to center the game viewport
+    translate(offsetX, offsetY);
+  }
   
-  // Draw meters
-  drawMeter("Budget", budget, width/2 - 200, 30);
-  drawMeter("Satisfaction", satisfaction, width/2, 30);
-  drawMeter("Time", timeLeft, width/2 + 200, 30);
+  // Draw UI elements
+  fill(0);
+  textSize(20 * window.gameScale);
+  textAlign(LEFT, TOP);
   
-  // Controls instructions
-  fill(255, 255, 0);
-  textAlign(CENTER);
-  textSize(smallFontSize);
-  text("LEFT/RIGHT ARROWS to move, UP ARROW to jump", width/2, height - 20);
+  // Draw level indicator with total levels
+  text(`Level ${currentLevelNumber}/3`, 20 * window.gameScale, 20 * window.gameScale);
+  
+  // Draw meters horizontally across the top
+  let meterSpacing = (isMobileDevice() ? 1000 * window.gameScale : width) / 5;
+  drawMeter("Budget", budget, meterSpacing, 20 * window.gameScale);
+  drawMeter("Satisfaction", satisfaction, meterSpacing * 2, 20 * window.gameScale);
+  drawMeter("Time", timeLeft, meterSpacing * 3, 20 * window.gameScale);
+  drawMeter("Score", score, meterSpacing * 4, 20 * window.gameScale);
+  
+  // Draw control buttons only on mobile when playing
+  if (gameState === 'playing' && !showingDecision && isMobileDevice()) {
+    push();
+    // Common button properties with scaling
+    let btnSize = 60 * window.gameScale;
+    let btnY = (isMobileDevice() ? 600 * window.gameScale : height) - btnSize - (30 * window.gameScale);
+    drawingContext.shadowBlur = 5 * window.gameScale;
+    drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    
+    // Jump button (left side)
+    let jumpBtnX = 30 * window.gameScale;
+    fill('#f5f7f8');
+    stroke('#000000');
+    strokeWeight(2 * window.gameScale);
+    rect(jumpBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
+    
+    // Up arrow for jump
+    fill('#000000');
+    noStroke();
+    beginShape();
+    vertex(jumpBtnX + btnSize/2, btnY + btnSize/4);
+    vertex(jumpBtnX + btnSize/4, btnY + 3*btnSize/4);
+    vertex(jumpBtnX + 3*btnSize/4, btnY + 3*btnSize/4);
+    endShape(CLOSE);
+    
+    // Left arrow button
+    let leftBtnX = (isMobileDevice() ? 1000 * window.gameScale : width) - (btnSize * 2) - (50 * window.gameScale);
+    fill('#f5f7f8');
+    stroke('#000000');
+    strokeWeight(2 * window.gameScale);
+    rect(leftBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
+    
+    // Left arrow symbol
+    fill('#000000');
+    noStroke();
+    beginShape();
+    vertex(leftBtnX + btnSize/4, btnY + btnSize/2);
+    vertex(leftBtnX + 3*btnSize/4, btnY + btnSize/4);
+    vertex(leftBtnX + 3*btnSize/4, btnY + 3*btnSize/4);
+    endShape(CLOSE);
+    
+    // Right arrow button
+    let rightBtnX = (isMobileDevice() ? 1000 * window.gameScale : width) - btnSize - (30 * window.gameScale);
+    fill('#f5f7f8');
+    stroke('#000000');
+    strokeWeight(2 * window.gameScale);
+    rect(rightBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
+    
+    // Right arrow symbol
+    fill('#000000');
+    noStroke();
+    beginShape();
+    vertex(rightBtnX + 3*btnSize/4, btnY + btnSize/2);
+    vertex(rightBtnX + btnSize/4, btnY + btnSize/4);
+    vertex(rightBtnX + btnSize/4, btnY + 3*btnSize/4);
+    endShape(CLOSE);
+    
+    pop();
+  }
+  pop();
 }
 
 // Draw a meter for game stats
 function drawMeter(label, value, x, y) {
-  const meterWidth = 150;
-  const meterHeight = 15;
-  const padding = 2;
+  push();
   
-  // Draw label
-  fill(255);
-  textAlign(CENTER);
-  textSize(smallFontSize);
-  text(label, x, y - 8);
+  // Bar dimensions
+  let barWidth = 120;
+  let barHeight = 20;
   
-  // Draw meter background
-  fill(50);
+  // Draw the background bar
+  fill(200);
   noStroke();
-  rect(x - meterWidth/2, y, meterWidth, meterHeight, 5);
+  rect(x, y, barWidth, barHeight, 5);
   
-  // Calculate meter fill width
-  let fillWidth = map(value, 0, 100, 0, meterWidth - padding*2);
-  fillWidth = constrain(fillWidth, 0, meterWidth - padding*2);
+  // Draw the value bar
+  let fillWidth = map(value, 0, 100, 0, barWidth);
+  fill('#4CAF50');  // Green color for the meter
+  rect(x, y, fillWidth, barHeight, 5);
   
-  // Choose color based on value
-  let meterColor;
-  if (value < 30) {
-    meterColor = color(255, 50, 50); // Red for low values
-  } else if (value < 60) {
-    meterColor = color(255, 204, 0); // Yellow for medium values
-  } else {
-    meterColor = color(50, 205, 50); // Green for high values
-  }
+  // Draw the label and value on top of the bar
+  fill(255); // White text for better contrast
+  textAlign(CENTER, CENTER);
+  textSize(14);
+  let displayValue = Math.round(value);
+  text(`${label}: ${displayValue}`, x + barWidth/2, y + barHeight/2);
   
-  // Draw meter fill with rounded corners
-  fill(meterColor);
-  rect(x - meterWidth/2 + padding, y + padding, fillWidth, meterHeight - padding*2, 3);
-  
-  // Draw value text only for Budget and Satisfaction, not for Time
-  if (label !== "Time") {
-  fill(255);
-  textAlign(CENTER);
-    textSize(smallFontSize - 2);
-    text(Math.round(value), x, y + meterHeight/2 + 4);
-  }
+  pop();
 }
 
 // Draw game over screen with improved readability
@@ -2556,13 +2860,13 @@ function drawSocialButton(label, color, x, y) {
 // Helper function to determine achievement
 function getAchievement(score) {
   if (score >= 1000) {
-    return { title: "Travel Master", color: "#c72a09" };
+    return { title: "Travel Master", color: "#FFD700" }; // Gold
   } else if (score >= 500) {
-    return { title: "Adventure Pro", color: "#c72a09" };
+    return { title: "Adventure Pro", color: "#C0C0C0" }; // Silver
   } else if (score >= 200) {
-    return { title: "Tourist Explorer", color: "#c72a09" };
-    } else {
-    return { title: "Brave Traveler", color: "#c72a09" };
+    return { title: "Tourist Explorer", color: "#CD7F32" }; // Bronze
+  } else {
+    return { title: "Brave Traveler", color: "#c72a09" }; // Red
   }
 }
 
@@ -2629,10 +2933,7 @@ function startGame() {
 
 // Key press handler
 function keyPressed() {
-  // Space key handling
-  if (key === ' ' && gameState === 'playing') {
-    triggerRandomDecision();
-  }
+  // Space key handling - REMOVED decision trigger
   
   // Handle email input special keys
   if (isEmailInputActive) {
@@ -2792,17 +3093,47 @@ function updateMishaps() {
     }
   }
   
-  // Spawn new falling mishaps (increased frequency and max count)
-  if (random() < 0.05 && mishaps.length < 25) {  // Increased spawn rate and max mishaps
-    // Spawn falling mishap near player with wider range
+  // Scale spawn rate and max mishaps with level
+  let baseSpawnRate = 0.02; // Increased base spawn rate (was 0.008)
+  let spawnRate = baseSpawnRate * (1 + (currentLevelNumber - 1) * 0.75); // 75% increase per level
+  let maxMishaps = 3 + (currentLevelNumber - 1) * 3; // Start with 3, add 3 per level (was 2)
+  
+  // Spawn new falling mishaps with scaled frequency
+  if (!showingDecision && random() < spawnRate && mishaps.length < maxMishaps) {
+    // Calculate spawn position relative to player
+    let spawnX = player.worldX + random(-100, 300); // Bias towards front of player
+    spawnX = constrain(spawnX, 100, levelLength - 100); // Keep within level bounds
+    
+    // Determine mishap type based on level
+    let mishapType;
+    let typeRand = random();
+    
+    if (currentLevelNumber === 1) {
+      // Level 1: 40% clouds (was 80%), 60% dollars (was 20%), no suitcases
+      mishapType = typeRand < 0.4 ? 'cloud' : 'dollar';
+    } else if (currentLevelNumber === 2) {
+      // Level 2: 40% clouds, 40% dollars, 20% suitcases
+      if (typeRand < 0.4) mishapType = 'cloud';
+      else if (typeRand < 0.8) mishapType = 'dollar';
+      else mishapType = 'suitcase';
+    } else {
+      // Level 3: 20% clouds, 40% dollars, 40% suitcases
+      if (typeRand < 0.2) mishapType = 'cloud';
+      else if (typeRand < 0.6) mishapType = 'dollar';
+      else mishapType = 'suitcase';
+    }
+    
+    // Scale falling speed with level
+    let baseVelocity = 1 + (currentLevelNumber - 1) * 0.5; // Increase initial velocity per level
+    
     mishaps.push({
-      x: random(player.worldX - 300, player.worldX + 300),  // Wider spawn range
+      x: spawnX,
       y: -50,  // Start above the screen
       width: 20,
       height: 20,
-      type: random(['cloud', 'dollar', 'suitcase']),
-      velocityY: 0,
-      gravity: 0.1,
+      type: mishapType,
+      velocityY: baseVelocity,
+      gravity: 0.2,
       isStatic: false,
       creationTime: millis()
     });
@@ -2810,27 +3141,9 @@ function updateMishaps() {
   
   // Handle active cloud slow effects
   if (greyAtmosphere > 0) {
-    // Count down the cloud effect duration
-    if (typeof mishap.slowEffectDuration !== 'undefined' && mishap.slowEffectDuration > 0) {
-      mishap.slowEffectDuration--;
-      
-      // When effect expires
-      if (mishap.slowEffectDuration <= 0) {
-        // Restore player speed to original value
-        player.speed = mishap.originalPlayerSpeed;
-        
-        // Gradually clear grey atmosphere
-        greyAtmosphere -= 0.02;
-        if (greyAtmosphere < 0) {
-          greyAtmosphere = 0;
-        }
-      }
-    } else {
-      // If no active duration is set, still gradually clear the atmosphere
-      greyAtmosphere -= 0.02;
-      if (greyAtmosphere < 0) {
-        greyAtmosphere = 0;
-      }
+    greyAtmosphere -= 0.02;
+    if (greyAtmosphere < 0) {
+      greyAtmosphere = 0;
     }
   }
 }
@@ -2840,18 +3153,18 @@ function mouseClicked() {
   console.log("Mouse clicked, current game state:", gameState);  // Debug log
   
   if (gameState === 'start') {
-    // Check if start button was clicked
-    let startBtnX = width/2 - 100;
-    let startBtnY = height - 100;
-    let startBtnW = 200;
-    let startBtnH = 40;
+    // Check if start button was clicked - with mobile scaling
+    let startBtnX = width/2 - (100 * window.gameScale);
+    let startBtnY = height - (100 * window.gameScale);
+    let startBtnW = 200 * window.gameScale;
+    let startBtnH = 40 * window.gameScale;
     
     if (mouseX >= startBtnX && mouseX <= startBtnX + startBtnW && 
         mouseY >= startBtnY && mouseY <= startBtnY + startBtnH) {
       console.log("Start button clicked");  // Debug log
-      gameState = 'playing';  // Directly set to playing state
+      gameState = 'playing';
       window.gameState = 'playing';
-      resetGame();  // Initialize game objects
+      resetGame();
       return false;
     }
   } else if (gameState === 'gameOver' || gameState === 'win') {
@@ -2946,6 +3259,23 @@ function mouseClicked() {
       }
     }
   }
+  
+  // Add jump button check for playing state
+  if (gameState === 'playing' && !showingDecision) {
+    let jumpBtnSize = 45;
+    let jumpBtnX = 20;
+    let jumpBtnY = height - jumpBtnSize - 20;
+    
+    if (mouseX >= jumpBtnX && mouseX <= jumpBtnX + jumpBtnSize &&
+        mouseY >= jumpBtnY && mouseY <= jumpBtnY + jumpBtnSize) {
+      if (!player.isJumping) {
+        player.velocityY = -player.jumpForce;
+        player.isJumping = true;
+      }
+      return false;
+    }
+  }
+  
   return false;
 }
 
@@ -2982,4 +3312,140 @@ function drawFogEffect() {
     
     pop();
   }
+}
+
+// Draw effect notifications
+function drawEffectNotifications() {
+  for (let i = effectNotifications.length - 1; i >= 0; i--) {
+    let notification = effectNotifications[i];
+    
+    // Update position
+    notification.y -= NOTIFICATION_RISE_SPEED;
+    notification.duration--;
+    
+    // Draw notification
+    push();
+    textAlign(CENTER);
+    textSize(20);
+    
+    // Fade out near the end
+    let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
+    
+    if (notification.value > 0) {
+      fill(50, 205, 50, alpha); // Green for positive
+      text("+" + notification.value + " " + notification.type, notification.x, notification.y);
+    } else {
+      fill(255, 50, 50, alpha); // Red for negative
+      text(notification.value + " " + notification.type, notification.x, notification.y);
+    }
+    pop();
+    
+    // Remove expired notifications
+    if (notification.duration <= 0) {
+      effectNotifications.splice(i, 1);
+    }
+  }
+}
+
+// Add touch support for mobile
+function touchStarted() {
+  // Calculate the game viewport offset
+  let gameWidth = 1000 * window.gameScale;
+  let gameHeight = 600 * window.gameScale;
+  let offsetX = (width - gameWidth) / 2;
+  let offsetY = (height - gameHeight) / 2;
+  
+  if (gameState === 'start' && touches.length > 0) {
+    let touch = touches[0];
+    // Adjust touch coordinates to account for viewport offset
+    let adjustedX = touch.x - offsetX;
+    let adjustedY = touch.y - offsetY;
+    
+    let startBtnX = gameWidth/2 - (100 * window.gameScale);
+    let startBtnY = gameHeight - (100 * window.gameScale);
+    let startBtnW = 200 * window.gameScale;
+    let startBtnH = 40 * window.gameScale;
+    
+    // Add extra touch area for better touch response
+    let touchArea = 20 * window.gameScale;
+    
+    if (adjustedX >= startBtnX - touchArea && 
+        adjustedX <= startBtnX + startBtnW + touchArea && 
+        adjustedY >= startBtnY - touchArea && 
+        adjustedY <= startBtnY + startBtnH + touchArea) {
+      console.log("Start button touched");  // Debug log
+      gameState = 'playing';
+      window.gameState = 'playing';
+      resetGame();
+      return false;
+    }
+  }
+  
+  // Handle gameplay touch controls with adjusted coordinates
+  if (gameState === 'playing' && !showingDecision && touches.length > 0) {
+    let touch = touches[0];
+    // Adjust touch coordinates
+    let adjustedX = touch.x - offsetX;
+    let adjustedY = touch.y - offsetY;
+    
+    let btnSize = 60 * window.gameScale;
+    let btnY = gameHeight - btnSize - (30 * window.gameScale);
+    
+    // Add touch feedback with scaling
+    let touchFeedback = (x, y) => {
+      push();
+      noFill();
+      stroke('#c72a09');
+      strokeWeight(3 * window.gameScale);
+      ellipse(x + btnSize/2, y + btnSize/2, btnSize/2);
+      pop();
+    };
+    
+    // Jump button check with scaled positions
+    let jumpBtnX = 30 * window.gameScale;
+    let jumpTouchArea = 15 * window.gameScale;
+    if (adjustedX >= jumpBtnX - jumpTouchArea && 
+        adjustedX <= jumpBtnX + btnSize + jumpTouchArea &&
+        adjustedY >= btnY - jumpTouchArea && 
+        adjustedY <= btnY + btnSize + jumpTouchArea) {
+      if (!player.isJumping) {
+        player.velocityY = -player.jumpForce;
+        player.isJumping = true;
+        touchFeedback(jumpBtnX, btnY);
+      }
+      return false;
+    }
+    
+    // Left arrow button check with scaled positions
+    let leftBtnX = gameWidth - (btnSize * 2) - (50 * window.gameScale);
+    if (adjustedX >= leftBtnX - jumpTouchArea && 
+        adjustedX <= leftBtnX + btnSize + jumpTouchArea &&
+        adjustedY >= btnY - jumpTouchArea && 
+        adjustedY <= btnY + btnSize + jumpTouchArea) {
+      if (player.worldX > 100) {
+        player.worldX -= player.speed;
+        player.facingRight = false;
+        touchFeedback(leftBtnX, btnY);
+      }
+      return false;
+    }
+    
+    // Right arrow button check with scaled positions
+    let rightBtnX = width - btnSize - (30 * window.gameScale);
+    if (touch.x >= rightBtnX - jumpTouchArea && 
+        touch.x <= rightBtnX + btnSize + jumpTouchArea &&
+        touch.y >= btnY - jumpTouchArea && 
+        touch.y <= btnY + btnSize + jumpTouchArea) {
+      player.worldX += player.speed;
+      player.facingRight = true;
+      touchFeedback(rightBtnX, btnY);
+      return false;
+    }
+  }
+  return true;
+}
+
+// Add mobile detection function
+function isMobileDevice() {
+  return (touches.length > 0 || (window.innerWidth <= 768)) && window.matchMedia("(orientation: landscape)").matches;
 }
