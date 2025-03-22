@@ -296,21 +296,21 @@ let decisions = [
 
 // Setup function
 function setup() {
-let canvas;
-  
-  if (isMobileDevice()) {
-    // For mobile devices, use full window dimensions
-    canvas = createCanvas(windowWidth, windowHeight);
-    // Calculate game scale based on viewport size while maintaining aspect ratio
-    let scaleX = windowWidth / 1000;
-    let scaleY = windowHeight / 600;
-    window.gameScale = min(scaleX, scaleY);
-  } else {
-    // For desktop, use fixed dimensions
-    canvas = createCanvas(1000, 600);
-    window.gameScale = 1;
-  }
-  
+    let canvas;
+    
+    if (isMobileDevice()) {
+        // For mobile devices, use full window dimensions
+        canvas = createCanvas(windowWidth, windowHeight);
+        // Calculate game scale based on viewport size while maintaining aspect ratio
+        let scaleX = windowWidth / 1000;
+        let scaleY = windowHeight / 600;
+        window.gameScale = min(scaleX, scaleY);
+    } else {
+        // For desktop, use fixed dimensions
+        canvas = createCanvas(1000, 600);
+        window.gameScale = 1;
+    }
+    
     canvas.parent('game-container');
     
     // Initialize game objects and settings
@@ -318,6 +318,10 @@ let canvas;
     
     // Add window resize handler
     window.addEventListener('resize', windowResized);
+
+    // Make game state accessible to mobile controls
+    window.gameState = gameState;
+    window.showingDecision = false;
 }
 
 // Handle window resize events
@@ -335,13 +339,13 @@ function windowResized() {
 
 // Update mobile detection to be more reliable
 function isMobileDevice() {
-  return (
-    touches.length > 0 || 
-    (typeof window.orientation !== 'undefined') || 
-    (navigator.userAgent.indexOf('IEMobile') !== -1) ||
-    (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) ||
-    (window.innerWidth <= 768)
-  );
+    return (
+        touches.length > 0 || 
+        (typeof window.orientation !== 'undefined') || 
+        (navigator.userAgent.indexOf('IEMobile') !== -1) ||
+        (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) ||
+        (window.innerWidth <= 768)
+    );
 }
 
 // Add orientation change handler
@@ -352,64 +356,71 @@ window.addEventListener('orientationchange', function() {
 
 // Reset game state
 function resetGame() {
-  // Reset player
-  player.worldX = 100;
-  player.x = 100;
-  player.y = 300;
-  player.velocityY = 1; // Reset to 1 as requested
-  player.isJumping = false;
-  player.isColliding = false;
-  player.facingRight = true;
-  player.speed = 5; // Reset to 5 as requested
-  player.jumpForce = 15; // Reset to 15 as requested
-  player.cloudEffectCounter = 0;
-  player.isSlowed = false;
-  
-  // Reset grey atmosphere
-  cloudSlowdownEndTime = 0;
-  greyAtmosphere = 0;
-  
-  // Reset companion
-  companion.worldX = 70;
-  companion.x = 70;
-  companion.y = 300;
-  
-  // Reset game metrics
-  score = 0;
-  budget = 100;
-  satisfaction = 100;
-  timeLeft = 60;
-  cameraOffset = 0;
-  currentLevelNumber = 1;
-  
-  // Reset decision system
-  decisionTimer = 0;
-  showingDecision = false;
-  currentDecision = null;
-  decisionsThisLevel = 0;
-  decisionTriggeredAt = [false, false];
-  
-  // Clear all game objects
-  platforms = [];
-  perks = [];
-  mishaps = [];
-  
-  // Create initial platform that player starts on
-  platforms.push({
-    x: 0,
-    y: 400,
-    width: 200,
-    height: 20,
-    theme: "beach"
-  });
-  
-  // Generate rest of the level
-  generateLevel();
-  
-  // Reset cloud effect
-  cloudSlowdownEndTime = 0;
-  
-  console.log("Game reset to initial state:", gameState);  // Debug log
+    // Initialize player with default values
+    player = {
+        x: 100,
+        y: 300,
+        worldX: 100,
+        width: 30,
+        height: 50,
+        speed: 5,
+        velocityY: 1,
+        jumpForce: 15,
+        isJumping: false,
+        isColliding: false,
+        facingRight: true,
+        cloudEffectCounter: 0,
+        isSlowed: false
+    };
+    
+    // Make player accessible to mobile controls
+    window.player = player;
+    
+    // Reset grey atmosphere
+    cloudSlowdownEndTime = 0;
+    greyAtmosphere = 0;
+    
+    // Reset companion
+    companion.worldX = 70;
+    companion.x = 70;
+    companion.y = 300;
+    
+    // Reset game metrics
+    score = 0;
+    budget = 100;
+    satisfaction = 100;
+    timeLeft = 60;
+    cameraOffset = 0;
+    currentLevelNumber = 1;
+    
+    // Reset decision system
+    decisionTimer = 0;
+    showingDecision = false;
+    currentDecision = null;
+    decisionsThisLevel = 0;
+    decisionTriggeredAt = [false, false];
+    
+    // Clear all game objects
+    platforms = [];
+    perks = [];
+    mishaps = [];
+    
+    // Create initial platform that player starts on
+    platforms.push({
+        x: 0,
+        y: 400,
+        width: 200,
+        height: 20,
+        theme: "beach"
+    });
+    
+    // Generate rest of the level
+    generateLevel();
+    
+    // Reset cloud effect
+    cloudSlowdownEndTime = 0;
+    
+    console.log("Game reset to initial state:", gameState);  // Debug log
 }
 
 // Generate a complete level
@@ -638,54 +649,6 @@ function draw() {
   // Keep global gameState in sync
   window.gameState = gameState;
   
-  // Handle continuous button presses
-  if (gameState === 'playing' && !showingDecision) {
-    let btnSize = 45;
-    let btnY = height - btnSize - 20;
-    
-    // Check for mouse press on arrow buttons
-    if (mouseIsPressed) {
-      // Left arrow button check
-      let leftBtnX = width - (btnSize * 2) - 40;
-      if (mouseX >= leftBtnX && mouseX <= leftBtnX + btnSize &&
-          mouseY >= btnY && mouseY <= btnY + btnSize) {
-        if (player.worldX > 100) {
-          player.worldX -= player.speed;
-          player.facingRight = false;
-        }
-      }
-      
-      // Right arrow button check
-      let rightBtnX = width - btnSize - 20;
-      if (mouseX >= rightBtnX && mouseX <= rightBtnX + btnSize &&
-          mouseY >= btnY && mouseY <= btnY + btnSize) {
-        player.worldX += player.speed;
-        player.facingRight = true;
-      }
-    }
-    
-    // Check for touch on arrow buttons
-    for (let touch of touches) {
-      // Left arrow button check
-      let leftBtnX = width - (btnSize * 2) - 40;
-      if (touch.x >= leftBtnX && touch.x <= leftBtnX + btnSize &&
-          touch.y >= btnY && touch.y <= btnY + btnSize) {
-        if (player.worldX > 100) {
-          player.worldX -= player.speed;
-          player.facingRight = false;
-        }
-      }
-      
-      // Right arrow button check
-      let rightBtnX = width - btnSize - 20;
-      if (touch.x >= rightBtnX && touch.x <= rightBtnX + btnSize &&
-          touch.y >= btnY && touch.y <= btnY + btnSize) {
-        player.worldX += player.speed;
-        player.facingRight = true;
-      }
-    }
-  }
-  
   // Continue with existing draw states
   if (gameState === 'start') {
     drawStartScreen();
@@ -899,318 +862,318 @@ function drawControlsLegend() {
 
 // Update game state
 function updateGame() {
-  // Don't update game physics during decision
-  if (showingDecision) {
-    // Still update visual elements
-    updateCompanion();
-    for (let wave of oceanWaves) {
-      wave.x += wave.speed;
-      if (wave.x > levelLength) wave.x = 0;
-    }
-    for (let cloud of clouds) {
-      cloud.x += cloud.speed;
-      if (cloud.x > levelLength) cloud.x = -cloud.width;
-    }
-    return;
-  }
-  
-  // Update mishaps
-  updateMishaps();
-  
-  // Handle cloud slowdown effect with explicit speed control
-  if (player.cloudEffectCounter > 0) {
-    // Make sure player is slowed
-    if (!player.isSlowed) {
-      player.speed = 2.5; // Match the speed set in collision
-      player.isSlowed = true;
-      console.log("Player slowed: " + player.speed);
-    }
-    
-    player.cloudEffectCounter--;
-    
-    // When the effect ends
-    if (player.cloudEffectCounter <= 0) {
-      player.speed = 5; // Reset to normal speed (5)
-      player.isSlowed = false;
-      console.log("Player speed reset: " + player.speed);
-    }
-  }
-  
-  // Apply gravity to player
-  player.velocityY += 0.7;
-  player.y += player.velocityY;
-
-  // Apply CONTROLLED movement based on keyboard input
-  // This ensures the slowdown actually affects movement
-  let moveSpeed = player.speed; // Use the current speed value
-  
-  if (keyIsDown(RIGHT_ARROW)) {
-    player.worldX += moveSpeed;
-    player.facingRight = true;
-  }
-  if (keyIsDown(LEFT_ARROW)) {
-    // Only allow moving left if not at the start
-    if (player.worldX > 100) {
-      player.worldX -= moveSpeed;
-      player.facingRight = false;
-    }
-  }
-  if (keyIsDown(UP_ARROW) && !player.isJumping) {
-    player.velocityY = -player.jumpForce;
-    player.isJumping = true;
-  }
-  
-  // Check platform collisions
-  let onPlatform = false;
-  for (let platform of platforms) {
-    if (checkPlatformCollision(player, platform)) {
-      onPlatform = true;
-      break;
-    }
-  }
-
-  // Update jumping state
-  if (onPlatform) {
-    player.isJumping = false;
-  }
-
-  // Constrain player to level bounds
-  player.worldX = constrain(player.worldX, 100, levelLength - player.width);
-  player.y = constrain(player.y, 0, height - player.height);
-
-  // Update camera position based on player's world position
-  cameraOffset = player.worldX - 100;
-  cameraOffset = constrain(cameraOffset, 0, levelLength - width);
-
-  // Calculate player's screen position from world position
-  player.x = player.worldX - cameraOffset;
-
-  // Update companion position
-  updateCompanion();
-  
-  // Check perk collisions
-  for (let i = perks.length - 1; i >= 0; i--) {
-    let perk = perks[i];
-    let perkWorldX = perk.x - perk.width/4;
-    let perkWorldY = perk.y - perk.height/4;
-    let perkWidth = perk.width * 1.5;
-    let perkHeight = perk.height * 1.5;
-    
-    if (player.worldX < perkWorldX + perkWidth &&
-        player.worldX + player.width > perkWorldX &&
-        player.y < perkWorldY + perkHeight &&
-        player.y + player.height > perkWorldY) {
-      
-      // Store initial values
-      let oldBudget = budget;
-      let oldSatisfaction = satisfaction;
-      let oldScore = score;
-      
-      // Apply effect based on type
-      if (perk.type === 'coin') {
-        budget += 5;
-        score += 5;
-      } else if (perk.type === 'map') {
-        satisfaction += 5;
-        score += 5;
-      } else if (perk.type === 'star') {
-        score += 15;
-      }
-      
-      // Create effect notifications
-      if (budget !== oldBudget) {
-        effectNotifications.push({
-          type: "Budget",
-          value: budget - oldBudget,
-          x: width/2,
-          y: player.y - 30,
-          duration: NOTIFICATION_DURATION
-        });
-      }
-      if (satisfaction !== oldSatisfaction) {
-        effectNotifications.push({
-          type: "Satisfaction",
-          value: satisfaction - oldSatisfaction,
-          x: width/2,
-          y: player.y - 50,
-          duration: NOTIFICATION_DURATION
-        });
-      }
-      if (score !== oldScore) {
-        effectNotifications.push({
-          type: "Score",
-          value: score - oldScore,
-          x: width/2,
-          y: player.y - 70,
-          duration: NOTIFICATION_DURATION
-        });
-      }
-      
-      perks.splice(i, 1);
-    }
-  }
-  
-  // Check mishap collisions
-  for (let i = mishaps.length - 1; i >= 0; i--) {
-    let mishap = mishaps[i];
-    let mishapWorldX = mishap.x - mishap.width/4;
-    let mishapWorldY = mishap.y - mishap.height/4;
-    let mishapWidth = mishap.width * 1.5;
-    let mishapHeight = mishap.height * 1.5;
-    
-    if (player.worldX < mishapWorldX + mishapWidth &&
-        player.worldX + player.width > mishapWorldX &&
-        player.y < mishapWorldY + mishapHeight &&
-        player.y + player.height > mishapWorldY) {
-      
-      // Store initial values
-      let oldBudget = budget;
-      let oldSatisfaction = satisfaction;
-      
-      // Apply effect based on type with scaled impact
-      if (mishap.type === 'cloud') {
-        satisfaction -= 15;
-        // Set cloud effect
-        player.speed = 2.5;
-        player.isSlowed = true;
-        player.cloudEffectCounter = 180; // Changed to exactly 3 seconds (60fps * 3)
-        greyAtmosphere = 1;
-        effectNotifications.push({
-          type: "Speed",
-          value: "SLOWED DOWN BECAUSE OF THE RAIN",
-          x: width/2,
-          y: player.y - 70,
-          duration: NOTIFICATION_DURATION
-        });
-      } else if (mishap.type === 'dollar') {
-        budget -= 15; // Was 8
-      } else if (mishap.type === 'suitcase') {
-        satisfaction -= 15; // Was 8
-      }
-      
-      // Create effect notifications
-      if (budget !== oldBudget) {
-        effectNotifications.push({
-          type: "Budget",
-          value: budget - oldBudget,
-          x: width/2,
-          y: player.y - 30,
-          duration: NOTIFICATION_DURATION
-        });
-      }
-      if (satisfaction !== oldSatisfaction) {
-        effectNotifications.push({
-          type: "Satisfaction",
-          value: satisfaction - oldSatisfaction,
-          x: width/2,
-          y: player.y - 50,
-          duration: NOTIFICATION_DURATION
-        });
-      }
-      if (mishap.type === 'cloud') {
-        effectNotifications.push({
-          type: "Speed",
-          value: "SLOWED DOWN BECAUSE OF THE RAIN",
-          x: width/2,
-          y: player.y - 70,
-          duration: NOTIFICATION_DURATION
-        });
-      }
-      
-      // Remove the mishap after collision
-      mishaps.splice(i, 1);
-    }
-  }
-  
-  // Check level end marker collision
-  if (levelEndMarker) {
-    // Convert marker to world coordinates for collision check
-    let markerWorldX = levelEndMarker.x;
-    let markerWorldY = levelEndMarker.y;
-    
-    // Check collision with player in world coordinates
-    if (player.worldX < markerWorldX + levelEndMarker.width &&
-        player.worldX + player.width > markerWorldX &&
-        player.y < markerWorldY + levelEndMarker.height &&
-        player.y + player.height > markerWorldY) {
-      
-      // Level completed!
-      currentLevelNumber++;
-      score += 50; // Bonus for completing level
-      
-      // Reset any active cloud effects
-      player.cloudEffectCounter = 0;
-      player.speed = 5; // Reset to normal speed (5)
-      greyAtmosphere = 0;
-      
-      // Check if all three levels are completed
-      if (currentLevelNumber > 3) {
-        // Game completed - show win screen
-        gameState = 'win';
-        window.gameState = 'win';
+    // Don't update game physics during decision
+    if (showingDecision) {
+        window.showingDecision = true;
+        // Still update visual elements
+        updateCompanion();
+        for (let wave of oceanWaves) {
+            wave.x += wave.speed;
+            if (wave.x > levelLength) wave.x = 0;
+        }
+        for (let cloud of clouds) {
+            cloud.x += cloud.speed;
+            if (cloud.x > levelLength) cloud.x = -cloud.width;
+        }
         return;
-      }
-      
-      // Change theme based on level
-      if (currentLevelNumber % 3 === 1) {
-        currentTheme = "beach";
-      } else if (currentLevelNumber % 3 === 2) {
-        currentTheme = "city";
-      } else {
-        currentTheme = "adventure";
-      }
-      
-      // Generate new level
-      generateLevel();
-      
-      // Reset player position but keep stats
-      player.worldX = 100;
-      player.x = 100;
-      player.y = 300;
-      player.velocityY = 1; // Reset to 1 as requested
-      cameraOffset = 0;
-      
-      // Add time bonus
-      timeLeft += 20;
-      
-      // Reset decision timer to prevent immediate decision after level change
-      decisionTimer = 0;
-      showingDecision = false;
-      currentDecision = null;
-      decisionsThisLevel = 0;
-      decisionTriggeredAt = [false, false];
     }
-  }
-  
-  // Check if player has fallen off the screen - GAME OVER
-  if (player.y + player.height >= oceanHeight) {
-    gameState = 'gameOver';
-    window.gameState = 'gameOver';
-  }
-  
-  // Update time ONLY if not in a decision
-  if (!showingDecision) {
-    timeLeft -= 0.02;
-  }
-  
-  // Check game over conditions
-  if (budget <= 0 || satisfaction <= 0 || timeLeft <= 0) {
-    gameState = 'gameOver';
-    window.gameState = 'gameOver';
-  }
-  
-  // Update decision timer ONLY if not in a decision - replaced with position-based trigger
-  if (!showingDecision) {
-    // Check if player has reached a decision point
-    for (let i = 0; i < decisionPositions.length; i++) {
-      let decisionX = levelLength * decisionPositions[i];
-      if (!decisionTriggeredAt[i] && player.worldX >= decisionX) {
-        triggerRandomDecision();
-        decisionTriggeredAt[i] = true;
-        break;
-      }
+    window.showingDecision = false;
+    
+    // Update mishaps
+    updateMishaps();
+    
+    // Handle cloud slowdown effect with explicit speed control
+    if (player.cloudEffectCounter > 0) {
+        // Make sure player is slowed
+        if (!player.isSlowed) {
+            player.speed = 2.5; // Match the speed set in collision
+            player.isSlowed = true;
+        }
+        
+        player.cloudEffectCounter--;
+        
+        // When the effect ends
+        if (player.cloudEffectCounter <= 0) {
+            player.speed = 5; // Reset to normal speed (5)
+            player.isSlowed = false;
+        }
     }
-  }
+    
+    // Apply gravity to player
+    player.velocityY += 0.7;
+    player.y += player.velocityY;
+
+    // Apply CONTROLLED movement based on keyboard input
+    // This ensures the slowdown actually affects movement
+    let moveSpeed = player.speed; // Use the current speed value
+    
+    if (keyIsDown(RIGHT_ARROW)) {
+        player.worldX += moveSpeed;
+        player.facingRight = true;
+    }
+    if (keyIsDown(LEFT_ARROW)) {
+        // Only allow moving left if not at the start
+        if (player.worldX > 100) {
+            player.worldX -= moveSpeed;
+            player.facingRight = false;
+        }
+    }
+    if (keyIsDown(UP_ARROW) && !player.isJumping) {
+        player.velocityY = -player.jumpForce;
+        player.isJumping = true;
+    }
+    
+    // Check platform collisions
+    let onPlatform = false;
+    for (let platform of platforms) {
+        if (checkPlatformCollision(player, platform)) {
+            onPlatform = true;
+            break;
+        }
+    }
+
+    // Update jumping state
+    if (onPlatform) {
+        player.isJumping = false;
+    }
+
+    // Constrain player to level bounds
+    player.worldX = constrain(player.worldX, 100, levelLength - player.width);
+    player.y = constrain(player.y, 0, height - player.height);
+
+    // Update camera position based on player's world position
+    cameraOffset = player.worldX - 100;
+    cameraOffset = constrain(cameraOffset, 0, levelLength - width);
+
+    // Calculate player's screen position from world position
+    player.x = player.worldX - cameraOffset;
+
+    // Update companion position
+    updateCompanion();
+    
+    // Check perk collisions
+    for (let i = perks.length - 1; i >= 0; i--) {
+        let perk = perks[i];
+        let perkWorldX = perk.x - perk.width/4;
+        let perkWorldY = perk.y - perk.height/4;
+        let perkWidth = perk.width * 1.5;
+        let perkHeight = perk.height * 1.5;
+        
+        if (player.worldX < perkWorldX + perkWidth &&
+            player.worldX + player.width > perkWorldX &&
+            player.y < perkWorldY + perkHeight &&
+            player.y + player.height > perkWorldY) {
+            
+            // Store initial values
+            let oldBudget = budget;
+            let oldSatisfaction = satisfaction;
+            let oldScore = score;
+            
+            // Apply effect based on type
+            if (perk.type === 'coin') {
+                budget += 5;
+                score += 5;
+            } else if (perk.type === 'map') {
+                satisfaction += 5;
+                score += 5;
+            } else if (perk.type === 'star') {
+                score += 15;
+            }
+            
+            // Create effect notifications
+            if (budget !== oldBudget) {
+                effectNotifications.push({
+                    type: "Budget",
+                    value: budget - oldBudget,
+                    x: width/2,
+                    y: player.y - 30,
+                    duration: NOTIFICATION_DURATION
+                });
+            }
+            if (satisfaction !== oldSatisfaction) {
+                effectNotifications.push({
+                    type: "Satisfaction",
+                    value: satisfaction - oldSatisfaction,
+                    x: width/2,
+                    y: player.y - 50,
+                    duration: NOTIFICATION_DURATION
+                });
+            }
+            if (score !== oldScore) {
+                effectNotifications.push({
+                    type: "Score",
+                    value: score - oldScore,
+                    x: width/2,
+                    y: player.y - 70,
+                    duration: NOTIFICATION_DURATION
+                });
+            }
+            
+            perks.splice(i, 1);
+        }
+    }
+    
+    // Check mishap collisions
+    for (let i = mishaps.length - 1; i >= 0; i--) {
+        let mishap = mishaps[i];
+        let mishapWorldX = mishap.x - mishap.width/4;
+        let mishapWorldY = mishap.y - mishap.height/4;
+        let mishapWidth = mishap.width * 1.5;
+        let mishapHeight = mishap.height * 1.5;
+        
+        if (player.worldX < mishapWorldX + mishapWidth &&
+            player.worldX + player.width > mishapWorldX &&
+            player.y < mishapWorldY + mishapHeight &&
+            player.y + player.height > mishapWorldY) {
+            
+            // Store initial values
+            let oldBudget = budget;
+            let oldSatisfaction = satisfaction;
+            
+            // Apply effect based on type with scaled impact
+            if (mishap.type === 'cloud') {
+                satisfaction -= 15;
+                // Set cloud effect
+                player.speed = 2.5;
+                player.isSlowed = true;
+                player.cloudEffectCounter = 180; // Changed to exactly 3 seconds (60fps * 3)
+                greyAtmosphere = 1;
+                effectNotifications.push({
+                    type: "Speed",
+                    value: "SLOWED DOWN BECAUSE OF THE RAIN",
+                    x: width/2,
+                    y: player.y - 70,
+                    duration: NOTIFICATION_DURATION
+                });
+            } else if (mishap.type === 'dollar') {
+                budget -= 15; // Was 8
+            } else if (mishap.type === 'suitcase') {
+                satisfaction -= 15; // Was 8
+            }
+            
+            // Create effect notifications
+            if (budget !== oldBudget) {
+                effectNotifications.push({
+                    type: "Budget",
+                    value: budget - oldBudget,
+                    x: width/2,
+                    y: player.y - 30,
+                    duration: NOTIFICATION_DURATION
+                });
+            }
+            if (satisfaction !== oldSatisfaction) {
+                effectNotifications.push({
+                    type: "Satisfaction",
+                    value: satisfaction - oldSatisfaction,
+                    x: width/2,
+                    y: player.y - 50,
+                    duration: NOTIFICATION_DURATION
+                });
+            }
+            if (mishap.type === 'cloud') {
+                effectNotifications.push({
+                    type: "Speed",
+                    value: "SLOWED DOWN BECAUSE OF THE RAIN",
+                    x: width/2,
+                    y: player.y - 70,
+                    duration: NOTIFICATION_DURATION
+                });
+            }
+            
+            // Remove the mishap after collision
+            mishaps.splice(i, 1);
+        }
+    }
+    
+    // Check level end marker collision
+    if (levelEndMarker) {
+        // Convert marker to world coordinates for collision check
+        let markerWorldX = levelEndMarker.x;
+        let markerWorldY = levelEndMarker.y;
+        
+        // Check collision with player in world coordinates
+        if (player.worldX < markerWorldX + levelEndMarker.width &&
+            player.worldX + player.width > markerWorldX &&
+            player.y < markerWorldY + levelEndMarker.height &&
+            player.y + player.height > markerWorldY) {
+            
+            // Level completed!
+            currentLevelNumber++;
+            score += 50; // Bonus for completing level
+            
+            // Reset any active cloud effects
+            player.cloudEffectCounter = 0;
+            player.speed = 5; // Reset to normal speed (5)
+            greyAtmosphere = 0;
+            
+            // Check if all three levels are completed
+            if (currentLevelNumber > 3) {
+                // Game completed - show win screen
+                gameState = 'win';
+                window.gameState = 'win';
+                return;
+            }
+            
+            // Change theme based on level
+            if (currentLevelNumber % 3 === 1) {
+                currentTheme = "beach";
+            } else if (currentLevelNumber % 3 === 2) {
+                currentTheme = "city";
+            } else {
+                currentTheme = "adventure";
+            }
+            
+            // Generate new level
+            generateLevel();
+            
+            // Reset player position but keep stats
+            player.worldX = 100;
+            player.x = 100;
+            player.y = 300;
+            player.velocityY = 1; // Reset to 1 as requested
+            cameraOffset = 0;
+            
+            // Add time bonus
+            timeLeft += 20;
+            
+            // Reset decision timer to prevent immediate decision after level change
+            decisionTimer = 0;
+            showingDecision = false;
+            currentDecision = null;
+            decisionsThisLevel = 0;
+            decisionTriggeredAt = [false, false];
+        }
+    }
+    
+    // Check if player has fallen off the screen - GAME OVER
+    if (player.y + player.height >= oceanHeight) {
+        gameState = 'gameOver';
+        window.gameState = 'gameOver';
+    }
+    
+    // Update time ONLY if not in a decision
+    if (!showingDecision) {
+        timeLeft -= 0.02;
+    }
+    
+    // Check game over conditions
+    if (budget <= 0 || satisfaction <= 0 || timeLeft <= 0) {
+        gameState = 'gameOver';
+        window.gameState = 'gameOver';
+    }
+    
+    // Update decision timer ONLY if not in a decision - replaced with position-based trigger
+    if (!showingDecision) {
+        // Check if player has reached a decision point
+        for (let i = 0; i < decisionPositions.length; i++) {
+            let decisionX = levelLength * decisionPositions[i];
+            if (!decisionTriggeredAt[i] && player.worldX >= decisionX) {
+                triggerRandomDecision();
+                decisionTriggeredAt[i] = true;
+                break;
+            }
+        }
+    }
 }
 
 // Update companion position
@@ -3330,100 +3293,11 @@ function drawEffectNotifications() {
 
 // Add touch support for mobile
 function touchStarted() {
-  // Calculate the game viewport offset
-  let gameWidth = 1000 * window.gameScale;
-  let gameHeight = 600 * window.gameScale;
-  let offsetX = (width - gameWidth) / 2;
-  let offsetY = (height - gameHeight) / 2;
-  
-  if (gameState === 'start' && touches.length > 0) {
-    let touch = touches[0];
-    // Adjust touch coordinates to account for viewport offset
-    let adjustedX = touch.x - offsetX;
-    let adjustedY = touch.y - offsetY;
-    
-    let startBtnX = gameWidth/2 - (100 * window.gameScale);
-    let startBtnY = gameHeight - (100 * window.gameScale);
-    let startBtnW = 200 * window.gameScale;
-    let startBtnH = 40 * window.gameScale;
-    
-    // Add extra touch area for better touch response
-    let touchArea = 20 * window.gameScale;
-    
-    if (adjustedX >= startBtnX - touchArea && 
-        adjustedX <= startBtnX + startBtnW + touchArea && 
-        adjustedY >= startBtnY - touchArea && 
-        adjustedY <= startBtnY + startBtnH + touchArea) {
-      console.log("Start button touched");  // Debug log
-      gameState = 'playing';
-      window.gameState = 'playing';
-      resetGame();
-      return false;
+    if (gameState === 'playing' && !showingDecision) {
+        // Touch handling for mobile controls is now managed by the index.html event listeners
+        return false;
     }
-  }
-  
-  // Handle gameplay touch controls with adjusted coordinates
-  if (gameState === 'playing' && !showingDecision && touches.length > 0) {
-    let touch = touches[0];
-    // Adjust touch coordinates
-    let adjustedX = touch.x - offsetX;
-    let adjustedY = touch.y - offsetY;
-    
-    let btnSize = 60 * window.gameScale;
-    let btnY = gameHeight - btnSize - (30 * window.gameScale);
-    
-    // Add touch feedback with scaling
-    let touchFeedback = (x, y) => {
-      push();
-      noFill();
-      stroke('#c72a09');
-      strokeWeight(3 * window.gameScale);
-      ellipse(x + btnSize/2, y + btnSize/2, btnSize/2);
-      pop();
-    };
-    
-    // Jump button check with scaled positions
-    let jumpBtnX = 30 * window.gameScale;
-    let jumpTouchArea = 15 * window.gameScale;
-    if (adjustedX >= jumpBtnX - jumpTouchArea && 
-        adjustedX <= jumpBtnX + btnSize + jumpTouchArea &&
-        adjustedY >= btnY - jumpTouchArea && 
-        adjustedY <= btnY + btnSize + jumpTouchArea) {
-      if (!player.isJumping) {
-        player.velocityY = -player.jumpForce;
-        player.isJumping = true;
-        touchFeedback(jumpBtnX, btnY);
-      }
-      return false;
-    }
-    
-    // Left arrow button check with scaled positions
-    let leftBtnX = gameWidth - (btnSize * 2) - (50 * window.gameScale);
-    if (adjustedX >= leftBtnX - jumpTouchArea && 
-        adjustedX <= leftBtnX + btnSize + jumpTouchArea &&
-        adjustedY >= btnY - jumpTouchArea && 
-        adjustedY <= btnY + btnSize + jumpTouchArea) {
-      if (player.worldX > 100) {
-        player.worldX -= player.speed;
-        player.facingRight = false;
-        touchFeedback(leftBtnX, btnY);
-      }
-      return false;
-    }
-    
-    // Right arrow button check with scaled positions
-    let rightBtnX = width - btnSize - (30 * window.gameScale);
-    if (touch.x >= rightBtnX - jumpTouchArea && 
-        touch.x <= rightBtnX + btnSize + jumpTouchArea &&
-        touch.y >= btnY - jumpTouchArea && 
-        touch.y <= btnY + btnSize + jumpTouchArea) {
-      player.worldX += player.speed;
-      player.facingRight = true;
-      touchFeedback(rightBtnX, btnY);
-      return false;
-    }
-  }
-  return true;
+    return true;
 }
 
 // Add mobile detection function
