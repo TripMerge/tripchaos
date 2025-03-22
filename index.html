@@ -457,7 +457,7 @@
         // Touch event handlers for buttons
         document.getElementById('jumpBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (!window.player.isJumping) {
+            if (window.player && !window.player.isJumping) {
                 window.player.velocityY = -window.player.jumpForce;
                 window.player.isJumping = true;
             }
@@ -485,7 +485,7 @@
 
         // Function to update player movement based on control state
         function updatePlayerMovement() {
-            if (window.gameState === 'playing' && !window.showingDecision) {
+            if (window.player && window.gameState === 'playing' && !window.showingDecision) {
                 if (controlState.left && window.player.worldX > 100) {
                     window.player.worldX -= window.player.speed;
                     window.player.facingRight = false;
@@ -498,13 +498,18 @@
         }
 
         // Add the movement update to the game loop
-        if (window.draw) {
-            const originalDraw = window.draw;
-            window.draw = function() {
-                updatePlayerMovement();
-                originalDraw();
-            };
-        }
+        window.addEventListener('load', function() {
+            // Make sure sketch.js is fully loaded
+            setTimeout(function() {
+                if (window.draw) {
+                    const originalDraw = window.draw;
+                    window.draw = function() {
+                        updatePlayerMovement();
+                        originalDraw();
+                    };
+                }
+            }, 500);
+        });
 
         // Prevent default touch behavior to avoid scrolling
         document.addEventListener('touchmove', (e) => {
