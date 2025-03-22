@@ -1,8 +1,65 @@
-# TripChaos
+# TripChaos: Group Travel Adventures
 
-![TripChaos Game](https://via.placeholder.com/800x400?text=TripChaos+Game)
+## Overview
+TripChaos is an engaging side-scrolling platformer game where players navigate through various travel-themed environments while managing their budget, satisfaction, and time. As a group traveler, you'll face various challenges, collect perks, and avoid mishaps across different themed levels including beaches, cities, and adventure zones.
 
-**TripChaos** is a fun platform game where you navigate through various vacation-themed levels while facing travel mishaps and collecting helpful items. Promote your travel planning experience with this engaging game that demonstrates the pitfalls of unprepared travel!
+## Game Features
+- **Multiple Environments**: Travel through beach, city, and adventure-themed levels
+- **Resource Management**: Balance your budget, satisfaction, and time
+- **Dynamic Obstacles**: Dodge mishaps and collect helpful perks
+- **Decision System**: Make critical choices that affect your journey
+- **Companion System**: Travel with a companion who follows your movements
+- **Cloud Effects**: Experience temporary slowdown effects when hitting clouds
+- **Leaderboard**: Compare your scores with other players
+- **Social Sharing**: Share your achievements on social media
+
+## Controls
+- **LEFT ARROW**: Move left
+- **RIGHT ARROW**: Move right
+- **SPACE**: Jump
+- Mouse click for menu interactions and decision-making
+
+## Game Elements
+### Perks
+- Collect various items that boost your stats
+- Each perk affects different aspects of your journey
+
+### Mishaps
+- Avoid obstacles that can decrease your stats
+- Different mishaps have varying negative effects
+
+## Scoring System
+- Score points by collecting perks
+- Maintain high satisfaction levels
+- Manage your budget effectively
+- Complete levels within the time limit
+
+## Technical Details
+- Built with p5.js
+- Responsive design with dynamic scaling
+- Persistent leaderboard system
+- Social media integration
+
+## How to Play
+1. Click "START GAME" on the main screen
+2. Navigate through the level using arrow keys and space to jump
+3. Collect perks and avoid mishaps
+4. Make decisions when prompted
+5. Complete the level before time runs out
+6. Submit your score to the leaderboard
+7. Share your achievements
+
+## Tips
+- Keep an eye on your satisfaction, budget, and time meters
+- Make strategic decisions when prompted
+- Use the companion as a guide for upcoming obstacles
+- Watch out for cloud effects that can slow you down
+
+## Development
+Created as an interactive game to demonstrate the challenges of unprepared travel while providing an engaging gaming experience. The game emphasizes the importance of proper group trip planning while maintaining entertainment value.
+
+## Credits
+Game developed for TripMerge.com to showcase the importance of proper trip planning.
 
 ## Play the Game
 
