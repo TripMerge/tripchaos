@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="TripChaos: The Unprepared Traveler - A fun game about travel planning mishaps">
+    <meta name="description" content="TripChaos: Group Traveler - A fun game about group travel planning mishaps">
     <meta name="theme-color" content="#1a1a2e">
     
     <title>TripChaos: The Unprepared Traveler</title>
@@ -66,7 +66,34 @@
             transform: translate(-50%, -50%);
             max-width: 100%;
             max-height: 100%;
+            width: 1280px; /* Base width for desktop */
+            height: 720px; /* 16:9 aspect ratio */
             touch-action: none; /* Prevent default touch actions on mobile */
+        }
+        
+        /* iPhone 14 and similar devices in landscape */
+        @media screen and (max-width: 926px) and (orientation: landscape) {
+            canvas {
+                width: 926px; /* iPhone 14 Pro Max height in landscape */
+                height: 428px; /* Maintaining aspect ratio */
+            }
+        }
+        
+        /* Smaller iPhone models in landscape */
+        @media screen and (max-width: 844px) and (orientation: landscape) {
+            canvas {
+                width: 844px;
+                height: 390px;
+            }
+        }
+        
+        /* High DPI screens (Retina displays) */
+        @media screen and (-webkit-min-device-pixel-ratio: 2), 
+               screen and (min-resolution: 192dpi) {
+            canvas {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
         }
         
         #rotation-message {
@@ -76,43 +103,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #1a1a2e;
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        #rotation-message img {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 20px;
-            animation: rotate 2s infinite linear;
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        @media screen and (max-width: 768px) and (orientation: portrait) {
-            #rotation-message {
-                display: flex;
-            }
-            #game-container {
-                display: none;
-            }
-        }
-        
-        @media screen and (max-width: 768px) and (orientation: landscape) {
-            body {
-                padding: 0;
-            }
-            #game-container {
-                border-radius: 0;
-            }
             background-color: #1a1a2e;
             z-index: 1000;
             justify-content: center;
@@ -203,14 +193,7 @@
         <h2>Please Rotate Your Device</h2>
         <p>This game works best in landscape mode</p>
     </div>
-    <div id="rotation-message">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjEgMnY2aC02Ii8+PHBhdGggZD0iTTMgMTJ2LTJhOSA5IDAgMCAxIDE1LTYuN2wzIDIuN00zIDIydi02aDYiLz48cGF0aCBkPSJNMjEgMTJ2MmE5IDkgMCAwIDEtMTUgNi43bC0zLTIuNyIvPjwvc3ZnPg==" alt="Rotate Device">
-        <h2>Please Rotate Your Device</h2>
-        <p>This game works best in landscape mode</p>
-    </div>
     <div id="game-container">
-        <div id="loading">Loading...</div>
-        <div id="error"></div>
         <div id="loading">Loading...</div>
         <div id="error"></div>
     </div>
