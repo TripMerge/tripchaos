@@ -298,18 +298,32 @@ let decisions = [
 function setup() {
   // Create canvas with responsive dimensions
   if (isMobileDevice()) {
-    // For mobile devices in landscape, use full screen width while maintaining aspect ratio
-    let canvasWidth = window.innerWidth;
-    let canvasHeight = (canvasWidth * 0.6); // Maintain 5:3 aspect ratio
-    // Ensure the height doesn't exceed the viewport height
-    if (canvasHeight > window.innerHeight) {
-      canvasHeight = window.innerHeight;
-      canvasWidth = (canvasHeight / 0.6);
+    // For mobile devices in landscape, use screen dimensions
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+    
+    // Calculate the best fit while maintaining aspect ratio
+    let gameRatio = 1000/600; // Original game ratio
+    let screenRatio = screenWidth/screenHeight;
+    
+    let canvasWidth, canvasHeight;
+    if (screenRatio > gameRatio) {
+      // Screen is wider than needed
+      canvasHeight = screenHeight;
+      canvasWidth = screenHeight * gameRatio;
+    } else {
+      // Screen is taller than needed
+      canvasWidth = screenWidth;
+      canvasHeight = screenWidth / gameRatio;
     }
+    
     createCanvas(canvasWidth, canvasHeight);
+    // Scale all game elements according to screen size
+    window.gameScale = canvasWidth / 1000; // Store global scale factor
   } else {
     // For desktop, use fixed dimensions
     createCanvas(1000, 600);
+    window.gameScale = 1;
   }
   
   // Initialize game objects and settings
@@ -322,13 +336,23 @@ function setup() {
 // Handle window resize events
 function windowResized() {
   if (isMobileDevice()) {
-    let canvasWidth = window.innerWidth;
-    let canvasHeight = (canvasWidth * 0.6);
-    if (canvasHeight > window.innerHeight) {
-      canvasHeight = window.innerHeight;
-      canvasWidth = (canvasHeight / 0.6);
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+    
+    let gameRatio = 1000/600;
+    let screenRatio = screenWidth/screenHeight;
+    
+    let canvasWidth, canvasHeight;
+    if (screenRatio > gameRatio) {
+      canvasHeight = screenHeight;
+      canvasWidth = screenHeight * gameRatio;
+    } else {
+      canvasWidth = screenWidth;
+      canvasHeight = screenWidth / gameRatio;
     }
+    
     resizeCanvas(canvasWidth, canvasHeight);
+    window.gameScale = canvasWidth / 1000;
   }
 }
 
@@ -2106,34 +2130,34 @@ function drawGameUI() {
   // Draw UI elements at the top
   push();
   fill(0);
-  textSize(20);
+  textSize(20 * window.gameScale);
   textAlign(LEFT, TOP);
   
   // Draw level indicator with total levels
-  text(`Level ${currentLevelNumber}/3`, 20, 20);
+  text(`Level ${currentLevelNumber}/3`, 20 * window.gameScale, 20 * window.gameScale);
   
   // Draw meters horizontally across the top
   let meterSpacing = width / 5;
-  drawMeter("Budget", budget, meterSpacing, 20);
-  drawMeter("Satisfaction", satisfaction, meterSpacing * 2, 20);
-  drawMeter("Time", timeLeft, meterSpacing * 3, 20);
-  drawMeter("Score", score, meterSpacing * 4, 20);
+  drawMeter("Budget", budget, meterSpacing, 20 * window.gameScale);
+  drawMeter("Satisfaction", satisfaction, meterSpacing * 2, 20 * window.gameScale);
+  drawMeter("Time", timeLeft, meterSpacing * 3, 20 * window.gameScale);
+  drawMeter("Score", score, meterSpacing * 4, 20 * window.gameScale);
   
   // Draw control buttons only on mobile when playing
   if (gameState === 'playing' && !showingDecision && isMobileDevice()) {
     push();
-    // Common button properties - Increased size for better touch targets
-    let btnSize = 60;
-    let btnY = height - btnSize - 30;
-    drawingContext.shadowBlur = 5;
+    // Common button properties with scaling
+    let btnSize = 60 * window.gameScale;
+    let btnY = height - btnSize - (30 * window.gameScale);
+    drawingContext.shadowBlur = 5 * window.gameScale;
     drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
     
     // Jump button (left side)
-    let jumpBtnX = 30;
+    let jumpBtnX = 30 * window.gameScale;
     fill('#f5f7f8');
     stroke('#000000');
-    strokeWeight(2);
-    rect(jumpBtnX, btnY, btnSize, btnSize, 12);
+    strokeWeight(2 * window.gameScale);
+    rect(jumpBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
     
     // Up arrow for jump
     fill('#000000');
@@ -2145,11 +2169,11 @@ function drawGameUI() {
     endShape(CLOSE);
     
     // Left arrow button
-    let leftBtnX = width - (btnSize * 2) - 50;
+    let leftBtnX = width - (btnSize * 2) - (50 * window.gameScale);
     fill('#f5f7f8');
     stroke('#000000');
-    strokeWeight(2);
-    rect(leftBtnX, btnY, btnSize, btnSize, 12);
+    strokeWeight(2 * window.gameScale);
+    rect(leftBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
     
     // Left arrow symbol
     fill('#000000');
@@ -2161,11 +2185,11 @@ function drawGameUI() {
     endShape(CLOSE);
     
     // Right arrow button
-    let rightBtnX = width - btnSize - 30;
+    let rightBtnX = width - btnSize - (30 * window.gameScale);
     fill('#f5f7f8');
     stroke('#000000');
-    strokeWeight(2);
-    rect(rightBtnX, btnY, btnSize, btnSize, 12);
+    strokeWeight(2 * window.gameScale);
+    rect(rightBtnX, btnY, btnSize, btnSize, 12 * window.gameScale);
     
     // Right arrow symbol
     fill('#000000');
@@ -3330,26 +3354,28 @@ function drawEffectNotifications() {
 
 // Add touch support for mobile
 function touchStarted() {
-  // Check control buttons for playing state
   if (gameState === 'playing' && !showingDecision && touches.length > 0) {
-    let btnSize = 60; // Match the new button size
-    let btnY = height - btnSize - 30;
+    let btnSize = 60 * window.gameScale; // Scale button size
+    let btnY = height - btnSize - (30 * window.gameScale); // Scale padding
     let touch = touches[0];
     
-    // Add touch feedback
+    // Add touch feedback with scaling
     let touchFeedback = (x, y) => {
       push();
       noFill();
       stroke('#c72a09');
-      strokeWeight(3);
+      strokeWeight(3 * window.gameScale);
       ellipse(x + btnSize/2, y + btnSize/2, btnSize/2);
       pop();
     };
     
-    // Jump button check with increased touch area
-    let jumpBtnX = 30;
-    if (touch.x >= jumpBtnX - 10 && touch.x <= jumpBtnX + btnSize + 10 &&
-        touch.y >= btnY - 10 && touch.y <= btnY + btnSize + 10) {
+    // Jump button check with scaled positions
+    let jumpBtnX = 30 * window.gameScale;
+    let jumpTouchArea = 15 * window.gameScale; // Increased touch area
+    if (touch.x >= jumpBtnX - jumpTouchArea && 
+        touch.x <= jumpBtnX + btnSize + jumpTouchArea &&
+        touch.y >= btnY - jumpTouchArea && 
+        touch.y <= btnY + btnSize + jumpTouchArea) {
       if (!player.isJumping) {
         player.velocityY = -player.jumpForce;
         player.isJumping = true;
@@ -3358,10 +3384,12 @@ function touchStarted() {
       return false;
     }
     
-    // Left arrow button check with increased touch area
-    let leftBtnX = width - (btnSize * 2) - 50;
-    if (touch.x >= leftBtnX - 10 && touch.x <= leftBtnX + btnSize + 10 &&
-        touch.y >= btnY - 10 && touch.y <= btnY + btnSize + 10) {
+    // Left arrow button check with scaled positions
+    let leftBtnX = width - (btnSize * 2) - (50 * window.gameScale);
+    if (touch.x >= leftBtnX - jumpTouchArea && 
+        touch.x <= leftBtnX + btnSize + jumpTouchArea &&
+        touch.y >= btnY - jumpTouchArea && 
+        touch.y <= btnY + btnSize + jumpTouchArea) {
       if (player.worldX > 100) {
         player.worldX -= player.speed;
         player.facingRight = false;
@@ -3370,10 +3398,12 @@ function touchStarted() {
       return false;
     }
     
-    // Right arrow button check with increased touch area
-    let rightBtnX = width - btnSize - 30;
-    if (touch.x >= rightBtnX - 10 && touch.x <= rightBtnX + btnSize + 10 &&
-        touch.y >= btnY - 10 && touch.y <= btnY + btnSize + 10) {
+    // Right arrow button check with scaled positions
+    let rightBtnX = width - btnSize - (30 * window.gameScale);
+    if (touch.x >= rightBtnX - jumpTouchArea && 
+        touch.x <= rightBtnX + btnSize + jumpTouchArea &&
+        touch.y >= btnY - jumpTouchArea && 
+        touch.y <= btnY + btnSize + jumpTouchArea) {
       player.worldX += player.speed;
       player.facingRight = true;
       touchFeedback(rightBtnX, btnY);
