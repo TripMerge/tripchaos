@@ -405,6 +405,22 @@
                 padding-top: max(env(safe-area-inset-top), 0px);
             }
         }
+
+        /* Mobile input field adjustments */
+        @media (max-width: 767px) {
+            .input-field {
+                font-size: 16px;
+                padding: 14px 18px;
+                border-width: 3px;
+            }
+        }
+        
+        /* iOS specific adjustments */
+        @supports (-webkit-touch-callout: none) {
+            .input-field {
+                font-size: 16px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -441,7 +457,7 @@
         // Touch event handlers for buttons
         document.getElementById('jumpBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (window.player && !window.player.isJumping) {
+            if (!window.player.isJumping) {
                 window.player.velocityY = -window.player.jumpForce;
                 window.player.isJumping = true;
             }
@@ -450,7 +466,6 @@
         document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             controlState.left = true;
-            updateMovement();
         });
 
         document.getElementById('leftBtn').addEventListener('touchend', (e) => {
@@ -461,7 +476,6 @@
         document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             controlState.right = true;
-            updateMovement();
         });
 
         document.getElementById('rightBtn').addEventListener('touchend', (e) => {
@@ -470,8 +484,8 @@
         });
 
         // Function to update player movement based on control state
-        function updateMovement() {
-            if (window.gameState === 'playing' && !window.showingDecision && window.player) {
+        function updatePlayerMovement() {
+            if (window.gameState === 'playing' && !window.showingDecision) {
                 if (controlState.left && window.player.worldX > 100) {
                     window.player.worldX -= window.player.speed;
                     window.player.facingRight = false;
@@ -483,14 +497,14 @@
             }
         }
 
-        // Add continuous movement update to game loop
-        function moveLoop() {
-            if (controlState.left || controlState.right) {
-                updateMovement();
-            }
-            requestAnimationFrame(moveLoop);
+        // Add the movement update to the game loop
+        if (window.draw) {
+            const originalDraw = window.draw;
+            window.draw = function() {
+                updatePlayerMovement();
+                originalDraw();
+            };
         }
-        moveLoop();
 
         // Prevent default touch behavior to avoid scrolling
         document.addEventListener('touchmove', (e) => {
@@ -502,18 +516,20 @@
         // Handle button visual feedback
         const buttons = document.querySelectorAll('.game-button');
         buttons.forEach(button => {
-            ['touchstart', 'mousedown'].forEach(eventType => {
-                button.addEventListener(eventType, () => {
-                    button.style.transform = 'scale(0.95)';
-                    button.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
-                });
+            button.addEventListener('touchstart', () => {
+                button.style.transform = 'scale(0.95)';
+                button.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
             });
             
-            ['touchend', 'mouseup', 'mouseleave', 'touchcancel'].forEach(eventType => {
-                button.addEventListener(eventType, () => {
-                    button.style.transform = 'scale(1)';
-                    button.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
-                });
+            button.addEventListener('touchend', () => {
+                button.style.transform = 'scale(1)';
+                button.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+            });
+            
+            // Cancel the button press if touch moves out
+            button.addEventListener('touchcancel', () => {
+                button.style.transform = 'scale(1)';
+                button.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
             });
         });
     </script>
