@@ -56,7 +56,7 @@ TripChaos is an engaging side-scrolling platformer game where players navigate t
 - Watch out for cloud effects that can slow you down
 
 ## Development
-Created as an interactive game to demonstrate the challenges of unprepared travel while providing an engaging gaming experience. The game emphasizes the importance of proper group trip planning while maintaining entertainment value.
+Created as an interactive game to demonstrate the challenges of group travelling while providing an engaging gaming experience. The game emphasizes the importance of proper group trip planning while maintaining entertainment value.
 
 ## Credits
 Game developed for TripMerge.com to showcase the importance of proper trip planning.
