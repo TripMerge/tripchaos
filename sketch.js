@@ -1086,9 +1086,9 @@ function updateGame() {
           duration: NOTIFICATION_DURATION
         });
       } else if (mishap.type === 'dollar') {
-        budget -= 10; // Reduced from 15
+        budget -= 10 + (currentLevelNumber * 5); // Increased base penalty and level scaling
       } else if (mishap.type === 'suitcase') {
-        satisfaction -= 10; // Reduced from 15
+        satisfaction -= 10 + (currentLevelNumber * 3); // Increased base penalty and added level scaling
       }
       
       // Create effect notifications
@@ -3143,14 +3143,14 @@ function updateMishaps() {
   }
   
   // Scale spawn rate and max mishaps with level
-  let baseSpawnRate = 0.015; // Reduced from 0.02
-  let spawnRate = baseSpawnRate * (1 + (currentLevelNumber - 1) * 0.5); // Reduced scaling from 0.75 to 0.5
-  let maxMishaps = 2 + (currentLevelNumber - 1) * 2; // Reduced from 3 + (level-1)*3 to 2 + (level-1)*2
+  let baseSpawnRate = 0.015; // Increased from 0.015 for more frequent mishaps
+  let spawnRate = baseSpawnRate * (1 + (currentLevelNumber - 1) * 0.6); // Increased scaling from 0.5 to 0.6
+  let maxMishaps = 2 + (currentLevelNumber - 1) * 2; // Increased base from 2 to 3
   
   // Spawn new falling mishaps with scaled frequency
   if (!showingDecision && random() < spawnRate && mishaps.length < maxMishaps) {
     // Calculate spawn position relative to player
-    let spawnX = player.worldX + random(-100, 300); // Bias towards front of player
+    let spawnX = player.worldX + random(-50, 250); // Reduced safe zone, more challenging positioning
     spawnX = constrain(spawnX, 100, levelLength - 100); // Keep within level bounds
     
     // Determine mishap type based on level
@@ -3158,17 +3158,17 @@ function updateMishaps() {
     let typeRand = random();
     
     if (currentLevelNumber === 1) {
-      // Level 1: 30% clouds (reduced from 40%), 70% dollars (increased from 60%), no suitcases
+      // Level 1: 30% clouds (unchanged), 70% dollars
       mishapType = typeRand < 0.3 ? 'cloud' : 'dollar';
     } else if (currentLevelNumber === 2) {
-      // Level 2: 30% clouds (reduced from 40%), 50% dollars (increased from 40%), 20% suitcases
+      // Level 2: 30% clouds (unchanged), 40% dollars, 30% suitcases (increased from 20%)
       if (typeRand < 0.3) mishapType = 'cloud';
-      else if (typeRand < 0.8) mishapType = 'dollar';
+      else if (typeRand < 0.7) mishapType = 'dollar';
       else mishapType = 'suitcase';
     } else {
-      // Level 3: 15% clouds (reduced from 20%), 45% dollars (increased from 40%), 40% suitcases
+      // Level 3: 15% clouds (unchanged), 35% dollars, 50% suitcases (increased from 40%)
       if (typeRand < 0.15) mishapType = 'cloud';
-      else if (typeRand < 0.6) mishapType = 'dollar';
+      else if (typeRand < 0.5) mishapType = 'dollar';
       else mishapType = 'suitcase';
     }
     

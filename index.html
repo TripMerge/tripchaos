@@ -79,7 +79,7 @@
         canvas {
             position: absolute;
             left: 50%;
-            top: 50%;
+            top: 45%;
             transform: translate(-50%, -50%);
             width: auto;
             height: auto;
@@ -485,6 +485,20 @@
                 #game-controls {
                     bottom: max(20px, env(safe-area-inset-bottom));
                 }
+            }
+        }
+
+        /* Add mobile-specific adjustments */
+        @media (max-width: 768px) {
+            canvas {
+                top: 40%;
+            }
+        }
+        
+        /* Add even more adjustment for shorter screens */
+        @media (max-height: 600px) {
+            canvas {
+                top: 35%;
             }
         }
     </style>
