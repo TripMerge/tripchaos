@@ -2164,12 +2164,23 @@ function drawGameUI() {
   // Draw level indicator with total levels
   text(`Level ${currentLevelNumber}/3`, 20 * window.gameScale, 20 * window.gameScale);
   
-  // Draw meters horizontally across the top
+  // Draw meters horizontally across the top with adjusted positioning for mobile
+  let meterY = isMobileDevice() ? 45 * window.gameScale : 20 * window.gameScale;
   let meterSpacing = (isMobileDevice() ? 1000 * window.gameScale : width) / 5;
-  drawMeter("Budget", budget, meterSpacing, 20 * window.gameScale);
-  drawMeter("Satisfaction", satisfaction, meterSpacing * 2, 20 * window.gameScale);
-  drawMeter("Time", timeLeft, meterSpacing * 3, 20 * window.gameScale);
-  drawMeter("Score", score, meterSpacing * 4, 20 * window.gameScale);
+  
+  // Adjust horizontal spacing for mobile to ensure all meters are visible
+  if (isMobileDevice()) {
+    drawMeter("Budget", budget, meterSpacing * 0.8, meterY);
+    drawMeter("Satisfaction", satisfaction, meterSpacing * 1.8, meterY);
+    drawMeter("Time", timeLeft, meterSpacing * 2.8, meterY);
+    drawMeter("Score", score, meterSpacing * 3.8, meterY);
+  } else {
+    // Standard positioning for desktop
+    drawMeter("Budget", budget, meterSpacing, meterY);
+    drawMeter("Satisfaction", satisfaction, meterSpacing * 2, meterY);
+    drawMeter("Time", timeLeft, meterSpacing * 3, meterY);
+    drawMeter("Score", score, meterSpacing * 4, meterY);
+  }
 }
 
 // Draw a meter for game stats
