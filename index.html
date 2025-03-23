@@ -493,7 +493,7 @@
         /* Add mobile-specific adjustments */
         @media (max-width: 768px) {
             canvas {
-                top: 42%;
+                top: 38%;
                 max-height: 85vh;
             }
         }
@@ -501,8 +501,19 @@
         /* Add even more adjustment for shorter screens */
         @media (max-height: 600px) {
             canvas {
-                top: 45%;
+                top: 40%;
                 max-height: 80vh;
+            }
+        }
+
+        /* Ensure better spacing for input fields on mobile */
+        @media (max-width: 768px) {
+            .input-field {
+                margin-bottom: 24px;
+            }
+            
+            .submit-btn-area {
+                margin-top: 10px;
             }
         }
 
