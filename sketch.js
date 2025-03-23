@@ -23,6 +23,12 @@ let submittingScore = false;
 let scoreSubmitted = false;
 let currentInputField = null;
 
+// Make key game functions and variables accessible globally
+window.playerEmail = playerEmail;
+window.gameState = gameState;
+window.showLeaderboard = showLeaderboard;
+window.submitScoreToLeaderboard = null; // Will be assigned the actual function
+
 // New global variable for handling direct input
 let isEmailInputActive = false;
 let emailInputCursor = 0;
@@ -38,6 +44,9 @@ let fadingGreyAtmosphere = false;
 
 // Add this at the top with other global variables
 let cloudSlowdownEndTime = 0; // When the cloud effect should end (in millis)
+
+// Near the top with other global variables
+let showSharePopup = false; // Controls visibility of share popup
 
 // Player variables
 let player = {
@@ -91,9 +100,6 @@ let levelEndMarker = null;
 let levelLength = 3000; // Level length in pixels
 let cameraOffset = 0;
 let currentLevelNumber = 1;
-
-// Make game state globally accessible
-window.gameState = gameState;
 
 // UI and text rendering variables for improved readability
 let buttonHover = "";
@@ -296,9 +302,9 @@ let decisions = [
 
 // Setup function
 function setup() {
-  // For desktop, use fixed dimensions
+    // For desktop, use fixed dimensions
   let canvas = createCanvas(1000, 600);
-  window.gameScale = 1;
+    window.gameScale = 1;
   
   canvas.parent('game-container');
   
@@ -318,7 +324,8 @@ function windowResized() {
 
 // Update mobile detection to be more reliable
 function isMobileDevice() {
-  return false; // Disable mobile controls
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+      || (window.matchMedia && window.matchMedia('(max-width: 926px)').matches);
 }
 
 // Add orientation change handler
@@ -402,7 +409,7 @@ function generateLevel() {
   
   // Adjust probabilities based on level
   let perkChance = 0.4 - (currentLevelNumber - 1) * 0.05; // Decrease perks with level (0.4, 0.35, 0.3)
-  let mishapChance = 0.2 + (currentLevelNumber - 1) * 0.1; // Increase mishaps with level (0.2, 0.3, 0.4)
+  let mishapChance = 0.15 + (currentLevelNumber - 1) * 0.08; // Reduced from 0.2+(level-1)*0.1 to 0.15+(level-1)*0.08
   
   // Adjust perk type probabilities based on level
   let coinChance = 0.4 - (currentLevelNumber - 1) * 0.1; // Decrease helpful perks
@@ -522,16 +529,16 @@ function generateLevel() {
           let typeRand = random();
           
           if (currentLevelNumber === 1) {
-            // Level 1: 40% clouds (was 80%), 60% dollars (was 20%), no suitcases
-            mishapType = typeRand < 0.4 ? 'cloud' : 'dollar';
+            // Level 1: 30% clouds, 70% dollars, no suitcases
+            mishapType = typeRand < 0.3 ? 'cloud' : 'dollar';
           } else if (currentLevelNumber === 2) {
-            // Level 2: 40% clouds, 40% dollars, 20% suitcases
-            if (typeRand < 0.4) mishapType = 'cloud';
+            // Level 2: 30% clouds, 50% dollars, 20% suitcases
+            if (typeRand < 0.3) mishapType = 'cloud';
             else if (typeRand < 0.8) mishapType = 'dollar';
             else mishapType = 'suitcase';
           } else {
-            // Level 3: 20% clouds, 40% dollars, 40% suitcases
-            if (typeRand < 0.2) mishapType = 'cloud';
+            // Level 3: 15% clouds, 45% dollars, 40% suitcases
+            if (typeRand < 0.15) mishapType = 'cloud';
             else if (typeRand < 0.6) mishapType = 'dollar';
             else mishapType = 'suitcase';
           }
@@ -610,69 +617,33 @@ function generateLevel() {
   }
 }
 
-// Draw function - main game loop
+// Main draw function
 function draw() {
-  // Keep global gameState in sync
-  window.gameState = gameState;
+  // Clear canvas
+  clear();
   
-  // Handle continuous button presses
-  if (gameState === 'playing' && !showingDecision) {
-    let btnSize = 45;
-    let btnY = height - btnSize - 20;
-    
-    // Check for mouse press on arrow buttons
-    if (mouseIsPressed) {
-      // Left arrow button check
-      let leftBtnX = width - (btnSize * 2) - 40;
-      if (mouseX >= leftBtnX && mouseX <= leftBtnX + btnSize &&
-          mouseY >= btnY && mouseY <= btnY + btnSize) {
-        if (player.worldX > 100) {
-          player.worldX -= player.speed;
-          player.facingRight = false;
-        }
-      }
-      
-      // Right arrow button check
-      let rightBtnX = width - btnSize - 20;
-      if (mouseX >= rightBtnX && mouseX <= rightBtnX + btnSize &&
-          mouseY >= btnY && mouseY <= btnY + btnSize) {
-        player.worldX += player.speed;
-        player.facingRight = true;
-      }
-    }
-    
-    // Check for touch on arrow buttons
-    for (let touch of touches) {
-      // Left arrow button check
-      let leftBtnX = width - (btnSize * 2) - 40;
-      if (touch.x >= leftBtnX && touch.x <= leftBtnX + btnSize &&
-          touch.y >= btnY && touch.y <= btnY + btnSize) {
-        if (player.worldX > 100) {
-          player.worldX -= player.speed;
-          player.facingRight = false;
-        }
-      }
-      
-      // Right arrow button check
-      let rightBtnX = width - btnSize - 20;
-      if (touch.x >= rightBtnX && touch.x <= rightBtnX + btnSize &&
-          touch.y >= btnY && touch.y <= btnY + btnSize) {
-        player.worldX += player.speed;
-        player.facingRight = true;
-      }
-    }
-  }
-  
-  // Continue with existing draw states
+  // Draw the appropriate screen based on game state
   if (gameState === 'start') {
     drawStartScreen();
   } else if (gameState === 'playing') {
+    if (!showingDecision) {
     updateGame();
+    }
     drawPlayingScreen();
   } else if (gameState === 'gameOver') {
     drawGameOverScreen();
   } else if (gameState === 'win') {
     drawWinScreen();
+  }
+  
+  // Draw leaderboard if active
+  if (showLeaderboard) {
+    drawLeaderboardScreen();
+  }
+  
+  // Draw share popup on top if active
+  if (showSharePopup) {
+    drawSharePopup();
   }
 }
 
@@ -1046,7 +1017,7 @@ function updateGame() {
       
       // Apply effect based on type with scaled impact
       if (mishap.type === 'cloud') {
-        satisfaction -= 15;
+        satisfaction -= 10; // Reduced from 15
         // Set cloud effect
         player.speed = 2.5;
         player.isSlowed = true;
@@ -1060,9 +1031,9 @@ function updateGame() {
           duration: NOTIFICATION_DURATION
         });
       } else if (mishap.type === 'dollar') {
-        budget -= 15; // Was 8
+        budget -= 10; // Reduced from 15
       } else if (mishap.type === 'suitcase') {
-        satisfaction -= 15; // Was 8
+        satisfaction -= 10; // Reduced from 15
       }
       
       // Create effect notifications
@@ -2205,17 +2176,18 @@ function drawGameOverScreen() {
   textStyle(BOLD);
   textSize(titleFontSize);
   textAlign(CENTER);
-  text("GAME OVER", width/2 - 100, height/12);
+  text("GAME OVER", width/2, height/12);
   
-  // Play Again text - white with red contour
-  let playAgainX = width/2 + 150;
-  let playAgainY = height/12;
+  // Play Again text - moved under Game Over
+  let playAgainX = width/2;
+  let playAgainY = height/12 + 40;
   let isPlayAgainHovering = mouseX >= playAgainX - 80 && mouseX <= playAgainX + 80 && 
                            mouseY >= playAgainY - 20 && mouseY <= playAgainY + 20;
   
   stroke(highlightTextColor);
   strokeWeight(3);
   fill('#ffffff');
+  textSize(titleFontSize - 10);
   text("PLAY AGAIN", playAgainX, playAgainY);
   noStroke();
   
@@ -2225,134 +2197,122 @@ function drawGameOverScreen() {
     cursor(ARROW);
   }
 
-  // Score section
+  // COMBINED Score & Achievement section
   fill('#f5f7f8');
-  rect(width/2 - 150, height/12 + 20, 300, 50, 10);
+  rect(width/2 - 250, height/12 + 70, 500, 90, 10);
   
+  // Score part
   fill(primaryTextColor);
   textSize(bodyFontSize);
-  text(`Final Score: ${score}`, width/2, height/12 + 50);
+  textAlign(CENTER);
+  text(`Final Score: ${score}`, width/2, height/12 + 100);
 
-  // Achievement section
+  // Achievement part
   let achievement = getAchievement(score);
   fill(achievement.color);
   textStyle(BOLD);
   textSize(bodyFontSize);
-  text("🏆", width/2 - 90, height/12 + 90);
-  text(achievement.title, width/2, height/12 + 90);
+  textAlign(CENTER);
+  text("🏆 " + achievement.title, width/2, height/12 + 140);
   
-  // Achievement description
-  fill(primaryTextColor);
-  textStyle(NORMAL);
-  textSize(smallFontSize);
-  text("Achievement Unlocked!", width/2, height/12 + 110);
-
-  // Challenges section - moved down to accommodate achievement
+  // TripMerge solutions section - BIGGER with two columns
   fill('#f5f7f8');
-  rect(width/2 - 300, height/12 + 130, 600, 100, 10);
+  // Remove the red stroke/contour
+  noStroke();
+  rect(width/2 - 300, height/12 + 170, 600, 150, 12); // Made taller
 
   fill(highlightTextColor);
   textStyle(BOLD);
-  textSize(smallFontSize);
-  text("Your trip faced challenges with:", width/2, height/12 + 150);
+  textSize(smallFontSize + 4); // Increased size
+  textAlign(CENTER);
+  text("Improve Your Trips with Tripmerge!", width/2, height/12 + 200);
   
+  // TripMerge features list - two columns with larger text
   textStyle(NORMAL);
   fill(primaryTextColor);
-  textSize(smallFontSize);
-  text(`• Budget management: ${Math.round((100 - budget))}% overspent`, width/2, height/12 + 170);
-  text(`• Group coordination: ${Math.round((100 - satisfaction))}% satisfaction lost`, width/2, height/12 + 190);
-  text(`• Finding the best experiences: ${Math.floor(score/100)}/10 gems found`, width/2, height/12 + 210);
-
-  // TripMerge solutions section - Redesigned with two columns
-  fill('#f5f7f8');
-  rect(width/2 - 300, height/12 + 250, 600, 120, 10);
-
-  fill(highlightTextColor);
-  textStyle(BOLD);
-  textSize(smallFontSize);
-  text("In real life, avoid these problems with Tripmerge!", width/2, height/12 + 270);
-
-  // TripMerge features list - two columns with smaller text
-  textStyle(NORMAL);
-  fill(primaryTextColor);
-  textSize(smallFontSize - 2); // Smaller text
+  textSize(smallFontSize); // Larger text
   
   // Left column features
   textAlign(LEFT);
-  text("💰 Trip budget calculation tools", width/2 - 270, height/12 + 295);
-  text("👥 Group trip planning features", width/2 - 270, height/12 + 315);
-  text("📊 Trip destination decision matrix", width/2 - 270, height/12 + 335);
-  text("✨ Travel wishlists with groups", width/2 - 270, height/12 + 355);
+  text("💰 Trip budget calculation tools", width/2 - 270, height/12 + 220);
+  text("👥 Group trip planning features", width/2 - 270, height/12 + 245);
+  text("📊 Trip destination decision matrix", width/2 - 270, height/12 + 270);
+  text("✨ Travel wishlists with groups", width/2 - 270, height/12 + 295);
   
   // Right column features
-  text("🗺️ Hidden gems search tool", width/2 + 30, height/12 + 295);
-  text("🌱 Trip carbon footprint tool", width/2 + 30, height/12 + 315);
-  text("💼 Expense tracking features", width/2 + 30, height/12 + 335);
-  text("✨ And so much more!", width/2 + 30, height/12 + 355);
+  text("🗺️ Hidden gems search tool", width/2 + 30, height/12 + 220);
+  text("🌱 Trip carbon footprint tool", width/2 + 30, height/12 + 245);
+  text("💼 Expense tracking features", width/2 + 30, height/12 + 270);
+  text("✨ And so much more!", width/2 + 30, height/12 + 295);
 
-  // Email collection section - moved up with red border
+  // Minimal spacing between sections 
+  const sectionSpacing = 5; // Reduced from 20 to bring sections closer
+
+  // Email collection section - POSITIONED MUCH CLOSER to section above
   fill('#f5f7f8');
   stroke(highlightTextColor);
-  strokeWeight(3);  // Thicker border for emphasis
-  rect(width/2 - 300, height/12 + 390, 600, 140, 10);
+  strokeWeight(4);  // Thicker border for emphasis
+  // Calculate position right after Tripmerge section
+  let leaderboardSectionY = height/12 + 330 + sectionSpacing;
+  rect(width/2 - 280, leaderboardSectionY, 560, 200, 12); 
   noStroke();
 
-  // Newsletter text and leaderboard prompt
+  // Newsletter text and leaderboard prompt - CENTERED
   fill(highlightTextColor);
   textStyle(BOLD);
-  textSize(smallFontSize);
-  text("🚀 JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES!", width/2 - 200, height/12 + 410);
+  textSize(smallFontSize + 4); // Increased size
   textAlign(CENTER);
+  text("🚀 JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES!", width/2, leaderboardSectionY + 30);
   
   // Instructions for email input
   fill(primaryTextColor);
   textStyle(NORMAL);
-  textSize(smallFontSize - 2);
-  text("Click below to enter your email address", width/2, height/12 + 430);
+  textSize(smallFontSize);
+  text("Click below to enter your email address", width/2, leaderboardSectionY + 60);
   
   // Email input box with improved interactive functionality
   fill('#ffffff');
   if (isEmailInputActive) {
     stroke('#c72a09'); // Red border when active
-    strokeWeight(2);
+    strokeWeight(3);
   } else {
     stroke('#3498db');
-    strokeWeight(2);
+    strokeWeight(3);
   }
   
-  // Email input box
+  // Email input box - LARGER
   let emailBoxX = width/2 - 200;
-  let emailBoxY = height/12 + 440;
+  let emailBoxY = leaderboardSectionY + 80;
   let emailBoxWidth = 400;
-  let emailBoxHeight = 35;
-  rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 5);
+  let emailBoxHeight = 50;
+  rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 8);
   
   // Email placeholder or entered text
   noStroke();
   textAlign(LEFT);
-  textSize(smallFontSize);
+  textSize(smallFontSize + 2); // Larger text
   
   if (playerEmail === "") {
     fill('#999999');
-    text("  your.email@example.com", emailBoxX + 10, emailBoxY + 23);
+    text("  your.email@example.com", emailBoxX + 15, emailBoxY + 30);
   } else {
     fill('#333333');
-    text("  " + playerEmail, emailBoxX + 10, emailBoxY + 23);
+    text("  " + playerEmail, emailBoxX + 15, emailBoxY + 30);
     
     // Draw blinking cursor when input is active
     if (isEmailInputActive && frameCount % cursorBlinkRate < cursorBlinkRate/2) {
-      let cursorX = emailBoxX + 12 + textWidth("  " + playerEmail.substring(0, emailInputCursor));
+      let cursorX = emailBoxX + 17 + textWidth("  " + playerEmail.substring(0, emailInputCursor));
       stroke('#333333');
-      strokeWeight(1);
-      line(cursorX, emailBoxY + 8, cursorX, emailBoxY + 28);
+      strokeWeight(2);
+      line(cursorX, emailBoxY + 10, cursorX, emailBoxY + 40);
     }
   }
   
   // Submit button - Adjusted position and improved appearance with red color
   let submitBtnX = width/2;
-  let submitBtnY = height/12 + 490;
-  let submitBtnWidth = 200;
-  let submitBtnHeight = 35;
+  let submitBtnY = emailBoxY + 70;
+  let submitBtnWidth = 250;
+  let submitBtnHeight = 45;
   let isSubmitHovering = mouseX >= submitBtnX - submitBtnWidth/2 && mouseX <= submitBtnX + submitBtnWidth/2 && 
                          mouseY >= submitBtnY && mouseY <= submitBtnY + submitBtnHeight;
   
@@ -2360,17 +2320,17 @@ function drawGameOverScreen() {
   fill(highlightTextColor);  // Always use the red highlight color
   if (isSubmitHovering) {
     // Add glow effect on hover
-    drawingContext.shadowBlur = 10;
+    drawingContext.shadowBlur = 15;
     drawingContext.shadowColor = 'rgba(199, 42, 9, 0.5)';
   }
   noStroke();
-  rect(submitBtnX - submitBtnWidth/2, submitBtnY, submitBtnWidth, submitBtnHeight, 5);
+  rect(submitBtnX - submitBtnWidth/2, submitBtnY, submitBtnWidth, submitBtnHeight, 8);
   drawingContext.shadowBlur = 0;  // Reset shadow
   
   // Button text
   fill('#ffffff');  // White text for better contrast on red
   textAlign(CENTER, CENTER);  // Center both horizontally and vertically
-  textSize(isSubmitHovering ? smallFontSize : smallFontSize - 1);
+  textSize(isSubmitHovering ? smallFontSize + 2 : smallFontSize + 1);
   let buttonText = submittingScore ? "Submitting..." : (scoreSubmitted ? "Submitted!" : "SUBMIT");
   text(buttonText, submitBtnX, submitBtnY + submitBtnHeight/2);
   
@@ -2382,7 +2342,8 @@ function drawGameOverScreen() {
   if (leaderboardMessage) {
     fill(scoreSubmitted ? '#4CAF50' : '#c72a09');
     textAlign(CENTER);
-    text(leaderboardMessage, width/2, submitBtnY + 55);
+    textSize(smallFontSize);
+    text(leaderboardMessage, width/2, submitBtnY + 60);
   }
 }
 
@@ -2396,23 +2357,25 @@ function drawWinScreen() {
     return;
   }
 
-  // Success Title and Play Again text
+  // Game Over Title and Play Again text
   noStroke();
-  fill(highlightTextColor);
+  // Green text for YOU WIN
+  fill('#4CAF50'); // Green color for "YOU WIN"
   textStyle(BOLD);
   textSize(titleFontSize);
   textAlign(CENTER);
-  text("SUCCESS!", width/2 - 100, height/12);
+  text("YOU WIN", width/2, height/12);
   
-  // Play Again text - white with red contour
-  let playAgainX = width/2 + 150;
-  let playAgainY = height/12;
+  // Play Again text - moved under Game Over
+  let playAgainX = width/2;
+  let playAgainY = height/12 + 40;
   let isPlayAgainHovering = mouseX >= playAgainX - 80 && mouseX <= playAgainX + 80 && 
                            mouseY >= playAgainY - 20 && mouseY <= playAgainY + 20;
   
   stroke(highlightTextColor);
   strokeWeight(3);
   fill('#ffffff');
+  textSize(titleFontSize - 10);
   text("PLAY AGAIN", playAgainX, playAgainY);
   noStroke();
   
@@ -2422,134 +2385,122 @@ function drawWinScreen() {
     cursor(ARROW);
   }
 
-  // Score section
+  // COMBINED Score & Achievement section
   fill('#f5f7f8');
-  rect(width/2 - 150, height/12 + 20, 300, 50, 10);
+  rect(width/2 - 250, height/12 + 70, 500, 90, 10);
   
+  // Score part
   fill(primaryTextColor);
   textSize(bodyFontSize);
-  text(`Final Score: ${score}`, width/2, height/12 + 50);
+  textAlign(CENTER);
+  text(`Final Score: ${score}`, width/2, height/12 + 100);
 
-  // Achievement section
+  // Achievement part
   let achievement = getAchievement(score);
   fill(achievement.color);
   textStyle(BOLD);
   textSize(bodyFontSize);
-  text("🏆", width/2 - 90, height/12 + 90);
-  text(achievement.title, width/2, height/12 + 90);
+  textAlign(CENTER);
+  text("🏆 " + achievement.title, width/2, height/12 + 140);
   
-  // Achievement description
-  fill(primaryTextColor);
-  textStyle(NORMAL);
-  textSize(smallFontSize);
-  text("Achievement Unlocked!", width/2, height/12 + 110);
-
-  // Success section - modified from challenges section
+  // TripMerge solutions section - BIGGER with two columns
   fill('#f5f7f8');
-  rect(width/2 - 300, height/12 + 130, 600, 100, 10);
+  // Remove the red stroke/contour
+  noStroke();
+  rect(width/2 - 300, height/12 + 180, 600, 150, 12); // Made taller
 
   fill(highlightTextColor);
   textStyle(BOLD);
-  textSize(smallFontSize);
-  text("Your trip was a great success!", width/2, height/12 + 150);
+  textSize(smallFontSize + 4); // Increased size
+  textAlign(CENTER);
+  text("Improve Your Trips with Tripmerge!", width/2, height/12 + 210);
   
+  // TripMerge features list - two columns with larger text
   textStyle(NORMAL);
   fill(primaryTextColor);
-  textSize(smallFontSize);
-  text(`• Budget management: ${Math.round(budget)}% budget remaining`, width/2, height/12 + 170);
-  text(`• Group coordination: ${Math.round(satisfaction)}% satisfaction maintained`, width/2, height/12 + 190);
-  text(`• Found amazing experiences: ${Math.floor(score/100)}/10 gems discovered`, width/2, height/12 + 210);
-
-  // TripMerge solutions section - Redesigned with two columns
-  fill('#f5f7f8');
-  rect(width/2 - 300, height/12 + 250, 600, 120, 10);
-
-  fill(highlightTextColor);
-  textStyle(BOLD);
-  textSize(smallFontSize);
-  text("Make your real trips just as successful with Tripmerge!", width/2, height/12 + 270);
-
-  // TripMerge features list - two columns with smaller text
-  textStyle(NORMAL);
-  fill(primaryTextColor);
-  textSize(smallFontSize - 2); // Smaller text
+  textSize(smallFontSize); // Larger text
   
   // Left column features
   textAlign(LEFT);
-  text("💰 Trip budget calculation tools", width/2 - 270, height/12 + 295);
-  text("👥 Group trip planning features", width/2 - 270, height/12 + 315);
-  text("📊 Trip destination decision matrix", width/2 - 270, height/12 + 335);
-  text("✨ Travel wishlists with groups", width/2 - 270, height/12 + 355);
+  text("💰 Trip budget calculation tools", width/2 - 270, height/12 + 240);
+  text("👥 Group trip planning features", width/2 - 270, height/12 + 265);
+  text("📊 Trip destination decision matrix", width/2 - 270, height/12 + 290);
+  text("✨ Travel wishlists with groups", width/2 - 270, height/12 + 315);
   
   // Right column features
-  text("🗺️ Hidden gems search tool", width/2 + 30, height/12 + 295);
-  text("🌱 Trip carbon footprint tool", width/2 + 30, height/12 + 315);
-  text("💼 Expense tracking features", width/2 + 30, height/12 + 335);
-  text("✨ And so much more!", width/2 + 30, height/12 + 355);
+  text("🗺️ Hidden gems search tool", width/2 + 30, height/12 + 240);
+  text("🌱 Trip carbon footprint tool", width/2 + 30, height/12 + 265);
+  text("💼 Expense tracking features", width/2 + 30, height/12 + 290);
+  text("✨ And so much more!", width/2 + 30, height/12 + 315);
 
-  // Email collection section - moved up with red border
+  // Minimal spacing between sections 
+  const sectionSpacing = 5; // Reduced from 20 to bring sections closer
+
+  // Email collection section - POSITIONED MUCH CLOSER to section above
   fill('#f5f7f8');
   stroke(highlightTextColor);
-  strokeWeight(3);  // Thicker border for emphasis
-  rect(width/2 - 300, height/12 + 390, 600, 140, 10);
+  strokeWeight(4);  // Thicker border for emphasis
+  // Calculate position right after Tripmerge section
+  let leaderboardSectionY = height/12 + 330 + sectionSpacing;
+  rect(width/2 - 280, leaderboardSectionY, 560, 200, 12); 
   noStroke();
 
-  // Newsletter text and leaderboard prompt
+  // Newsletter text and leaderboard prompt - CENTERED
   fill(highlightTextColor);
   textStyle(BOLD);
-  textSize(smallFontSize);
-  text("🚀 JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES!", width/2 - 200, height/12 + 410);
+  textSize(smallFontSize + 4); // Increased size
   textAlign(CENTER);
+  text("🚀 JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES!", width/2, leaderboardSectionY + 30);
   
   // Instructions for email input
   fill(primaryTextColor);
   textStyle(NORMAL);
-  textSize(smallFontSize - 2);
-  text("Click below to enter your email address", width/2, height/12 + 430);
+  textSize(smallFontSize);
+  text("Click below to enter your email address", width/2, leaderboardSectionY + 60);
   
   // Email input box with improved interactive functionality
   fill('#ffffff');
   if (isEmailInputActive) {
     stroke('#c72a09'); // Red border when active
-    strokeWeight(2);
+    strokeWeight(3);
   } else {
     stroke('#3498db');
-    strokeWeight(2);
+    strokeWeight(3);
   }
   
-  // Email input box
+  // Email input box - LARGER
   let emailBoxX = width/2 - 200;
-  let emailBoxY = height/12 + 440;
+  let emailBoxY = leaderboardSectionY + 80;
   let emailBoxWidth = 400;
-  let emailBoxHeight = 35;
-  rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 5);
+  let emailBoxHeight = 50;
+  rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 8);
   
   // Email placeholder or entered text
   noStroke();
   textAlign(LEFT);
-  textSize(smallFontSize);
+  textSize(smallFontSize + 2); // Larger text
   
   if (playerEmail === "") {
     fill('#999999');
-    text("  your.email@example.com", emailBoxX + 10, emailBoxY + 23);
+    text("  your.email@example.com", emailBoxX + 15, emailBoxY + 30);
   } else {
     fill('#333333');
-    text("  " + playerEmail, emailBoxX + 10, emailBoxY + 23);
+    text("  " + playerEmail, emailBoxX + 15, emailBoxY + 30);
     
     // Draw blinking cursor when input is active
     if (isEmailInputActive && frameCount % cursorBlinkRate < cursorBlinkRate/2) {
-      let cursorX = emailBoxX + 12 + textWidth("  " + playerEmail.substring(0, emailInputCursor));
+      let cursorX = emailBoxX + 17 + textWidth("  " + playerEmail.substring(0, emailInputCursor));
       stroke('#333333');
-      strokeWeight(1);
-      line(cursorX, emailBoxY + 8, cursorX, emailBoxY + 28);
+      strokeWeight(2);
+      line(cursorX, emailBoxY + 10, cursorX, emailBoxY + 40);
     }
   }
   
   // Submit button - Adjusted position and improved appearance with red color
   let submitBtnX = width/2;
-  let submitBtnY = height/12 + 490;
-  let submitBtnWidth = 200;
-  let submitBtnHeight = 35;
+  let submitBtnY = emailBoxY + 70;
+  let submitBtnWidth = 250;
+  let submitBtnHeight = 45;
   let isSubmitHovering = mouseX >= submitBtnX - submitBtnWidth/2 && mouseX <= submitBtnX + submitBtnWidth/2 && 
                          mouseY >= submitBtnY && mouseY <= submitBtnY + submitBtnHeight;
   
@@ -2557,17 +2508,17 @@ function drawWinScreen() {
   fill(highlightTextColor);  // Always use the red highlight color
   if (isSubmitHovering) {
     // Add glow effect on hover
-    drawingContext.shadowBlur = 10;
+    drawingContext.shadowBlur = 15;
     drawingContext.shadowColor = 'rgba(199, 42, 9, 0.5)';
   }
   noStroke();
-  rect(submitBtnX - submitBtnWidth/2, submitBtnY, submitBtnWidth, submitBtnHeight, 5);
+  rect(submitBtnX - submitBtnWidth/2, submitBtnY, submitBtnWidth, submitBtnHeight, 8);
   drawingContext.shadowBlur = 0;  // Reset shadow
   
   // Button text
   fill('#ffffff');  // White text for better contrast on red
   textAlign(CENTER, CENTER);  // Center both horizontally and vertically
-  textSize(isSubmitHovering ? smallFontSize : smallFontSize - 1);
+  textSize(isSubmitHovering ? smallFontSize + 2 : smallFontSize + 1);
   let buttonText = submittingScore ? "Submitting..." : (scoreSubmitted ? "Submitted!" : "SUBMIT");
   text(buttonText, submitBtnX, submitBtnY + submitBtnHeight/2);
   
@@ -2579,7 +2530,8 @@ function drawWinScreen() {
   if (leaderboardMessage) {
     fill(scoreSubmitted ? '#4CAF50' : '#c72a09');
     textAlign(CENTER);
-    text(leaderboardMessage, width/2, submitBtnY + 55);
+    textSize(smallFontSize);
+    text(leaderboardMessage, width/2, submitBtnY + 60);
   }
 }
 
@@ -2685,7 +2637,7 @@ function drawLeaderboardScreen() {
     });
   }
   
-  // Share button - now styled with red to match titles
+  // Share button - return to single button
   let shareBtnX = width/2;
   let shareBtnY = height/12 + 500;
   let shareBtnWidth = 300;
@@ -2713,6 +2665,20 @@ function drawLeaderboardScreen() {
   if (isShareHovering) {
       cursor(HAND);
   }
+  
+  // Display any share message
+  if (leaderboardMessage) {
+    fill(highlightTextColor);
+    textStyle(NORMAL);
+    textSize(smallFontSize);
+    textAlign(CENTER);
+    text(leaderboardMessage, width/2, shareBtnY + 60);
+  }
+  
+  // Draw share popup if visible
+  if (showSharePopup) {
+    drawSharePopup();
+  }
 }
 
 // Helper function to mask email for privacy
@@ -2733,60 +2699,128 @@ function maskEmail(email) {
   return maskedName + '@' + domain;
 }
 
-// Helper function to submit score to leaderboard
-async function submitScoreToLeaderboard() {
-  if (!playerEmail || submittingScore || scoreSubmitted) return;
+// Add this function near other helper functions
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(String(email).toLowerCase());
+}
+
+// Updated to ensure better validation and error handling - removed async
+function submitScoreToLeaderboard() {
+  console.log("Submitting score with email:", playerEmail);
+  
+  if (!playerEmail || playerEmail.trim() === "") {
+    leaderboardMessage = "Please enter a valid email address";
+    return;
+  }
+  
+  // Email validation
+  if (!validateEmail(playerEmail)) {
+    leaderboardMessage = "Please enter a valid email address";
+    return;
+  }
   
   submittingScore = true;
-  leaderboardMessage = "";
+  leaderboardMessage = "Submitting your score...";
   
   const achievement = getAchievement(score);
   
-  try {
+  // Use Promise-based approach instead of async/await
     // Call the global leaderboard function defined in index.html
-    const result = await window.leaderboard.submitScore(
+  window.leaderboard.submitScore(
       playerEmail,
       score,
       currentLevelNumber - 1, // Levels completed (current level minus 1)
       satisfaction,
       budget,
       achievement.title
-    );
-    
+  )
+  .then(result => {
     submittingScore = false;
     
-    if (result.success) {
+    if (result && result.success) {
       scoreSubmitted = true;
       leaderboardMessage = "Score submitted successfully!";
       
-      // Fetch and show leaderboard
-      await fetchLeaderboard();
+      // Ensure leaderboard data is available before showing
+      fetchLeaderboard()
+        .then(() => {
+          // Show leaderboard explicitly
+          console.log("Showing leaderboard after submission");
       showLeaderboard = true;
+          window.showLeaderboard = true;
+        })
+        .catch(leaderboardError => {
+          console.error("Error loading leaderboard:", leaderboardError);
+          // Still show leaderboard with simulated data on error
+          loadLeaderboardData();
+          showLeaderboard = true;
+          window.showLeaderboard = true;
+        });
     } else {
-      leaderboardMessage = result.error || "Failed to submit score. Please try again.";
+      const errorMsg = result && result.error ? result.error : "Failed to submit score. Please try again.";
+      leaderboardMessage = errorMsg;
+      console.error("Submission error:", errorMsg);
+      
+      // Add fallback to still show the leaderboard
+      setTimeout(() => {
+        if (!showLeaderboard) {
+          loadLeaderboardData();
+          showLeaderboard = true;
+          window.showLeaderboard = true;
+        }
+      }, 2000);
     }
-  } catch (error) {
+  })
+  .catch(error => {
     submittingScore = false;
     leaderboardMessage = "Error submitting score: " + error.message;
     console.error("Error submitting score:", error);
-  }
+    
+    // Add fallback to still show the leaderboard
+    setTimeout(() => {
+      if (!showLeaderboard) {
+        loadLeaderboardData();
+        showLeaderboard = true;
+        window.showLeaderboard = true;
+      }
+    }, 2000);
+  });
+}
+
+// Helper function to load simulated leaderboard data as a fallback
+function loadLeaderboardData() {
+  console.log("Loading simulated leaderboard data");
+  // Create simulated leaderboard with the player at the top
+  leaderboardData = [
+    { name: maskEmail(playerEmail), score: score, rank: 1 },
+    { name: "j***@example.com", score: Math.floor(score * 0.9), rank: 2 },
+    { name: "a***@gmail.com", score: Math.floor(score * 0.8), rank: 3 },
+    { name: "t***@hotmail.com", score: Math.floor(score * 0.7), rank: 4 },
+    { name: "m***@outlook.com", score: Math.floor(score * 0.6), rank: 5 }
+  ];
 }
 
 // Helper function to fetch leaderboard data
-async function fetchLeaderboard() {
-  try {
-    const result = await window.leaderboard.getTopScores(10);
-    
+function fetchLeaderboard() {
+  return new Promise((resolve, reject) => {
+    window.leaderboard.getTopScores(10)
+      .then(result => {
     if (result.success) {
       leaderboardData = result.data || [];
+          resolve(leaderboardData);
     } else {
       console.error("Error fetching leaderboard:", result.error);
       leaderboardMessage = "Failed to load leaderboard data.";
+          reject(new Error(result.error));
     }
-  } catch (error) {
+      })
+      .catch(error => {
     console.error("Error fetching leaderboard:", error);
     leaderboardMessage = "Error loading leaderboard: " + error.message;
-  }
+        reject(error);
+      });
+  });
 }
 
 // Helper function to draw social media buttons
@@ -2836,14 +2870,36 @@ function shareScore(platform) {
   let achievement = getAchievement(score);
   let shareText = `🎮 Just scored ${score} points in TripChaos! Earned "${achievement.title}" 🏆\n` +
                   `Level ${currentLevelNumber} with ${Math.round(satisfaction)}% satisfaction!\n` +
-                  `Can you beat my score? Play at [game_url] 🌟\n` +
+                  `Can you beat my score? Play at tripmerge.com/tripchaos 🌟\n` +
                   `#TripChaos #TripMerge`;
                   
   // Open share dialog based on platform
   if (platform === 'twitter') {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`);
   } else if (platform === 'facebook') {
-    window.open(`https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(shareText)}`);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent("https://tripmerge.com/tripchaos")}&quote=${encodeURIComponent(shareText)}`);
+  } else if (platform === 'linkedin') {
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://tripmerge.com/tripchaos")}&summary=${encodeURIComponent(shareText)}`);
+  } else if (platform === 'clipboard') {
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareText)
+      .then(() => {
+        // Show success message
+        const message = "Score copied to clipboard!";
+        leaderboardMessage = message;
+        console.log(message);
+        
+        // Clear message after 3 seconds
+        setTimeout(() => {
+          if (leaderboardMessage === message) {
+            leaderboardMessage = "";
+          }
+        }, 3000);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+        leaderboardMessage = "Failed to copy to clipboard";
+      });
   }
 }
 
@@ -3055,9 +3111,9 @@ function updateMishaps() {
   }
   
   // Scale spawn rate and max mishaps with level
-  let baseSpawnRate = 0.02; // Increased base spawn rate (was 0.008)
-  let spawnRate = baseSpawnRate * (1 + (currentLevelNumber - 1) * 0.75); // 75% increase per level
-  let maxMishaps = 3 + (currentLevelNumber - 1) * 3; // Start with 3, add 3 per level (was 2)
+  let baseSpawnRate = 0.015; // Reduced from 0.02
+  let spawnRate = baseSpawnRate * (1 + (currentLevelNumber - 1) * 0.5); // Reduced scaling from 0.75 to 0.5
+  let maxMishaps = 2 + (currentLevelNumber - 1) * 2; // Reduced from 3 + (level-1)*3 to 2 + (level-1)*2
   
   // Spawn new falling mishaps with scaled frequency
   if (!showingDecision && random() < spawnRate && mishaps.length < maxMishaps) {
@@ -3070,22 +3126,22 @@ function updateMishaps() {
     let typeRand = random();
     
     if (currentLevelNumber === 1) {
-      // Level 1: 40% clouds (was 80%), 60% dollars (was 20%), no suitcases
-      mishapType = typeRand < 0.4 ? 'cloud' : 'dollar';
+      // Level 1: 30% clouds (reduced from 40%), 70% dollars (increased from 60%), no suitcases
+      mishapType = typeRand < 0.3 ? 'cloud' : 'dollar';
     } else if (currentLevelNumber === 2) {
-      // Level 2: 40% clouds, 40% dollars, 20% suitcases
-      if (typeRand < 0.4) mishapType = 'cloud';
+      // Level 2: 30% clouds (reduced from 40%), 50% dollars (increased from 40%), 20% suitcases
+      if (typeRand < 0.3) mishapType = 'cloud';
       else if (typeRand < 0.8) mishapType = 'dollar';
       else mishapType = 'suitcase';
     } else {
-      // Level 3: 20% clouds, 40% dollars, 40% suitcases
-      if (typeRand < 0.2) mishapType = 'cloud';
+      // Level 3: 15% clouds (reduced from 20%), 45% dollars (increased from 40%), 40% suitcases
+      if (typeRand < 0.15) mishapType = 'cloud';
       else if (typeRand < 0.6) mishapType = 'dollar';
       else mishapType = 'suitcase';
     }
     
     // Scale falling speed with level
-    let baseVelocity = 1 + (currentLevelNumber - 1) * 0.5; // Increase initial velocity per level
+    let baseVelocity = 0.8 + (currentLevelNumber - 1) * 0.4; // Reduced from 1 + (level-1) * 0.5
     
     mishaps.push({
       x: spawnX,
@@ -3094,7 +3150,7 @@ function updateMishaps() {
       height: 20,
       type: mishapType,
       velocityY: baseVelocity,
-      gravity: 0.2,
+      gravity: 0.15, // Reduced from 0.2 to make falling slower
       isStatic: false,
       creationTime: millis()
     });
@@ -3138,28 +3194,103 @@ function mouseClicked() {
       if (mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
           mouseY >= backBtnY - 20 && mouseY <= backBtnY + 20) {
         showLeaderboard = false;
+        showSharePopup = false; // Also hide popup
         return false;
+      }
+      
+      // Handle share popup if it's visible
+      if (showSharePopup) {
+        // Popup dimensions for reference
+        const popupWidth = 450;
+        const popupHeight = 350;
+        const popupX = width/2 - popupWidth/2;
+        const popupY = height/2 - popupHeight/2;
+        
+        // Close button
+        const closeX = popupX + popupWidth - 30;
+        const closeY = popupY + 25;
+        const closeButtonSize = 30;
+        const closeTouchArea = 20; // Extra touch area for close button
+        
+        if (mouseX >= closeX - closeButtonSize/2 - closeTouchArea && 
+            mouseX <= closeX + closeButtonSize/2 + closeTouchArea &&
+            mouseY >= closeY - closeButtonSize/2 - closeTouchArea && 
+            mouseY <= closeY + closeButtonSize/2 + closeTouchArea) {
+          showSharePopup = false;
+          return false;
+        }
+        
+        // Check if touch is outside popup (to close it)
+        if (mouseX < popupX || mouseX > popupX + popupWidth || 
+            mouseY < popupY || mouseY > popupY + popupHeight) {
+          showSharePopup = false;
+          return false;
+        }
+        
+        // Platform buttons - circular buttons
+        const buttonSpacing = 70;
+        const buttonY = popupY + 210;
+        const buttonSize = 60;
+        const buttonTouchArea = 15; // Extra touch area for button detection
+        
+        // Twitter button
+        if (dist(mouseX, mouseY, width/2 - buttonSpacing * 1.5, buttonY) <= (buttonSize/2 + buttonTouchArea)) {
+          shareScore('twitter');
+          showSharePopup = false;
+          return false;
+        }
+        
+        // Facebook button
+        if (dist(mouseX, mouseY, width/2 - buttonSpacing * 0.5, buttonY) <= (buttonSize/2 + buttonTouchArea)) {
+          shareScore('facebook');
+          showSharePopup = false;
+          return false;
+        }
+        
+        // LinkedIn button
+        if (dist(mouseX, mouseY, width/2 + buttonSpacing * 0.5, buttonY) <= (buttonSize/2 + buttonTouchArea)) {
+          shareScore('linkedin');
+          showSharePopup = false;
+          return false;
+        }
+        
+        // Copy button
+        if (dist(mouseX, mouseY, width/2 + buttonSpacing * 1.5, buttonY) <= (buttonSize/2 + buttonTouchArea)) {
+          shareScore('clipboard');
+          showSharePopup = false;
+          return false;
+        }
+        
+        return false; // Prevent other touches when popup is shown
       }
       
       // Check if share button was clicked
       let shareBtnX = width/2;
       let shareBtnY = height/12 + 500;
+      let shareBtnWidth = 300;
+      let shareBtnHeight = 40;
       
-      if (mouseX >= shareBtnX - 150 && mouseX <= shareBtnX + 150 && 
-          mouseY >= shareBtnY && mouseY <= shareBtnY + 40) {
-        shareScore('twitter');
+      if (mouseX >= shareBtnX - shareBtnWidth/2 && mouseX <= shareBtnX + shareBtnWidth/2 && 
+          mouseY >= shareBtnY && mouseY <= shareBtnY + shareBtnHeight) {
+        // Show share popup
+        showSharePopup = true;
         return false;
       }
       
       return false;
     }
   
-    // Check if play again text was clicked
-    let playAgainX = width/2 + 150;
-    let playAgainY = height/12;
+    // Check if play again text was clicked - UPDATED POSITION
+    let playAgainX = width/2;
+    let playAgainY = height/12 + 40;
     
-    if (mouseX >= playAgainX - 80 && mouseX <= playAgainX + 80 && 
-        mouseY >= playAgainY - 20 && mouseY <= playAgainY + 20) {
+    // Add larger click area for better interaction
+    let playAgainClickArea = 25;
+    
+    if (mouseX >= playAgainX - 80 - playAgainClickArea && 
+        mouseX <= playAgainX + 80 + playAgainClickArea && 
+        mouseY >= playAgainY - 20 - playAgainClickArea && 
+        mouseY <= playAgainY + 20 + playAgainClickArea) {
       console.log("Play again clicked");  // Debug log
       startGame();  // Reset to start screen
       // Reset leaderboard state
@@ -3173,11 +3304,15 @@ function mouseClicked() {
       return false;
     }
 
+    // Calculate leaderboard section Y position consistently with draw function
+    const sectionSpacing = 5; // Reduced spacing to match drawGameOverScreen
+    let leaderboardSectionY = height/12 + 330 + sectionSpacing;
+
     // Check if email input was clicked
     let emailBoxX = width/2 - 200;
-    let emailBoxY = height/12 + 440;
+    let emailBoxY = leaderboardSectionY + 80;
     let emailBoxWidth = 400;
-    let emailBoxHeight = 35;
+    let emailBoxHeight = 50;
     
     if (mouseX >= emailBoxX && mouseX <= emailBoxX + emailBoxWidth &&
         mouseY >= emailBoxY && mouseY <= emailBoxY + emailBoxHeight) {
@@ -3192,15 +3327,15 @@ function mouseClicked() {
     
     // Check if submit button was clicked
     let submitBtnX = width/2;
-    let submitBtnY = height/12 + 490;
-    let submitBtnWidth = 200;
-    let submitBtnHeight = 35;
+    let submitBtnY = emailBoxY + 70;
+    let submitBtnWidth = 250;
+    let submitBtnHeight = 45;
     
     if (mouseX >= submitBtnX - submitBtnWidth/2 && mouseX <= submitBtnX + submitBtnWidth/2 && 
         mouseY >= submitBtnY && mouseY <= submitBtnY + submitBtnHeight &&
         !submittingScore && !scoreSubmitted) {
       isEmailInputActive = false; // Deactivate input
-      submitScoreToLeaderboard();
+      submitEmailToLeaderboard(); // Use the wrapper function instead
       return false;
     }
   } else if (gameState === 'playing' && showingDecision) {
@@ -3355,28 +3490,62 @@ function touchStarted() {
       if (touch.x >= backBtnX - 50 && touch.x <= backBtnX + 50 && 
           touch.y >= backBtnY - 20 && touch.y <= backBtnY + 20) {
         showLeaderboard = false;
+        showSharePopup = false; // Also hide popup
         return false;
       }
       
-      // Check if share button was touched
-      let shareBtnX = width/2;
-      let shareBtnY = height/12 + 500;
+      // Handle share button touches
+      const buttonY = height/12 + 530;
+      const buttonSpacing = 80;
+      const buttonWidth = 150;
+      const buttonHeight = 40;
+      const touchArea = 20; // Extra touch area
       
-      if (touch.x >= shareBtnX - 150 && touch.x <= shareBtnX + 150 && 
-          touch.y >= shareBtnY && touch.y <= shareBtnY + 40) {
-        shareScore('twitter');
-        return false;
+      // Check for touches on share buttons
+      if (touch.y >= buttonY - touchArea && touch.y <= buttonY + buttonHeight + touchArea) {
+        // Twitter button
+        if (touch.x >= width/2 - buttonSpacing * 1.5 - buttonWidth/2 - touchArea && 
+            touch.x <= width/2 - buttonSpacing * 1.5 + buttonWidth/2 + touchArea) {
+          shareScore('twitter');
+          return false;
+        }
+        
+        // Facebook button
+        if (touch.x >= width/2 - buttonSpacing * 0.5 - buttonWidth/2 - touchArea && 
+            touch.x <= width/2 - buttonSpacing * 0.5 + buttonWidth/2 + touchArea) {
+          shareScore('facebook');
+          return false;
+        }
+        
+        // LinkedIn button
+        if (touch.x >= width/2 + buttonSpacing * 0.5 - buttonWidth/2 - touchArea && 
+            touch.x <= width/2 + buttonSpacing * 0.5 + buttonWidth/2 + touchArea) {
+          shareScore('linkedin');
+          return false;
+        }
+        
+        // Copy button
+        if (touch.x >= width/2 + buttonSpacing * 1.5 - buttonWidth/2 - touchArea && 
+            touch.x <= width/2 + buttonSpacing * 1.5 + buttonWidth/2 + touchArea) {
+          shareScore('clipboard');
+          return false;
+        }
       }
       
       return false;
     }
     
-    // Check if play again text was touched
-    let playAgainX = width/2 + 150;
-    let playAgainY = height/12;
+    // Check if play again text was touched - UPDATED POSITION
+    let playAgainX = width/2;
+    let playAgainY = height/12 + 40;
     
-    if (touch.x >= playAgainX - 80 && touch.x <= playAgainX + 80 && 
-        touch.y >= playAgainY - 20 && touch.y <= playAgainY + 20) {
+    // Add extra touch area for better interaction
+    let playAgainTouchArea = 30;
+    
+    if (touch.x >= playAgainX - 80 - playAgainTouchArea && 
+        touch.x <= playAgainX + 80 + playAgainTouchArea && 
+        touch.y >= playAgainY - 20 - playAgainTouchArea && 
+        touch.y <= playAgainY + 20 + playAgainTouchArea) {
       console.log("Play again touched");  // Debug log
       startGame();  // Reset to start screen
       // Reset leaderboard state
@@ -3390,34 +3559,102 @@ function touchStarted() {
       return false;
     }
     
-    // Check if email input was touched
-    let emailBoxX = width/2 - 200;
-    let emailBoxY = height/12 + 440;
-    let emailBoxWidth = 400;
-    let emailBoxHeight = 35;
+    // Calculate leaderboard section Y position consistently with draw function
+    const sectionSpacing = 5; // Reduced spacing to match drawGameOverScreen
+    let leaderboardSectionY = height/12 + 330 + sectionSpacing;
     
-    if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-        touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+    // IMPROVED: Check if email input was touched with larger touch area
+    let emailBoxX = width/2 - 200;
+    let emailBoxY = leaderboardSectionY + 80;
+    let emailBoxWidth = 400;
+    let emailBoxHeight = 50;
+    
+    // Add extra touch area for better touch response
+    let emailTouchArea = 40; // Increased for better detection
+    
+    if (touch.x >= emailBoxX - emailTouchArea && 
+        touch.x <= emailBoxX + emailBoxWidth + emailTouchArea &&
+        touch.y >= emailBoxY - emailTouchArea && 
+        touch.y <= emailBoxY + emailBoxHeight + emailTouchArea) {
       // Activate the input field directly
       isEmailInputActive = true;
       emailInputCursor = playerEmail.length; // Set cursor at the end
+      
+      // Show keyboard on mobile devices
+      if (isMobileDevice()) {
+        // Use our improved email input creation
+        const tempInput = createEmailInput(playerEmail);
+        
+        // Position it properly when needed (but keep it invisible)
+        tempInput.style.top = '50%';
+        tempInput.style.left = '50%';
+        tempInput.style.transform = 'translate(-50%, -50%)';
+        tempInput.style.width = '300px';
+        tempInput.style.height = '40px';
+        tempInput.style.zIndex = '9999';
+        tempInput.style.pointerEvents = 'auto'; // Make it receive input events
+        
+        // Focus it
+        tempInput.focus();
+        
+        // Listen for input and update the game's email field
+        tempInput.addEventListener('input', function(e) {
+          playerEmail = e.target.value;
+          emailInputCursor = playerEmail.length;
+          console.log("Email updated:", playerEmail);
+        });
+        
+        // Clean up when done
+        tempInput.addEventListener('blur', function() {
+          setTimeout(function() {
+            tempInput.style.pointerEvents = 'none';
+            tempInput.style.top = '-1000px'; // Move off-screen again
+          }, 100);
+        });
+      }
+      
+      console.log("Email input touched");
       return false;
-    } else {
-      // Deactivate input field when touching elsewhere
-      isEmailInputActive = false;
+    } else if (isEmailInputActive) {
+      // Only deactivate if we're not touching the submit button
+      let submitBtnX = width/2;
+      let submitBtnY = emailBoxY + 70;
+      let submitBtnWidth = 250;
+      let submitBtnHeight = 45;
+      let submitTouchArea = 50; // Very large touch area
+      
+      if (!(touch.x >= submitBtnX - submitBtnWidth/2 - submitTouchArea && 
+          touch.x <= submitBtnX + submitBtnWidth/2 + submitTouchArea && 
+          touch.y >= submitBtnY - submitTouchArea && 
+          touch.y <= submitBtnY + submitBtnHeight + submitTouchArea)) {
+        isEmailInputActive = false;
+      }
     }
     
-    // Check if submit button was touched
+    // IMPROVED: Check if submit button was touched with much larger touch area
     let submitBtnX = width/2;
-    let submitBtnY = height/12 + 490;
-    let submitBtnWidth = 200;
-    let submitBtnHeight = 35;
+    let submitBtnY = emailBoxY + 70;
+    let submitBtnWidth = 250;
+    let submitBtnHeight = 45;
+    let submitTouchArea = 50; // Very large touch area
     
-    if (touch.x >= submitBtnX - submitBtnWidth/2 && touch.x <= submitBtnX + submitBtnWidth/2 && 
-        touch.y >= submitBtnY && touch.y <= submitBtnY + submitBtnHeight &&
-        !submittingScore && !scoreSubmitted) {
-      isEmailInputActive = false; // Deactivate input
-      submitScoreToLeaderboard();
+    console.log("Touch at:", touch.x, touch.y);
+    console.log("Submit button bounds:", 
+                submitBtnX - submitBtnWidth/2 - submitTouchArea, 
+                submitBtnX + submitBtnWidth/2 + submitTouchArea, 
+                submitBtnY - submitTouchArea, 
+                submitBtnY + submitBtnHeight + submitTouchArea);
+    
+    if (touch.x >= submitBtnX - submitBtnWidth/2 - submitTouchArea && 
+        touch.x <= submitBtnX + submitBtnWidth/2 + submitTouchArea && 
+        touch.y >= submitBtnY - submitTouchArea && 
+        touch.y <= submitBtnY + submitBtnHeight + submitTouchArea) {
+      
+      console.log("Submit button touched - calling submitScoreToLeaderboard with email:", playerEmail);
+      isEmailInputActive = false; // Deactivate input field
+      
+      // Direct submission for clearer debugging
+      submitEmailToLeaderboard();
       return false;
     }
   }
@@ -3506,4 +3743,304 @@ function touchStarted() {
   }
   
   return true;
+}
+
+// Add a wrapper function to make email submission more reliable
+function submitEmailToLeaderboard() {
+  // Add thorough debugging for the submission process
+  console.log("==== EMAIL SUBMISSION DEBUG ====");
+  console.log("1. Email:", playerEmail);
+  console.log("2. Score:", score);
+  console.log("3. Level:", currentLevelNumber - 1);
+  console.log("4. Satisfaction:", satisfaction);
+  console.log("5. Budget:", budget);
+  console.log("6. Window.leaderboard available:", window.leaderboard ? "Yes" : "No");
+  console.log("7. Supabase client available:", typeof supabase !== 'undefined' ? "Yes" : "No");
+  
+  // Check if Supabase is properly initialized
+  if (typeof supabase === 'undefined') {
+    console.error("CRITICAL ERROR: Supabase is not defined!");
+    leaderboardMessage = "Error: Supabase API not available";
+    
+    // Add a reload button to fix potential loading issues
+    let reloadBtn = document.createElement('button');
+    reloadBtn.innerText = "Reload Page";
+    reloadBtn.style.position = 'fixed';
+    reloadBtn.style.top = '20px';
+    reloadBtn.style.right = '20px';
+    reloadBtn.style.padding = '10px 20px';
+    reloadBtn.style.backgroundColor = '#c72a09';
+    reloadBtn.style.color = 'white';
+    reloadBtn.style.border = 'none';
+    reloadBtn.style.borderRadius = '5px';
+    reloadBtn.style.fontSize = '16px';
+    reloadBtn.style.cursor = 'pointer';
+    reloadBtn.onclick = function() {
+      window.location.reload();
+    };
+    document.body.appendChild(reloadBtn);
+    
+    return;
+  }
+  
+  // Check if the leaderboard API is available in the window object
+  if (!window.leaderboard) {
+    console.error("CRITICAL ERROR: Leaderboard API not found!");
+    leaderboardMessage = "Error: Leaderboard API not available";
+    return;
+  }
+  
+  // Email validation
+  if (!playerEmail || playerEmail.trim() === "") {
+    leaderboardMessage = "Please enter a valid email address";
+    console.error("Email submission failed: Empty email");
+    return;
+  }
+  
+  // Email format validation
+  if (!validateEmail(playerEmail)) {
+    leaderboardMessage = "Please enter a valid email format";
+    console.error("Email submission failed: Invalid format:", playerEmail);
+    return;
+  }
+  
+  console.log("All validation passed, proceeding with submission");
+  
+  // DIRECT IMPLEMENTATION: Instead of calling submitScoreToLeaderboard
+  submittingScore = true;
+  leaderboardMessage = "Submitting your score...";
+  
+  const achievement = getAchievement(score);
+  
+  // Use Promise-based approach
+  window.leaderboard.submitScore(
+    playerEmail,
+    score,
+    currentLevelNumber - 1, // Levels completed (current level minus 1)
+    satisfaction,
+    budget,
+    achievement.title
+  )
+  .then(result => {
+    submittingScore = false;
+    
+    if (result && result.success) {
+      scoreSubmitted = true;
+      leaderboardMessage = "Score submitted successfully!";
+      
+      // Ensure leaderboard data is available before showing
+      fetchLeaderboard()
+        .then(() => {
+          // Show leaderboard explicitly
+          console.log("Showing leaderboard after submission");
+          showLeaderboard = true;
+          window.showLeaderboard = true;
+        })
+        .catch(leaderboardError => {
+          console.error("Error loading leaderboard:", leaderboardError);
+          // Still show leaderboard with simulated data on error
+          loadLeaderboardData();
+          showLeaderboard = true;
+          window.showLeaderboard = true;
+        });
+    } else {
+      const errorMsg = result && result.error ? result.error : "Failed to submit score. Please try again.";
+      leaderboardMessage = errorMsg;
+      console.error("Submission error:", errorMsg);
+      
+      // Add fallback to still show the leaderboard
+      setTimeout(() => {
+        if (!showLeaderboard) {
+          loadLeaderboardData();
+          showLeaderboard = true;
+          window.showLeaderboard = true;
+        }
+      }, 2000);
+    }
+  })
+  .catch(error => {
+    submittingScore = false;
+    leaderboardMessage = "Error submitting score: " + error.message;
+    console.error("Error submitting score:", error);
+    
+    // Add fallback to still show the leaderboard
+    setTimeout(() => {
+      if (!showLeaderboard) {
+        loadLeaderboardData();
+        showLeaderboard = true;
+        window.showLeaderboard = true;
+      }
+    }, 2000);
+  });
+}
+
+// Modified function to create a more browser-friendly email input
+function createEmailInput(value) {
+  // Remove any existing input elements
+  const existingInputs = document.querySelectorAll('.game-email-input');
+  existingInputs.forEach(input => input.remove());
+  
+  // Create a form element to properly handle submissions
+  const form = document.createElement('form');
+  form.setAttribute('novalidate', 'true');
+  form.style.position = 'absolute';
+  form.style.opacity = '0.01';
+  form.style.pointerEvents = 'none'; // Make it invisible to clicks/touches except when specifically targeted
+  form.style.zIndex = '-1';
+  form.onsubmit = (e) => {
+    e.preventDefault(); // Prevent actual form submission
+    return false;
+  };
+  
+  // Create the input element with proper attributes
+  const input = document.createElement('input');
+  input.className = 'game-email-input';
+  input.setAttribute('type', 'email');
+  input.setAttribute('autocomplete', 'off'); // Disable browser autofill
+  input.setAttribute('autocorrect', 'off');
+  input.setAttribute('autocapitalize', 'off');
+  input.setAttribute('spellcheck', 'false');
+  input.setAttribute('data-form-type', 'other'); // Helps prevent autofill
+  input.setAttribute('name', 'game-email');
+  input.setAttribute('placeholder', 'Your email');
+  input.value = value || "";
+  
+  // Style the input
+  input.style.position = 'fixed';
+  input.style.top = '-1000px'; // Position off-screen until needed
+  input.style.opacity = '0.01';
+  input.style.fontSize = '16px'; // iOS needs 16px+ to avoid zoom
+  
+  // Add to form
+  form.appendChild(input);
+  document.body.appendChild(form);
+  
+  return input;
+}
+
+// Function to draw the share popup modal
+function drawSharePopup() {
+  // Semi-transparent background overlay
+  fill(0, 0, 0, 150);
+  rect(0, 0, width, height);
+  
+  // Popup container
+  const popupWidth = 450;
+  const popupHeight = 350;
+  const popupX = width/2 - popupWidth/2;
+  const popupY = height/2 - popupHeight/2;
+  
+  // Popup background
+  fill(255);
+  stroke(highlightTextColor);
+  strokeWeight(3);
+  rect(popupX, popupY, popupWidth, popupHeight, 15);
+  
+  // Popup header
+  fill(highlightTextColor);
+  noStroke();
+  rect(popupX, popupY, popupWidth, 50, 15, 15, 0, 0);
+  
+  // Title
+  fill(255);
+  textAlign(CENTER);
+  textSize(bodyFontSize + 2);
+  textStyle(BOLD);
+  text("Share Your Score", width/2, popupY + 32);
+  
+  // Close button
+  const closeX = popupX + popupWidth - 30;
+  const closeY = popupY + 25;
+  const closeButtonSize = 30;
+  const isCloseHovering = mouseX >= closeX - closeButtonSize/2 && mouseX <= closeX + closeButtonSize/2 &&
+                          mouseY >= closeY - closeButtonSize/2 && mouseY <= closeY + closeButtonSize/2;
+  
+  stroke(255);
+  strokeWeight(isCloseHovering ? 3 : 2);
+  line(closeX - 10, closeY - 10, closeX + 10, closeY + 10);
+  line(closeX + 10, closeY - 10, closeX - 10, closeY + 10);
+  
+  if (isCloseHovering) {
+    cursor(HAND);
+  }
+  
+  // Score preview
+  noStroke();
+  fill(primaryTextColor);
+  textSize(smallFontSize);
+  textStyle(NORMAL);
+  textAlign(CENTER);
+  
+  const achievement = getAchievement(score);
+  let previewText = `Score: ${score} • Achievement: ${achievement.title}\n` +
+                   `Level ${currentLevelNumber} with ${Math.round(satisfaction)}% satisfaction!`;
+  
+  // Draw a preview of the score text that will be shared
+  fill('#f5f7f8');
+  rect(popupX + 25, popupY + 70, popupWidth - 50, 60, 10);
+  
+  fill(primaryTextColor);
+  text(previewText, width/2, popupY + 100);
+  
+  // Share options
+  textAlign(CENTER);
+  textStyle(BOLD);
+  fill(primaryTextColor);
+  text("Choose a platform:", width/2, popupY + 160);
+  
+  // Platform buttons - smaller circular buttons with just icons
+  const buttonSpacing = 70;
+  const buttonY = popupY + 210;
+  const buttonSize = 60;
+  
+  // Twitter button
+  drawCircularShareButton("🐦", "#1DA1F2", width/2 - buttonSpacing * 1.5, buttonY, buttonSize);
+  
+  // Facebook button
+  drawCircularShareButton("📘", "#4267B2", width/2 - buttonSpacing * 0.5, buttonY, buttonSize);
+  
+  // LinkedIn button
+  drawCircularShareButton("📊", "#0077B5", width/2 + buttonSpacing * 0.5, buttonY, buttonSize);
+  
+  // Copy button
+  drawCircularShareButton("📋", "#333333", width/2 + buttonSpacing * 1.5, buttonY, buttonSize);
+  
+  // Platform labels
+  fill(primaryTextColor);
+  textSize(smallFontSize - 2);
+  textStyle(NORMAL);
+  text("Twitter", width/2 - buttonSpacing * 1.5, buttonY + buttonSize/2 + 25);
+  text("Facebook", width/2 - buttonSpacing * 0.5, buttonY + buttonSize/2 + 25);
+  text("LinkedIn", width/2 + buttonSpacing * 0.5, buttonY + buttonSize/2 + 25);
+  text("Copy", width/2 + buttonSpacing * 1.5, buttonY + buttonSize/2 + 25);
+  
+  // Or click anywhere outside to close (hint text)
+  text("or click outside to close", width/2, popupY + popupHeight - 15);
+}
+
+// Function to draw circular share buttons
+function drawCircularShareButton(icon, color, x, y, size) {
+  const isHovering = dist(mouseX, mouseY, x, y) <= size/2;
+  
+  // Button shadow
+  if (isHovering) {
+    drawingContext.shadowBlur = 10;
+    drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  }
+  
+  // Button background
+  fill(color);
+  noStroke();
+  ellipse(x, y, size, size);
+  drawingContext.shadowBlur = 0;
+  
+  // Button icon
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(size * 0.5);
+  text(icon, x, y);
+  
+  if (isHovering) {
+    cursor(HAND);
+  }
 }
