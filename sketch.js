@@ -2606,28 +2606,6 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
-    // Check if we're in the game over state and showing the email input
-    if (gameState === 'gameOver' && isEmailInputActive) {
-        // Get the close button element
-        const closeBtn = document.querySelector('.game-email-input').parentElement.querySelector('button[type="button"]');
-        if (closeBtn) {
-            // Get the close button's position and dimensions
-            const rect = closeBtn.getBoundingClientRect();
-            
-            // Check if the touch is within the close button's area
-            if (touches[0].x >= rect.left && touches[0].x <= rect.right &&
-                touches[0].y >= rect.top && touches[0].y <= rect.bottom) {
-                // Remove the email input form
-                const form = closeBtn.closest('form');
-                if (form) {
-                    form.remove();
-                    isEmailInputActive = false;
-                }
-                return false;
-            }
-        }
-    }
-    
     // Handle privacy policy link click first
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
@@ -2637,276 +2615,26 @@ function touchStarted() {
         const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
         const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
         
-        // Debug log for touch position
-        console.log('Touch position:', touch.x, touch.y);
-        console.log('Privacy link area:', width/2 - clickAreaWidth/2, width/2 + clickAreaWidth/2, 
-                   privacyLinkY - clickAreaHeight/2, privacyLinkY + clickAreaHeight/2);
-        
         if (touch.x >= width/2 - clickAreaWidth/2 && 
             touch.x <= width/2 + clickAreaWidth/2 && 
             touch.y >= privacyLinkY - clickAreaHeight/2 && 
             touch.y <= privacyLinkY + clickAreaHeight/2) {
-            console.log('Privacy policy link clicked');
             showPrivacyPolicy = true;
             return false;
         }
     }
-
-    // Handle privacy policy popup
-    if (showPrivacyPolicy && touches.length > 0) {
-        let touch = touches[0];
-        
-        // Calculate popup dimensions
-        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
-        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-        const popupX = (width - popupWidth) / 2;
-        const popupY = (height - popupHeight) / 2;
-        
-        // Close button dimensions
-        const closeButtonSize = isMobileDevice() ? 44 : 30;
-        const closeButtonX = popupX + 10;
-        const closeButtonY = popupY + 10;
-        
-        // Debug log for close button area
-        console.log('Close button area:', closeButtonX, closeButtonX + closeButtonSize, 
-                   closeButtonY, closeButtonY + closeButtonSize);
-        
-        // Check close button
-        if (touch.x >= closeButtonX && 
-            touch.x <= closeButtonX + closeButtonSize && 
-            touch.y >= closeButtonY && 
-            touch.y <= closeButtonY + closeButtonSize) {
-            console.log('Close button clicked');
-            showPrivacyPolicy = false;
-            return false;
-        }
-        
-        // Accept button dimensions
-        const buttonWidth = isMobileDevice() ? 200 : 150;
-        const buttonHeight = isMobileDevice() ? 60 : 50;
-        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
-        const buttonY = popupY + popupHeight - buttonHeight - 30;
-        
-        // Check accept button
-        if (touch.x >= buttonX && 
-            touch.x <= buttonX + buttonWidth && 
-            touch.y >= buttonY && 
-            touch.y <= buttonY + buttonHeight) {
-            console.log('Accept button clicked');
-            showPrivacyPolicy = false;
-            privacyPolicyAccepted = true;
-            return false;
-        }
-        
-        return false; // Prevent other touch events when popup is open
-    }
     
-    // Calculate the game viewport offset
-    let gameWidth = 1000 * window.gameScale;
-    let gameHeight = 600 * window.gameScale;
-    let offsetX = (width - gameWidth) / 2;
-    let offsetY = (height - gameHeight) / 2;
-    
-    // Handle decision UI touches
-    if (showingDecision && currentDecision && touches.length > 0) {
-        let touch = touches[0];
-        
-        // Check each option's bounds
-        for (let i = 0; i < currentDecision.options.length; i++) {
-            let bounds = currentDecision.options[i].buttonBounds;
-            if (bounds && 
-                touch.x >= bounds.x && touch.x <= bounds.x + bounds.width &&
-                touch.y >= bounds.y && touch.y <= bounds.y + bounds.height) {
-                makeDecision(i);
-                return false;
-            }
-        }
-    }
-    
-    // Handle start screen touches
-    if (gameState === 'start') {
-        if (startScreenStep === 1) {
-            // Next button dimensions
-            let nextBtnX = width/2 - (150 * window.gameScale);
-            let nextBtnY = height - (120 * window.gameScale);
-            let nextBtnW = 300 * window.gameScale;
-            let nextBtnH = 60 * window.gameScale;
-            
-            // Check if Next button was touched
-            if (touches.length > 0) {
-                let touch = touches[0];
-                if (touch.x >= nextBtnX && touch.x <= nextBtnX + nextBtnW &&
-                    touch.y >= nextBtnY && touch.y <= nextBtnY + nextBtnH) {
-                    startScreenStep = 2;
-                    return false;
-                }
-            }
-        } else {
-            // Back button dimensions
-            let backBtnX = width/4 - (100 * window.gameScale);
-            let backBtnY = height - (120 * window.gameScale);
-            let backBtnW = 200 * window.gameScale;
-            let backBtnH = 60 * window.gameScale;
-            
-            // Start button dimensions
-            let startBtnX = width * 3/4 - (100 * window.gameScale);
-            let startBtnY = height - (120 * window.gameScale);
-            let startBtnW = 200 * window.gameScale;
-            let startBtnH = 60 * window.gameScale;
-            
-            if (touches.length > 0) {
-                let touch = touches[0];
-                
-                // Check if Back button was touched
-                if (touch.x >= backBtnX && touch.x <= backBtnX + backBtnW &&
-                    touch.y >= backBtnY && touch.y <= backBtnY + backBtnH) {
-                    startScreenStep = 1;
-                    return false;
-                }
-                
-                // Check if Start button was touched
-                if (touch.x >= startBtnX && touch.x <= startBtnX + startBtnW &&
-                    touch.y >= startBtnY && touch.y <= startBtnY + startBtnH) {
-                    // Reset game state and start playing
-                    resetGame();
-                    gameState = 'playing';
-                    window.gameState = 'playing';
-                    currentLevelNumber = 1;
-                    if (window.currentLevelNumber !== undefined) {
-                        window.currentLevelNumber = 1;
-                    }
-                    return false;
-                }
-                
-                // Check if email input was touched
-                let emailBoxX = width/2 - 200;
-                let emailBoxY = height/4 + 280 + 60;
-                let emailBoxWidth = 400;
-                let emailBoxHeight = 40;
-                
-                if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-                    touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-                    isEmailInputActive = true;
-                    // Show keyboard on mobile devices
-                    if (isMobileDevice()) {
-                        const tempInput = createEmailInput(playerEmail);
-                        tempInput.style.top = '50%';
-                        tempInput.style.left = '50%';
-                        tempInput.style.transform = 'translate(-50%, -50%)';
-                        tempInput.style.width = '300px';
-                        tempInput.style.height = '40px';
-                        tempInput.style.zIndex = '9999';
-                        tempInput.style.pointerEvents = 'auto';
-                        tempInput.focus();
-                    }
-                    return false;
-                }
-            }
-        }
-    }
-    
-    // Handle game over state
-    if (gameState === 'gameOver' && touches.length > 0) {
-        let touch = touches[0];
-        
-        // Play Again button dimensions
-        let playAgainX = width/2 - (150 * window.gameScale);
-        let playAgainY = height/6 + 80;
-        let playAgainW = 300 * window.gameScale;
-        let playAgainH = 60 * window.gameScale;
-        
-        // Check if Play Again button was touched
-        if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
-            touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
-            startGame();
-            return false;
-        }
-        
-        // Email input box touch handling
-        let emailBoxX = width/2 - 200;
-        let emailBoxY = playAgainY + 500;
-        let emailBoxWidth = 400;
-        let emailBoxHeight = 50;
-        
-        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-            isEmailInputActive = true;
-            // Show keyboard on mobile devices
-            if (isMobileDevice()) {
-                const tempInput = createEmailInput(playerEmail);
-                tempInput.style.top = '50%';
-                tempInput.style.left = '50%';
-                tempInput.style.transform = 'translate(-50%, -50%)';
-                tempInput.style.width = '300px';
-                tempInput.style.height = '40px';
-                tempInput.style.zIndex = '9999';
-                tempInput.style.pointerEvents = 'auto';
-                tempInput.focus();
-            }
+    // Handle email input touch
+    if (gameState === 'gameOver' && isEmailInputActive) {
+        const input = document.querySelector('.game-email-input');
+        if (input) {
+            input.focus();
             return false;
         }
     }
     
-    // Email input box touch handling
-    if (gameState === 'gameOver' && touches.length > 0) {
-        let touch = touches[0];
-        let emailBoxX = width/2 - 200;
-        let emailBoxY = height/2 + 200;
-        let emailBoxWidth = 400;
-        let emailBoxHeight = 50;
-        
-        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-            isEmailInputActive = true;
-            
-            // Create and show the email input
-            const emailInput = createEmailInput(playerEmail);
-            
-            // Force focus and keyboard on mobile
-            if (isMobileDevice()) {
-                // Remove any existing inputs first
-                const existingInputs = document.querySelectorAll('.game-email-input');
-                existingInputs.forEach(input => input.remove());
-                
-                // Create a new input
-                const input = document.createElement('input');
-                input.type = 'email';
-                input.value = playerEmail || '';
-                input.classList.add('game-email-input');
-                
-                // Style the input
-                input.style.position = 'fixed';
-                input.style.top = '50%';
-                input.style.left = '50%';
-                input.style.transform = 'translate(-50%, -50%)';
-                input.style.width = '300px';
-                input.style.height = '50px';
-                input.style.fontSize = '20px';
-                input.style.padding = '10px';
-                input.style.border = '2px solid #3498db';
-                input.style.borderRadius = '10px';
-                input.style.zIndex = '9999';
-                
-                // Add event listeners
-                input.addEventListener('input', (e) => {
-                    playerEmail = e.target.value;
-                });
-                
-                // Add to document and focus
-                document.body.appendChild(input);
-                input.focus();
-                
-                // Force keyboard to show
-                setTimeout(() => {
-                    input.focus();
-                    input.click();
-                }, 100);
-            }
-            return false;
-        }
-    }
-    
-    return false;  // Prevent default touch behavior
+    // Rest of the touch handling code...
+    // ... existing code ...
 }
 
 // Trigger a random decision
@@ -4230,13 +3958,19 @@ function touchStarted() {
         const privacyLinkY = height * 0.9;
         
         // Make the click area larger for mobile
-        const clickAreaWidth = isMobileDevice() ? 200 : 100;
-        const clickAreaHeight = isMobileDevice() ? 30 : 15;
+        const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
+        const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
+        
+        // Debug log for touch position
+        console.log('Touch position:', touch.x, touch.y);
+        console.log('Privacy link area:', width/2 - clickAreaWidth/2, width/2 + clickAreaWidth/2, 
+                   privacyLinkY - clickAreaHeight/2, privacyLinkY + clickAreaHeight/2);
         
         if (touch.x >= width/2 - clickAreaWidth/2 && 
             touch.x <= width/2 + clickAreaWidth/2 && 
             touch.y >= privacyLinkY - clickAreaHeight/2 && 
             touch.y <= privacyLinkY + clickAreaHeight/2) {
+            console.log('Privacy policy link clicked');
             showPrivacyPolicy = true;
             return false;
         }
@@ -4257,11 +3991,16 @@ function touchStarted() {
         const closeButtonX = popupX + 10;
         const closeButtonY = popupY + 10;
         
+        // Debug log for close button area
+        console.log('Close button area:', closeButtonX, closeButtonX + closeButtonSize, 
+                   closeButtonY, closeButtonY + closeButtonSize);
+        
         // Check close button
         if (touch.x >= closeButtonX && 
             touch.x <= closeButtonX + closeButtonSize && 
             touch.y >= closeButtonY && 
             touch.y <= closeButtonY + closeButtonSize) {
+            console.log('Close button clicked');
             showPrivacyPolicy = false;
             return false;
         }
@@ -4277,6 +4016,7 @@ function touchStarted() {
             touch.x <= buttonX + buttonWidth && 
             touch.y >= buttonY && 
             touch.y <= buttonY + buttonHeight) {
+            console.log('Accept button clicked');
             showPrivacyPolicy = false;
             privacyPolicyAccepted = true;
             return false;
@@ -4291,8 +4031,24 @@ function touchStarted() {
     let offsetX = (width - gameWidth) / 2;
     let offsetY = (height - gameHeight) / 2;
     
+    // Handle decision UI touches
+    if (showingDecision && currentDecision && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Check each option's bounds
+        for (let i = 0; i < currentDecision.options.length; i++) {
+            let bounds = currentDecision.options[i].buttonBounds;
+            if (bounds && 
+                touch.x >= bounds.x && touch.x <= bounds.x + bounds.width &&
+                touch.y >= bounds.y && touch.y <= bounds.y + bounds.height) {
+                makeDecision(i);
+                return false;
+            }
+        }
+    }
+    
     // Handle start screen touches
-  if (gameState === 'start') {
+    if (gameState === 'start') {
         if (startScreenStep === 1) {
             // Next button dimensions
             let nextBtnX = width/2 - (150 * window.gameScale);
@@ -4306,8 +4062,8 @@ function touchStarted() {
                 if (touch.x >= nextBtnX && touch.x <= nextBtnX + nextBtnW &&
                     touch.y >= nextBtnY && touch.y <= nextBtnY + nextBtnH) {
                     startScreenStep = 2;
-        return false;
-      }
+                    return false;
+                }
             }
         } else {
             // Back button dimensions
@@ -4319,7 +4075,7 @@ function touchStarted() {
             // Start button dimensions
             let startBtnX = width * 3/4 - (100 * window.gameScale);
             let startBtnY = height - (120 * window.gameScale);
-    let startBtnW = 200 * window.gameScale;
+            let startBtnW = 200 * window.gameScale;
             let startBtnH = 60 * window.gameScale;
             
             if (touches.length > 0) {
@@ -4329,9 +4085,9 @@ function touchStarted() {
                 if (touch.x >= backBtnX && touch.x <= backBtnX + backBtnW &&
                     touch.y >= backBtnY && touch.y <= backBtnY + backBtnH) {
                     startScreenStep = 1;
-      return false;
-    }
-  
+                    return false;
+                }
+                
                 // Check if Start button was touched
                 if (touch.x >= startBtnX && touch.x <= startBtnX + startBtnW &&
                     touch.y >= startBtnY && touch.y <= startBtnY + startBtnH) {
