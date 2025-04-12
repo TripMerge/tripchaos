@@ -2606,6 +2606,28 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
+    // Check if we're in the game over state and showing the email input
+    if (gameState === 'gameOver' && isEmailInputActive) {
+        // Get the close button element
+        const closeBtn = document.querySelector('.game-email-input').parentElement.querySelector('button[type="button"]');
+        if (closeBtn) {
+            // Get the close button's position and dimensions
+            const rect = closeBtn.getBoundingClientRect();
+            
+            // Check if the touch is within the close button's area
+            if (touches[0].x >= rect.left && touches[0].x <= rect.right &&
+                touches[0].y >= rect.top && touches[0].y <= rect.bottom) {
+                // Remove the email input form
+                const form = closeBtn.closest('form');
+                if (form) {
+                    form.remove();
+                    isEmailInputActive = false;
+                }
+                return false;
+            }
+        }
+    }
+    
     // Handle privacy policy link click first
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
@@ -4180,6 +4202,28 @@ function keyTyped() {
 
 // Add touch support for mobile
 function touchStarted() {
+    // Check if we're in the game over state and showing the email input
+    if (gameState === 'gameOver' && isEmailInputActive) {
+        // Get the close button element
+        const closeBtn = document.querySelector('.game-email-input').parentElement.querySelector('button[type="button"]');
+        if (closeBtn) {
+            // Get the close button's position and dimensions
+            const rect = closeBtn.getBoundingClientRect();
+            
+            // Check if the touch is within the close button's area
+            if (touches[0].x >= rect.left && touches[0].x <= rect.right &&
+                touches[0].y >= rect.top && touches[0].y <= rect.bottom) {
+                // Remove the email input form
+                const form = closeBtn.closest('form');
+                if (form) {
+                    form.remove();
+                    isEmailInputActive = false;
+                }
+                return false;
+            }
+        }
+    }
+    
     // Handle privacy policy link click first
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
@@ -4490,7 +4534,11 @@ function createEmailInput(value) {
     closeBtn.style.pointerEvents = 'auto';
     closeBtn.style.webkitTapHighlightColor = 'transparent';
     closeBtn.style.touchAction = 'manipulation';
+    closeBtn.style.display = 'flex';
+    closeBtn.style.alignItems = 'center';
+    closeBtn.style.justifyContent = 'center';
     closeBtn.type = 'button';
+    closeBtn.classList.add('email-close-btn');
     
     // Event handlers
     form.onsubmit = (e) => {
@@ -4501,7 +4549,8 @@ function createEmailInput(value) {
         return false;
     };
     
-    closeBtn.onclick = (e) => {
+    // Enhanced close button event handling
+    const handleClose = (e) => {
         e.preventDefault();
         e.stopPropagation();
         form.remove();
@@ -4509,11 +4558,13 @@ function createEmailInput(value) {
         return false;
     };
     
+    closeBtn.onclick = handleClose;
+    closeBtn.ontouchstart = handleClose;
+    
     // Add input event listener to ensure keyboard input is captured
     input.addEventListener('input', (e) => {
         e.stopPropagation();
         playerEmail = e.target.value;
-        input.value = playerEmail; // Ensure the input value stays in sync
     });
     
     // Add keydown event listener to prevent event bubbling
@@ -4526,6 +4577,12 @@ function createEmailInput(value) {
         input.focus();
     });
     
+    // Add touch event listener for mobile
+    input.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        input.focus();
+    });
+    
     // Add elements to form
     container.appendChild(input);
     container.appendChild(submitBtn);
@@ -4535,11 +4592,19 @@ function createEmailInput(value) {
     
     // Force keyboard to show on mobile
     if (isMobileDevice()) {
-        // Focus the input immediately
-        input.focus();
+        // Create a temporary input to force keyboard
+        const tempInput = document.createElement('input');
+        tempInput.style.position = 'fixed';
+        tempInput.style.opacity = '0';
+        tempInput.style.pointerEvents = 'none';
+        document.body.appendChild(tempInput);
         
-        // Force keyboard to show after a short delay
+        // Focus temporary input first
+        tempInput.focus();
+        
+        // Then focus the actual input
         setTimeout(() => {
+            tempInput.remove();
             input.focus();
             input.click();
         }, 100);
