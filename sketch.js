@@ -4701,9 +4701,11 @@ function drawPrivacyPolicyPopup() {
     if (!showPrivacyPolicy) return;
     
     // Create semi-transparent overlay
+    push();
     fill(0, 0, 0, 200);
     noStroke();
     rect(0, 0, width, height);
+    pop();
     
     // Calculate popup dimensions based on device type
     const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
@@ -4712,10 +4714,12 @@ function drawPrivacyPolicyPopup() {
     const popupY = (height - popupHeight) / 2;
     
     // Draw popup background with shadow
+    push();
     fill(255);
     stroke(0);
     strokeWeight(2);
     rect(popupX, popupY, popupWidth, popupHeight, 20);
+    pop();
     
     // Draw close button in left corner
     const closeButtonSize = isMobileDevice() ? 44 : 30;
@@ -4723,24 +4727,31 @@ function drawPrivacyPolicyPopup() {
     const closeButtonY = popupY + 10;
     
     // Draw close button background
+    push();
     fill('#FF1493');
     noStroke();
     rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
+    pop();
     
     // Draw close button text
+    push();
     fill(255);
     textSize(isMobileDevice() ? 24 : 20);
     textAlign(CENTER, CENTER);
     text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
+    pop();
     
     // Draw title
+    push();
     fill(0);
     textSize(isMobileDevice() ? 24 : 20);
     textAlign(CENTER, CENTER);
     textStyle(BOLD);
     text("Privacy Policy", popupX + popupWidth/2, popupY + 40);
+    pop();
     
     // Draw content
+    push();
     textSize(isMobileDevice() ? 16 : 14);
     textStyle(NORMAL);
     textAlign(LEFT, TOP);
@@ -4754,6 +4765,7 @@ function drawPrivacyPolicyPopup() {
     
     // Draw text with word wrapping
     text(policyText, contentX, contentY, contentWidth);
+    pop();
     
     // Draw accept button
     const buttonWidth = isMobileDevice() ? 200 : 150;
@@ -4762,15 +4774,19 @@ function drawPrivacyPolicyPopup() {
     const buttonY = popupY + popupHeight - buttonHeight - 30;
     
     // Button background
+    push();
     fill('#FF1493');
     noStroke();
     rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
+    pop();
     
     // Button text
+    push();
     fill(255);
     textSize(isMobileDevice() ? 20 : 18);
     textAlign(CENTER, CENTER);
     text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
+    pop();
 }
 
 function mousePressed() {
