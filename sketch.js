@@ -3941,67 +3941,98 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-  // Remove any existing input elements
-  const existingInputs = document.querySelectorAll('.game-email-input');
-  existingInputs.forEach(input => input.remove());
-  
-  // Create a form element to properly handle submissions
-  const form = document.createElement('form');
-  form.setAttribute('novalidate', 'true');
-  form.style.position = 'absolute';
-  form.style.opacity = '0.01';
-  form.style.pointerEvents = 'none'; // Make it invisible to clicks/touches except when specifically targeted
-  form.style.zIndex = '-1';
-  form.onsubmit = (e) => {
-    e.preventDefault();
-    submitEmailToLeaderboard();
-      return false;
-  };
-  document.body.appendChild(form);
-  
-  // Create the actual input element with improved styles for mobile
-  const input = document.createElement('input');
-  input.setAttribute('type', 'email');
-  input.setAttribute('inputmode', 'email'); // Better mobile keyboard
-  input.setAttribute('autocapitalize', 'none'); // Prevent auto-capitalization
-  input.setAttribute('autocorrect', 'off'); // Disable autocorrect
-  input.setAttribute('spellcheck', 'false'); // Disable spellcheck
-  input.setAttribute('autocomplete', 'email'); // Enable email autocomplete
-  input.setAttribute('placeholder', 'your.email@example.com');
-  input.setAttribute('enterkeyhint', 'go'); // Changes enter key to "Go" on mobile
-  input.classList.add('game-email-input');
-  input.value = value || '';
-  
-  // Apply styles for better mobile UX
-  input.style.width = '100%';
-  input.style.height = '100%';
-  input.style.fontSize = '16px'; // At least 16px to prevent zoom on iOS
-  input.style.padding = '12px';
-  input.style.boxSizing = 'border-box';
-  input.style.border = '2px solid #3498db';
-  input.style.borderRadius = '5px';
-  input.style.zIndex = '9999';
-  input.style.backgroundColor = '#ffffff';
-  input.style.pointerEvents = 'auto'; // Enable interaction
-  
-  // Add mobile-specific styles
-  if (isMobileDevice()) {
-    input.style.fontSize = '18px'; // Larger for mobile
-    input.style.padding = '14px 12px';
-  }
-  
-  // Handle keyboard events
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      submitEmailToLeaderboard();
-      input.blur(); // Hide keyboard
-  return false;
-}
-  });
-  
-  form.appendChild(input);
-  return input;
+    // Remove any existing input elements
+    const existingInputs = document.querySelectorAll('.game-email-input');
+    existingInputs.forEach(input => input.remove());
+    
+    // Create a form element to properly handle submissions
+    const form = document.createElement('form');
+    form.setAttribute('novalidate', 'true');
+    form.style.position = 'fixed'; // Changed from absolute to fixed
+    form.style.top = '50%';
+    form.style.left = '50%';
+    form.style.transform = 'translate(-50%, -50%)';
+    form.style.width = '80%';
+    form.style.maxWidth = '400px';
+    form.style.zIndex = '9999';
+    form.onsubmit = (e) => {
+        e.preventDefault();
+        const input = form.querySelector('input');
+        if (input) {
+            playerEmail = input.value;
+            form.remove();
+            isEmailInputActive = false;
+        }
+        return false;
+    };
+    
+    // Create the actual input element with improved styles for mobile
+    const input = document.createElement('input');
+    input.setAttribute('type', 'email');
+    input.setAttribute('inputmode', 'email');
+    input.setAttribute('autocapitalize', 'none');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('spellcheck', 'false');
+    input.setAttribute('autocomplete', 'email');
+    input.setAttribute('placeholder', 'Enter your email');
+    input.setAttribute('enterkeyhint', 'done');
+    input.classList.add('game-email-input');
+    input.value = value || '';
+    
+    // Apply styles for better mobile UX
+    input.style.width = '100%';
+    input.style.height = isMobileDevice() ? '54px' : '44px';
+    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    input.style.boxSizing = 'border-box';
+    input.style.border = '2px solid #3498db';
+    input.style.borderRadius = '12px';
+    input.style.backgroundColor = '#ffffff';
+    input.style.color = '#333333';
+    input.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+    
+    // Add a close button for mobile
+    if (isMobileDevice()) {
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style.position = 'absolute';
+        closeBtn.style.right = '10px';
+        closeBtn.style.top = '-40px';
+        closeBtn.style.background = '#FF1493';
+        closeBtn.style.border = 'none';
+        closeBtn.style.color = 'white';
+        closeBtn.style.width = '44px';
+        closeBtn.style.height = '44px';
+        closeBtn.style.borderRadius = '22px';
+        closeBtn.style.fontSize = '20px';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.onclick = () => {
+            form.remove();
+            isEmailInputActive = false;
+        };
+        form.appendChild(closeBtn);
+    }
+    
+    // Handle input events
+    input.addEventListener('input', () => {
+        playerEmail = input.value;
+    });
+    
+    input.addEventListener('blur', () => {
+        // Small delay to allow for form submission
+        setTimeout(() => {
+            if (document.activeElement !== form.querySelector('button')) {
+                form.remove();
+                isEmailInputActive = false;
+            }
+        }, 100);
+    });
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    input.focus();
+    
+    return input;
 }
 
 // Function to draw the share popup modal
@@ -4156,9 +4187,9 @@ function drawPrivacyPolicyPopup() {
     noStroke();
     rect(0, 0, width, height);
     
-    // Calculate popup dimensions
-    let popupWidth = width * 0.8;
-    let popupHeight = height * 0.8;
+    // Calculate popup dimensions - make it larger on mobile
+    let popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+    let popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
     let popupX = width/2 - popupWidth/2;
     let popupY = height/2 - popupHeight/2;
 
@@ -4168,12 +4199,12 @@ function drawPrivacyPolicyPopup() {
     strokeWeight(3);
     rect(popupX, popupY, popupWidth, popupHeight, 20);
 
-    // Draw close button - moved to top-left corner of the popup
-    let closeButtonX = popupX + 30; // 30 pixels from the left edge
-    let closeButtonY = popupY + 30;
-    let closeButtonSize = 30;
+    // Draw close button - larger on mobile and positioned in the corner
+    let closeButtonSize = isMobileDevice() ? 44 : 30; // Larger touch target on mobile
+    let closeButtonX = popupX + closeButtonSize/2 + 10;
+    let closeButtonY = popupY + closeButtonSize/2 + 10;
     
-    // Check if mouse is hovering over close button
+    // Check if mouse/touch is over close button
     let isCloseHovering = dist(mouseX, mouseY, closeButtonX, closeButtonY) < closeButtonSize/2;
     
     // Draw close button with hover effect
@@ -4186,28 +4217,21 @@ function drawPrivacyPolicyPopup() {
     fill('#FFFFFF');
     noStroke();
     textFont('Fredoka One');
-    textSize(24);
+    textSize(isMobileDevice() ? 32 : 24);
     textAlign(CENTER, CENTER);
     text('×', closeButtonX, closeButtonY);
-
-    // Set cursor to hand if hovering over close button
-    if (isCloseHovering) {
-        cursor(HAND);
-    } else {
-        cursor(ARROW);
-    }
 
     // Draw privacy policy content
     fill('#FFFFFF');
     textFont('Fredoka One');
-    textSize(24);
+    textSize(isMobileDevice() ? 28 : 24);
     textAlign(CENTER, CENTER);
-    text('Privacy Policy', width/2, popupY + 50);
+    text('Privacy Policy', width/2, popupY + (isMobileDevice() ? 70 : 50));
 
-    // Draw policy text
+    // Draw policy text - larger on mobile
     fill('#FFFFFF');
     textFont('Fredoka One');
-    textSize(16);
+    textSize(isMobileDevice() ? 18 : 16);
     textAlign(LEFT, TOP);
     textStyle(NORMAL);
     let policyText = "At TripMerge, we take your privacy seriously. This game collects minimal data to provide a better gaming experience:\n\n" +
@@ -4218,7 +4242,9 @@ function drawPrivacyPolicyPopup() {
                     "5. Data Retention: We retain your data only as long as necessary for the purposes outlined above.\n\n" +
                     "By playing this game, you agree to this privacy policy. If you have any questions, please contact us at privacy@tripmerge.com";
     
-    text(policyText, popupX + 40, popupY + 100, popupWidth - 80, popupHeight - 150);
+    let textMargin = isMobileDevice() ? 30 : 40;
+    text(policyText, popupX + textMargin, popupY + (isMobileDevice() ? 120 : 100), 
+         popupWidth - (textMargin * 2), popupHeight - (isMobileDevice() ? 170 : 150));
 }
 
 
