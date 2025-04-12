@@ -1996,11 +1996,11 @@ function drawDecisionUI() {
   noStroke();
   rect(0, 0, width, height);
   
-  // Box dimensions and position
-  let boxWidth = 500;
-  let boxHeight = 300;
+  // Box dimensions and position - adjust for mobile
+  let boxWidth = isMobileDevice() ? width * 0.9 : 500;
+  let boxHeight = isMobileDevice() ? height * 0.5 : 300;
   let boxX = width/2 - boxWidth/2;
-  let boxY = height/2 - boxHeight/2;
+  let boxY = isMobileDevice() ? height * 0.2 : height/2 - boxHeight/2;
   
   // Decision box
   fill('#f5f7f8');
@@ -2016,33 +2016,41 @@ function drawDecisionUI() {
   // Decision title
   fill('#ffffff');
   textStyle(BOLD);
-  textAlign(CENTER);
-  textSize(24);
-  text("DECISION POINT", width/2, boxY + 28);
-  textStyle(NORMAL);
+  textAlign(CENTER, CENTER);  // Center both horizontally and vertically
+  textSize(isMobileDevice() ? 20 : 24);
+  text("DECISION POINT", width/2, boxY + 20);  // Center in 40px high title bar
   
   // Question
   fill(primaryTextColor);
-  textSize(18);
-  text(currentDecision.question, width/2, boxY + 80);
+  textStyle(BOLD);
+  textSize(isMobileDevice() ? 18 : 22);
+  textAlign(CENTER);
+  text(currentDecision.question, width/2, boxY + 70);
   
   // Options
+  let optionSpacing = isMobileDevice() ? 50 : 45;
+  let optionStartY = boxY + (isMobileDevice() ? 100 : 110);
+  
   for (let i = 0; i < currentDecision.options.length; i++) {
-    let y = boxY + 120 + i * 50;
-    let isHovering = mouseX >= width/2 - 180 && mouseX <= width/2 + 180 && 
+    let y = optionStartY + i * optionSpacing;
+    let buttonWidth = isMobileDevice() ? boxWidth * 0.8 : 360;
+    let buttonX = width/2 - buttonWidth/2;
+    let isHovering = mouseX >= buttonX && mouseX <= buttonX + buttonWidth && 
                      mouseY >= y && mouseY <= y + 40;
     
     // Option button
     fill(isHovering ? '#c72a09' : '#f5f7f8');
     stroke('#000000');
     strokeWeight(1);
-    rect(width/2 - 180, y, 360, 40, 5);
+    rect(buttonX, y, buttonWidth, 40, 5);
     
     // Option text
     noStroke();
     fill(isHovering ? '#ffffff' : '#000000');
-    textAlign(LEFT);
-    text(currentDecision.options[i].text, width/2 - 140, y + 26);
+    textAlign(LEFT, CENTER);  // Add CENTER alignment vertically
+    textStyle(BOLD);
+    textSize(isMobileDevice() ? 16 : 18);
+    text(currentDecision.options[i].text, buttonX + 20, y + 20);  // Center vertically within 40px high button
     
     // Change cursor on hover
     if (isHovering) {
@@ -2051,7 +2059,7 @@ function drawDecisionUI() {
   }
   
   // Reset cursor if not hovering over any option
-  if (mouseY < boxY + 120 || mouseY > boxY + 120 + 3 * 50 || 
+  if (mouseY < boxY + 140 || mouseY > boxY + 140 + 3 * 40 || 
       mouseX < width/2 - 180 || mouseX > width/2 + 180) {
     cursor(ARROW);
   }
@@ -2161,11 +2169,12 @@ function drawGameUI() {
   textSize(20 * window.gameScale);
   textAlign(LEFT, TOP);
   
-  // Draw level indicator with total levels
-  text(`Level ${currentLevelNumber}/3`, 20 * window.gameScale, 20 * window.gameScale);
+  // Draw level indicator with total levels - pushed down for better visibility on mobile
+  let levelY = isMobileDevice() ? 35 * window.gameScale : 20 * window.gameScale;
+  text(`Level ${currentLevelNumber}/3`, 20 * window.gameScale, levelY);
   
   // Draw meters horizontally across the top with adjusted positioning for mobile
-  let meterY = isMobileDevice() ? 45 * window.gameScale : 20 * window.gameScale;
+  let meterY = isMobileDevice() ? 65 * window.gameScale : 20 * window.gameScale;
   let meterSpacing = (isMobileDevice() ? 1000 * window.gameScale : width) / 5;
   
   // Adjust horizontal spacing for mobile to ensure all meters are visible
