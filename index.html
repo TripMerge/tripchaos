@@ -25,6 +25,8 @@
     
     <!-- Load Geist font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Load Fredoka One font -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
     
     <!-- Custom styles -->
     <style>
@@ -528,6 +530,10 @@
                 top: 45%;
             }
         }
+
+        .game-title {
+            font-family: 'Fredoka One', cursive;
+        }
     </style>
 </head>
 <body>
@@ -655,14 +661,25 @@
     
     <!-- Supabase configuration -->
     <script>
-        // Initialize Supabase client
+        // Initialize Supabase client with error handling
         const SUPABASE_URL = 'https://mvjxplzxzpegfmmekrlo.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12anhwbHp4enBlZ2ZtbWVrcmxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE4MTQxMTgsImV4cCI6MjA1NzM5MDExOH0.ts2Hfsnc0zUM4uqJuPLNwVDSYqq2ULNJuuLVmXbfq1U';
         
-        // Create Supabase client (fixed variable naming)
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Create Supabase client with secure configuration
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: true
+            },
+            global: {
+                headers: {
+                    'x-client-info': 'tripchaos-game'
+                }
+            }
+        });
         
-        // Create global leaderboard functions
+        // Create global leaderboard functions with fallback to localStorage
         window.leaderboard = {
             // Submit score to leaderboard
             submitScore: async function(email, score, levelsCompleted, satisfaction, budget, achievement) {
@@ -672,7 +689,8 @@
                         return { success: false, error: 'Invalid email format' };
                     }
                     
-                    // Submit to Supabase (using the renamed client)
+                    // Try to submit to Supabase
+                    try {
                     const { data, error } = await supabaseClient
                         .from('leaderboard')
                         .insert([{ 
@@ -682,19 +700,49 @@
                             satisfaction: satisfaction,
                             budget: budget,
                             achievement: achievement
-                        }]);
+                            }])
+                            .select();
                     
-                    if (error) throw error;
+                        if (error) {
+                            console.error('Supabase error:', error);
+                            throw error;
+                        }
                     
                     return { success: true, data };
+                    } catch (supabaseError) {
+                        console.warn('Supabase submission failed, falling back to localStorage:', supabaseError);
+                        
+                        // Fallback to localStorage
+                        const localScores = JSON.parse(localStorage.getItem('leaderboardScores') || '[]');
+                        const newScore = {
+                            email: email,
+                            score: score,
+                            levels_completed: levelsCompleted,
+                            satisfaction: satisfaction,
+                            budget: budget,
+                            achievement: achievement,
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        localScores.push(newScore);
+                        localStorage.setItem('leaderboardScores', JSON.stringify(localScores));
+                        
+                        return { 
+                            success: true, 
+                            data: [newScore],
+                            message: 'Score saved locally due to connection issues'
+                        };
+                    }
                 } catch (error) {
                     console.error('Error submitting score:', error);
                     return { success: false, error: error.message };
                 }
             },
             
-            // Get top scores
+            // Get top scores with fallback
             getTopScores: async function(limit = 10) {
+                try {
+                    // Try to get scores from Supabase
                 try {
                     const { data, error } = await supabaseClient
                         .from('leaderboard')
@@ -702,9 +750,25 @@
                         .order('score', { ascending: false })
                         .limit(limit);
                     
-                    if (error) throw error;
+                        if (error) {
+                            console.error('Supabase error:', error);
+                            throw error;
+                        }
                     
                     return { success: true, data };
+                    } catch (supabaseError) {
+                        console.warn('Supabase fetch failed, falling back to localStorage:', supabaseError);
+                        
+                        // Fallback to localStorage
+                        const localScores = JSON.parse(localStorage.getItem('leaderboardScores') || '[]');
+                        const sortedScores = localScores.sort((a, b) => b.score - a.score).slice(0, limit);
+                        
+                        return { 
+                            success: true, 
+                            data: sortedScores,
+                            message: 'Using local scores due to connection issues'
+                        };
+                    }
                 } catch (error) {
                     console.error('Error fetching scores:', error);
                     return { success: false, error: error.message };
