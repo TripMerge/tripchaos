@@ -3769,23 +3769,28 @@ function createEmailInput(value) {
     checkboxContainer.style.display = 'flex';
     checkboxContainer.style.alignItems = 'center';
     checkboxContainer.style.justifyContent = 'flex-start';
+    checkboxContainer.style.padding = '10px';
+    checkboxContainer.style.backgroundColor = '#f5f5f5';
+    checkboxContainer.style.borderRadius = '8px';
     
     // Create checkbox
     const checkbox = document.createElement('input');
     checkbox.setAttribute('type', 'checkbox');
     checkbox.setAttribute('id', 'privacy-checkbox');
-    checkbox.style.width = isMobileDevice() ? '24px' : '20px';
-    checkbox.style.height = isMobileDevice() ? '24px' : '20px';
-    checkbox.style.marginRight = '10px';
+    checkbox.style.width = isMobileDevice() ? '32px' : '24px';
+    checkbox.style.height = isMobileDevice() ? '32px' : '24px';
+    checkbox.style.marginRight = '15px';
     checkbox.style.cursor = 'pointer';
+    checkbox.style.accentColor = '#FF1493';
     
     // Create checkbox label
     const checkboxLabel = document.createElement('label');
     checkboxLabel.setAttribute('for', 'privacy-checkbox');
     checkboxLabel.textContent = 'I accept the privacy policy';
-    checkboxLabel.style.fontSize = isMobileDevice() ? '16px' : '14px';
+    checkboxLabel.style.fontSize = isMobileDevice() ? '18px' : '16px';
     checkboxLabel.style.cursor = 'pointer';
     checkboxLabel.style.userSelect = 'none';
+    checkboxLabel.style.color = '#333';
     
     // Add checkbox and label to container
     checkboxContainer.appendChild(checkbox);
@@ -3847,13 +3852,27 @@ function createEmailInput(value) {
     
     // Focus the input and trigger keyboard
     setTimeout(() => {
-        input.focus();
         // Force keyboard to show on mobile
         if (isMobileDevice()) {
-            input.click();
+            // Create a temporary input to force keyboard
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            tempInput.style.height = '0';
+            tempInput.style.width = '0';
+            document.body.appendChild(tempInput);
+            
+            // Focus the temporary input first
+            tempInput.focus();
+            
+            // Then focus the real input
+            setTimeout(() => {
+                input.focus();
+                // Remove the temporary input
+                tempInput.remove();
+            }, 100);
+        } else {
             input.focus();
-            // Additional mobile-specific focus trigger
-            input.setAttribute('autofocus', 'true');
         }
     }, 100);
     
@@ -4007,94 +4026,80 @@ function colorShift(hexColor) {
 // Add new function to draw privacy policy popup
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
-    if (!showPrivacyPolicy) return;
-    
-    // Semi-transparent overlay
+    // Create semi-transparent overlay
     fill(0, 0, 0, 200);
     noStroke();
     rect(0, 0, width, height);
     
-    // Popup box - larger on mobile
+    // Define popup dimensions
     const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
     const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-    const popupX = width / 2 - popupWidth / 2;
-    const popupY = height / 2 - popupHeight / 2;
+    const popupX = (width - popupWidth) / 2;
+    const popupY = (height - popupHeight) / 2;
     
-    // Main box with shadow
+    // Draw popup background
     fill(255);
     stroke(0);
     strokeWeight(2);
     rect(popupX, popupY, popupWidth, popupHeight, 20);
     
-    // Title bar
+    // Draw title bar
+    const titleBarHeight = isMobileDevice() ? 80 : 60;
     fill('#FF1493');
     noStroke();
-    rect(popupX, popupY, popupWidth, isMobileDevice() ? 80 : 60);
+    rect(popupX, popupY, popupWidth, titleBarHeight, 20, 20, 0, 0);
     
-    // Title text
-    fill(255);
-    textFont(fredokaOne);
-    textSize(isMobileDevice() ? 28 : 24);
+    // Draw title
     textAlign(CENTER, CENTER);
-    text('Privacy Policy', popupX + popupWidth/2, popupY + (isMobileDevice() ? 40 : 30));
+    textSize(isMobileDevice() ? 24 : 20);
+    fill(255);
+    text('Privacy Policy', popupX + popupWidth/2, popupY + titleBarHeight/2);
     
-    // Close button - larger and more accessible on mobile
+    // Draw close button
     const closeBtnSize = isMobileDevice() ? 44 : 30;
     const closeBtnX = popupX + popupWidth - closeBtnSize - 10;
     const closeBtnY = popupY + 10;
     
     fill(255);
-    stroke(255);
+    stroke(0);
     strokeWeight(2);
-    ellipse(closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2, closeBtnSize);
+    rect(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, 10);
+    
+    textAlign(CENTER, CENTER);
+    textSize(isMobileDevice() ? 24 : 20);
+    fill(0);
+    text('✕', closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2);
+    
+    // Draw policy text
+    const policyText = `By submitting your email, you agree to receive occasional updates and marketing communications from TripMerge. We respect your privacy and will never share your information with third parties. You can unsubscribe at any time.`;
+    
+    textAlign(LEFT, TOP);
+    textSize(isMobileDevice() ? 18 : 16);
+    fill(0); // Explicitly set text color to black
+    const margin = isMobileDevice() ? 30 : 40;
+    text(policyText, popupX + margin, popupY + titleBarHeight + margin, popupWidth - 2*margin, popupHeight - titleBarHeight - 2*margin);
+    
+    // Draw accept button
+    const acceptBtnWidth = popupWidth * 0.6;
+    const acceptBtnHeight = isMobileDevice() ? 60 : 50;
+    const acceptBtnX = popupX + (popupWidth - acceptBtnWidth) / 2;
+    const acceptBtnY = popupY + popupHeight - acceptBtnHeight - margin;
     
     fill('#FF1493');
     noStroke();
-    textSize(isMobileDevice() ? 24 : 20);
+    rect(acceptBtnX, acceptBtnY, acceptBtnWidth, acceptBtnHeight, 15);
+    
     textAlign(CENTER, CENTER);
-    text('✕', closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2);
-    
-    // Policy text - larger and more readable on mobile
-    fill('#000000'); // Explicit black color for text
-    noStroke();
-    textFont(fredokaOne);
-    textSize(isMobileDevice() ? 18 : 16);
-    textAlign(LEFT, TOP);
-    
-    const margin = isMobileDevice() ? 30 : 40;
-    const textWidth = popupWidth - 2 * margin;
-    const textX = popupX + margin;
-    const textY = popupY + (isMobileDevice() ? 100 : 80);
-    
-    const policyText = "We collect your email address to display your score on the leaderboard. " +
-                      "Your email will not be used for any other purpose and will not be shared with third parties. " +
-                      "By submitting your email, you agree to these terms.";
-    
-    text(policyText, textX, textY, textWidth);
-    
-    // Accept button - larger and more accessible on mobile
-    const acceptBtnWidth = popupWidth - 2 * margin;
-    const acceptBtnHeight = isMobileDevice() ? 60 : 50;
-    const acceptBtnX = popupX + margin;
-    const acceptBtnY = popupY + popupHeight - acceptBtnHeight - margin;
-    
-    const isAcceptHovering = mouseX > acceptBtnX && mouseX < acceptBtnX + acceptBtnWidth &&
-                            mouseY > acceptBtnY && mouseY < acceptBtnY + acceptBtnHeight;
-    
-    fill(isAcceptHovering ? '#FF1493' : '#FF1493');
-    stroke(0);
-    strokeWeight(2);
-    rect(acceptBtnX, acceptBtnY, acceptBtnWidth, acceptBtnHeight, 10);
-    
-    fill(255);
-    noStroke();
     textSize(isMobileDevice() ? 20 : 18);
-    textAlign(CENTER, CENTER);
-    text('I Accept', acceptBtnX + acceptBtnWidth/2, acceptBtnY + acceptBtnHeight/2);
+    fill(255);
+    text('Accept', acceptBtnX + acceptBtnWidth/2, acceptBtnY + acceptBtnHeight/2);
     
-    // Change cursor on hover
-    if (isAcceptHovering) {
+    // Add cursor feedback for accept button
+    if (mouseX > acceptBtnX && mouseX < acceptBtnX + acceptBtnWidth &&
+        mouseY > acceptBtnY && mouseY < acceptBtnY + acceptBtnHeight) {
         cursor(HAND);
+    } else {
+        cursor(ARROW);
     }
 }
 
