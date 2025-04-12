@@ -2607,6 +2607,49 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
+    // Handle privacy policy popup first
+    if (showPrivacyPolicy && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Check close button
+        if (touch.x >= closeButtonX && 
+            touch.x <= closeButtonX + closeButtonSize && 
+            touch.y >= closeButtonY && 
+            touch.y <= closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // Accept button dimensions
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        // Check accept button
+        if (touch.x >= buttonX && 
+            touch.x <= buttonX + buttonWidth && 
+            touch.y >= buttonY && 
+            touch.y <= buttonY + buttonHeight) {
+            showPrivacyPolicy = false;
+            privacyPolicyAccepted = true;
+            return false;
+        }
+        
+        return false; // Prevent other touch events when popup is open
+    }
+    
     // Calculate the game viewport offset
     let gameWidth = 1000 * window.gameScale;
     let gameHeight = 600 * window.gameScale;
@@ -2749,44 +2792,6 @@ function touchStarted() {
                 tempInput.style.pointerEvents = 'auto';
                 tempInput.focus();
             }
-            return false;
-        }
-    }
-    
-    // Handle privacy policy popup
-    if (showPrivacyPolicy && touches.length > 0) {
-        let touch = touches[0];
-        
-        // Close button dimensions
-        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
-        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-        const popupX = (width - popupWidth) / 2;
-        const popupY = (height - popupHeight) / 2;
-        
-        const closeButtonSize = isMobileDevice() ? 44 : 30;
-        const closeButtonX = popupX + popupWidth - closeButtonSize - 10;
-        const closeButtonY = popupY + 10;
-        
-        if (touch.x > closeButtonX && 
-            touch.x < closeButtonX + closeButtonSize && 
-            touch.y > closeButtonY && 
-            touch.y < closeButtonY + closeButtonSize) {
-            showPrivacyPolicy = false;
-            return false;
-        }
-        
-        // Accept button dimensions
-        const buttonWidth = isMobileDevice() ? 200 : 150;
-        const buttonHeight = isMobileDevice() ? 60 : 50;
-        const buttonX = width/2 - buttonWidth/2;
-        const buttonY = popupY + popupHeight - buttonHeight - 30;
-        
-        if (touch.x > buttonX && 
-            touch.x < buttonX + buttonWidth && 
-            touch.y > buttonY && 
-            touch.y < buttonY + buttonHeight) {
-            showPrivacyPolicy = false;
-            privacyPolicyAccepted = true;
             return false;
         }
     }
@@ -4085,6 +4090,49 @@ function keyTyped() {
 
 // Add touch support for mobile
 function touchStarted() {
+    // Handle privacy policy popup first
+    if (showPrivacyPolicy && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Check close button
+        if (touch.x >= closeButtonX && 
+            touch.x <= closeButtonX + closeButtonSize && 
+            touch.y >= closeButtonY && 
+            touch.y <= closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // Accept button dimensions
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        // Check accept button
+        if (touch.x >= buttonX && 
+            touch.x <= buttonX + buttonWidth && 
+            touch.y >= buttonY && 
+            touch.y <= buttonY + buttonHeight) {
+            showPrivacyPolicy = false;
+            privacyPolicyAccepted = true;
+            return false;
+        }
+        
+        return false; // Prevent other touch events when popup is open
+    }
+    
     // Calculate the game viewport offset
     let gameWidth = 1000 * window.gameScale;
     let gameHeight = 600 * window.gameScale;
@@ -4319,7 +4367,7 @@ function createEmailInput(value) {
     closeBtn.textContent = '✕';
     closeBtn.style.position = 'absolute';
     closeBtn.style.top = '-44px';
-    closeBtn.style.right = '0';
+    closeBtn.style.left = '0';
     closeBtn.style.background = '#FF1493';
     closeBtn.style.border = 'none';
     closeBtn.style.color = 'white';
@@ -4328,6 +4376,10 @@ function createEmailInput(value) {
     closeBtn.style.borderRadius = '22px';
     closeBtn.style.fontSize = '20px';
     closeBtn.style.cursor = 'pointer';
+    closeBtn.style.zIndex = '10000';
+    closeBtn.style.pointerEvents = 'auto';
+    closeBtn.style.webkitTapHighlightColor = 'transparent';
+    closeBtn.style.touchAction = 'manipulation';
     closeBtn.type = 'button';
     
     // Event handlers
@@ -4339,10 +4391,38 @@ function createEmailInput(value) {
         return false;
     };
     
-    closeBtn.onclick = () => {
+    // Enhanced close button click handler
+    closeBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         form.remove();
         isEmailInputActive = false;
+        return false;
     };
+    
+    // Add touch event handler for close button
+    closeBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.remove();
+        isEmailInputActive = false;
+        return false;
+    }, { passive: false });
+    
+    // Add input event listener to update playerEmail
+    input.addEventListener('input', (e) => {
+        playerEmail = e.target.value;
+    });
+    
+    // Add keydown event listener for Enter key
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            playerEmail = input.value;
+            form.remove();
+            isEmailInputActive = false;
+        }
+    });
     
     // Assemble the form
     container.appendChild(input);
@@ -4395,6 +4475,33 @@ function createEmailInput(value) {
             input.addEventListener('focus', () => {
                 input.click();
             });
+            
+            // Add click event listener to force keyboard
+            input.addEventListener('click', () => {
+                input.focus();
+                input.click();
+            });
+            
+            // Force keyboard to show after a longer delay
+            setTimeout(() => {
+                input.focus();
+                input.click();
+                
+                // Create and focus a temporary input to force keyboard
+                const forceInput = document.createElement('input');
+                forceInput.style.position = 'absolute';
+                forceInput.style.opacity = '0';
+                forceInput.style.height = '0';
+                forceInput.style.width = '0';
+                document.body.appendChild(forceInput);
+                
+                forceInput.focus();
+                
+                setTimeout(() => {
+                    input.focus();
+                    forceInput.remove();
+                }, 100);
+            }, 500);
         } else {
             input.focus();
         }
@@ -4574,10 +4681,12 @@ function drawPrivacyPolicyPopup() {
     const closeButtonX = popupX + 10;
     const closeButtonY = popupY + 10;
     
-    fill(255, 0, 0);
+    // Draw close button background
+    fill('#FF1493');
     noStroke();
     rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
     
+    // Draw close button text
     fill(255);
     textSize(isMobileDevice() ? 24 : 20);
     textAlign(CENTER, CENTER);
@@ -4585,26 +4694,25 @@ function drawPrivacyPolicyPopup() {
     
     // Draw title
     fill(0);
-    noStroke();
-    textSize(isMobileDevice() ? 28 : 24);
-    textAlign(CENTER, TOP);
-    text('Privacy Policy', width/2, popupY + 20);
+    textSize(isMobileDevice() ? 24 : 20);
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    text("Privacy Policy", popupX + popupWidth/2, popupY + 40);
     
-    // Draw policy text with proper margins
-    const margin = isMobileDevice() ? 30 : 40;
-    const textX = popupX + margin;
-    const textY = popupY + margin + 40;
-    const textWidth = popupWidth - (margin * 2);
-    
-    fill(0);
-    textSize(isMobileDevice() ? 18 : 16);
+    // Draw content
+    textSize(isMobileDevice() ? 16 : 14);
+    textStyle(NORMAL);
     textAlign(LEFT, TOP);
-    textLeading(isMobileDevice() ? 28 : 24);
+    const margin = isMobileDevice() ? 20 : 30;
+    const contentWidth = popupWidth - (margin * 2);
+    const contentX = popupX + margin;
+    const contentY = popupY + 80;
     
-    const policyText = "We collect your email address to save your game progress and display your score on the leaderboard. We do not share your information with third parties. By using our game, you agree to our privacy policy.";
+    // Privacy policy text
+    const policyText = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
     
-    // Use p5.js text() function with width parameter for automatic word wrapping
-    text(policyText, textX, textY, textWidth);
+    // Draw text with word wrapping
+    text(policyText, contentX, contentY, contentWidth);
     
     // Draw accept button
     const buttonWidth = isMobileDevice() ? 200 : 150;
