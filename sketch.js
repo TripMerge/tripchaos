@@ -2606,6 +2606,31 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
+    // Check if email form is active - prevent game from handling touches on form
+    if (isEmailInputActive) {
+        // Check if we're touching an email form element
+        const emailForm = document.querySelector('form');
+        const emailInput = document.querySelector('.game-email-input');
+        
+        if (emailForm && emailInput) {
+            // Get form coordinates for detection
+            const formRect = emailForm.getBoundingClientRect();
+            
+            // If touch is within the form, let the form handle it
+            if (touches[0].clientX >= formRect.left && 
+                touches[0].clientX <= formRect.right && 
+                touches[0].clientY >= formRect.top && 
+                touches[0].clientY <= formRect.bottom) {
+                return false; // Prevent any further handling
+            }
+            
+            // If we're touching outside the form, close it
+            emailForm.remove();
+            isEmailInputActive = false;
+            return false;
+        }
+    }
+    
     // Handle privacy policy link click first
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
@@ -2623,28 +2648,71 @@ function touchStarted() {
             return false;
         }
     }
+
+    // Handle privacy policy popup
+    if (showPrivacyPolicy && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Check close button
+        if (touch.x >= closeButtonX && 
+            touch.x <= closeButtonX + closeButtonSize && 
+            touch.y >= closeButtonY && 
+            touch.y <= closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // Accept button dimensions
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        // Check accept button
+        if (touch.x >= buttonX && 
+            touch.x <= buttonX + buttonWidth && 
+            touch.y >= buttonY && 
+            touch.y <= buttonY + buttonHeight) {
+            showPrivacyPolicy = false;
+            privacyPolicyAccepted = true;
+            return false;
+        }
+        
+        return false; // Prevent other touch events when popup is open
+    }
     
-    // Handle email input touch
-    if (gameState === 'gameOver' && isEmailInputActive) {
-        const input = document.querySelector('.game-email-input');
-        if (input) {
-            // Get the input's position and dimensions
-            const rect = input.getBoundingClientRect();
-            
-            // Check if touch is within the input area
-            if (touches[0].x >= rect.left && 
-                touches[0].x <= rect.right && 
-                touches[0].y >= rect.top && 
-                touches[0].y <= rect.bottom) {
-                // Focus the input and show keyboard
-                input.focus();
-                input.click();
+    // Rest of the function remains the same...
+    // ... existing code ...
+    
+    // Check if email input was touched
+    if (gameState === 'gameOver') {
+        const emailBoxX = width/2 - 150;
+        const emailBoxY = height/2 + 30;
+        const emailBoxWidth = 300;
+        const emailBoxHeight = 50;
+        
+        if (touches.length > 0) {
+            let touch = touches[0];
+            if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+                touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+                isEmailInputActive = true;
+                createEmailInput(playerEmail);
                 return false;
             }
         }
     }
     
-    // Rest of the touch handling code...
     // ... existing code ...
 }
 
@@ -3950,8 +4018,10 @@ function touchStarted() {
             const rect = closeBtn.getBoundingClientRect();
             
             // Check if the touch is within the close button's area
-            if (touches[0].x >= rect.left && touches[0].x <= rect.right &&
-                touches[0].y >= rect.top && touches[0].y <= rect.bottom) {
+            if (touches[0].x >= rect.left && 
+                touches[0].x <= rect.right && 
+                touches[0].y >= rect.top && 
+                touches[0].y <= rect.bottom) {
                 // Remove the email input form
                 const form = closeBtn.closest('form');
                 if (form) {
@@ -4216,8 +4286,18 @@ function touchStarted() {
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
     // Remove any existing input elements
-    const existingInputs = document.querySelectorAll('.game-email-input');
+    const existingInputs = document.querySelectorAll('form');
     existingInputs.forEach(input => input.remove());
+    
+    // Create an overlay to prevent touch events from reaching the canvas
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    overlay.style.zIndex = '9998';
     
     // Create a form element
     const form = document.createElement('form');
@@ -4264,10 +4344,6 @@ function createEmailInput(value) {
     input.style.marginBottom = '20px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
-    input.style.webkitTapHighlightColor = 'transparent';
-    input.style.touchAction = 'manipulation';
-    input.style.webkitUserSelect = 'text';
-    input.style.userSelect = 'text';
     
     // Add a submit button
     const submitBtn = document.createElement('button');
@@ -4287,8 +4363,8 @@ function createEmailInput(value) {
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕';
     closeBtn.style.position = 'absolute';
-    closeBtn.style.top = '-44px';
-    closeBtn.style.left = '0';
+    closeBtn.style.top = '10px';
+    closeBtn.style.right = '10px';
     closeBtn.style.background = '#FF1493';
     closeBtn.style.border = 'none';
     closeBtn.style.color = 'white';
@@ -4298,20 +4374,14 @@ function createEmailInput(value) {
     closeBtn.style.fontSize = '20px';
     closeBtn.style.cursor = 'pointer';
     closeBtn.style.zIndex = '10000';
-    closeBtn.style.pointerEvents = 'auto';
-    closeBtn.style.webkitTapHighlightColor = 'transparent';
-    closeBtn.style.touchAction = 'manipulation';
-    closeBtn.style.display = 'flex';
-    closeBtn.style.alignItems = 'center';
-    closeBtn.style.justifyContent = 'center';
     closeBtn.type = 'button';
-    closeBtn.classList.add('email-close-btn');
     
-    // Event handlers
+    // Event handlers with stop propagation to prevent canvas from receiving events
     const handleSubmit = (e) => {
         e.preventDefault();
         e.stopPropagation();
         playerEmail = input.value;
+        overlay.remove();
         form.remove();
         isEmailInputActive = false;
         return false;
@@ -4320,24 +4390,43 @@ function createEmailInput(value) {
     const handleClose = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        overlay.remove();
         form.remove();
         isEmailInputActive = false;
         return false;
     };
     
-    // Add event listeners for both click and touch events
-    form.onsubmit = handleSubmit;
-    submitBtn.onclick = handleSubmit;
-    submitBtn.ontouchstart = handleSubmit;
+    // Prevent overlay from closing when clicking on the form
+    form.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
     
-    closeBtn.onclick = handleClose;
-    closeBtn.ontouchstart = handleClose;
+    // Close the form when clicking on the overlay
+    overlay.addEventListener('click', handleClose);
+    
+    // Add event listeners for both click and touch events with stop propagation
+    form.addEventListener('submit', handleSubmit);
+    submitBtn.addEventListener('click', handleSubmit);
+    submitBtn.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        handleSubmit(e);
+    });
+    
+    closeBtn.addEventListener('click', handleClose);
+    closeBtn.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        handleClose(e);
+    });
+    
+    // Prevent touch events on input from closing the form
+    input.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+    });
     
     // Add input event listener to ensure keyboard input is captured
     input.addEventListener('input', (e) => {
         e.stopPropagation();
         playerEmail = e.target.value;
-        input.value = playerEmail; // Ensure the input value stays in sync
     });
     
     // Add keydown event listener to prevent event bubbling
@@ -4345,38 +4434,27 @@ function createEmailInput(value) {
         e.stopPropagation();
     });
     
-    // Add focus event listener to ensure keyboard shows
-    input.addEventListener('focus', () => {
-        input.focus();
-    });
-    
-    // Add touch event listener for mobile
-    input.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        input.focus();
-    });
-    
     // Add elements to form
     container.appendChild(input);
     container.appendChild(submitBtn);
     container.appendChild(closeBtn);
     form.appendChild(container);
+    
+    // Add overlay first, then form
+    document.body.appendChild(overlay);
     document.body.appendChild(form);
     
-    // Force keyboard to show on mobile
-    if (isMobileDevice()) {
-        // Focus the input immediately
+    // Force keyboard to show on mobile with a delay
+    setTimeout(() => {
         input.focus();
-        
-        // Force keyboard to show after a short delay
-        setTimeout(() => {
+        // For iOS devices, we need this workaround
+        if (isMobileDevice()) {
+            input.blur();
             input.focus();
+            // Click the input to ensure the keyboard appears
             input.click();
-        }, 100);
-    } else {
-        // For desktop, just focus normally
-        input.focus();
-    }
+        }
+    }, 300);
     
     return input;
 }
