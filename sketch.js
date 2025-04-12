@@ -3854,7 +3854,7 @@ function keyTyped() {
 }
 
 // Add touch support for mobile
-function touchStarted() {
+// DISABLED function touchStarted() {
     // Check if we're in the game over state and showing the email input
     if (gameState === 'gameOver' && isEmailInputActive) {
         // Get the close button element
