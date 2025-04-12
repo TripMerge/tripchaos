@@ -2607,7 +2607,25 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
-    // Handle privacy policy popup first
+    // Handle privacy policy link click first
+    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+        let touch = touches[0];
+        const privacyLinkY = height * 0.9;
+        
+        // Make the click area larger for mobile
+        const clickAreaWidth = isMobileDevice() ? 200 : 100;
+        const clickAreaHeight = isMobileDevice() ? 30 : 15;
+        
+        if (touch.x >= width/2 - clickAreaWidth/2 && 
+            touch.x <= width/2 + clickAreaWidth/2 && 
+            touch.y >= privacyLinkY - clickAreaHeight/2 && 
+            touch.y <= privacyLinkY + clickAreaHeight/2) {
+            showPrivacyPolicy = true;
+            return false;
+        }
+    }
+
+    // Handle privacy policy popup
     if (showPrivacyPolicy && touches.length > 0) {
         let touch = touches[0];
         
@@ -4092,7 +4110,25 @@ function keyTyped() {
 
 // Add touch support for mobile
 function touchStarted() {
-    // Handle privacy policy popup first
+    // Handle privacy policy link click first
+    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+        let touch = touches[0];
+        const privacyLinkY = height * 0.9;
+        
+        // Make the click area larger for mobile
+        const clickAreaWidth = isMobileDevice() ? 200 : 100;
+        const clickAreaHeight = isMobileDevice() ? 30 : 15;
+        
+        if (touch.x >= width/2 - clickAreaWidth/2 && 
+            touch.x <= width/2 + clickAreaWidth/2 && 
+            touch.y >= privacyLinkY - clickAreaHeight/2 && 
+            touch.y <= privacyLinkY + clickAreaHeight/2) {
+            showPrivacyPolicy = true;
+            return false;
+        }
+    }
+
+    // Handle privacy policy popup
     if (showPrivacyPolicy && touches.length > 0) {
         let touch = touches[0];
         
@@ -4349,6 +4385,8 @@ function createEmailInput(value) {
     input.style.appearance = 'none';
     input.style.webkitTapHighlightColor = 'transparent';
     input.style.touchAction = 'manipulation';
+    input.style.webkitUserSelect = 'text';
+    input.style.userSelect = 'text';
     
     // Add a submit button
     const submitBtn = document.createElement('button');
@@ -4364,7 +4402,7 @@ function createEmailInput(value) {
     submitBtn.style.cursor = 'pointer';
     submitBtn.type = 'submit';
     
-    // Add a close button
+    // Create close button
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕';
     closeBtn.style.position = 'absolute';
@@ -4401,6 +4439,17 @@ function createEmailInput(value) {
         return false;
     };
     
+    // Add input event listener to ensure keyboard input is captured
+    input.addEventListener('input', (e) => {
+        e.stopPropagation();
+        input.value = e.target.value;
+    });
+    
+    // Add keydown event listener to prevent event bubbling
+    input.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+    });
+    
     // Add elements to form
     container.appendChild(input);
     container.appendChild(submitBtn);
@@ -4408,11 +4457,34 @@ function createEmailInput(value) {
     form.appendChild(container);
     document.body.appendChild(form);
     
-    // Focus the input after a short delay
-    setTimeout(() => {
+    // Force keyboard to show on mobile
+    if (isMobileDevice()) {
+        // Create a temporary input to force keyboard
+        const tempInput = document.createElement('input');
+        tempInput.style.position = 'absolute';
+        tempInput.style.opacity = '0';
+        tempInput.style.height = '0';
+        tempInput.style.width = '0';
+        document.body.appendChild(tempInput);
+        
+        // Focus the temporary input first
+        tempInput.focus();
+        
+        // Focus the email input after a delay
+        setTimeout(() => {
+            input.focus();
+            tempInput.remove();
+        }, 100);
+        
+        // Force keyboard to show after a longer delay
+        setTimeout(() => {
+            input.focus();
+            input.click();
+        }, 300);
+    } else {
+        // For desktop, just focus normally
         input.focus();
-        input.click();
-    }, 100);
+    }
     
     return input;
 }
