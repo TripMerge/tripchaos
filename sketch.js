@@ -4061,7 +4061,7 @@ function mouseClicked() {
         // Check if accept button is clicked
         const buttonWidth = isMobileDevice() ? 200 : 150;
         const buttonHeight = isMobileDevice() ? 60 : 50;
-        const buttonX = width/2 - buttonWidth/2;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
         const buttonY = popupY + popupHeight - buttonHeight - 30;
         
         if (mouseX > buttonX && 
@@ -4073,6 +4073,8 @@ function mouseClicked() {
             return;
         }
     }
+    
+    return true;
 }
 
 // Add keyTyped function to handle email input
@@ -4717,17 +4719,19 @@ function drawPrivacyPolicyPopup() {
     // Draw accept button
     const buttonWidth = isMobileDevice() ? 200 : 150;
     const buttonHeight = isMobileDevice() ? 60 : 50;
-    const buttonX = width/2 - buttonWidth/2;
+    const buttonX = popupX + (popupWidth - buttonWidth) / 2;
     const buttonY = popupY + popupHeight - buttonHeight - 30;
     
-    fill(0, 200, 0);
+    // Button background
+    fill('#FF1493');
     noStroke();
     rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
     
+    // Button text
     fill(255);
-    textSize(isMobileDevice() ? 24 : 20);
+    textSize(isMobileDevice() ? 20 : 18);
     textAlign(CENTER, CENTER);
-    text('Accept', width/2, buttonY + buttonHeight/2);
+    text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
 }
 
 function mousePressed() {
