@@ -3851,30 +3851,33 @@ function createEmailInput(value) {
     document.body.appendChild(form);
     
     // Focus the input and trigger keyboard
-    setTimeout(() => {
-        // Force keyboard to show on mobile
-        if (isMobileDevice()) {
-            // Create a temporary input to force keyboard
-            const tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
-            tempInput.style.opacity = '0';
-            tempInput.style.height = '0';
-            tempInput.style.width = '0';
-            document.body.appendChild(tempInput);
+    if (isMobileDevice()) {
+        // Create a temporary input to force keyboard
+        const tempInput = document.createElement('input');
+        tempInput.style.position = 'absolute';
+        tempInput.style.opacity = '0';
+        tempInput.style.height = '0';
+        tempInput.style.width = '0';
+        document.body.appendChild(tempInput);
+        
+        // Focus the temporary input first
+        tempInput.focus();
+        
+        // Then focus the real input
+        setTimeout(() => {
+            input.focus();
+            // Remove the temporary input
+            tempInput.remove();
             
-            // Focus the temporary input first
-            tempInput.focus();
-            
-            // Then focus the real input
+            // Additional focus trigger after a short delay
             setTimeout(() => {
                 input.focus();
-                // Remove the temporary input
-                tempInput.remove();
-            }, 100);
-        } else {
-            input.focus();
-        }
-    }, 100);
+                input.click();
+            }, 200);
+        }, 100);
+    } else {
+        input.focus();
+    }
     
     isEmailInputActive = true;
 }
@@ -4037,7 +4040,7 @@ function drawPrivacyPolicyPopup() {
     const popupX = (width - popupWidth) / 2;
     const popupY = (height - popupHeight) / 2;
     
-    // Draw popup background
+    // Draw popup background with white fill and black border
     fill(255);
     stroke(0);
     strokeWeight(2);
