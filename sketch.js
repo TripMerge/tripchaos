@@ -3784,76 +3784,88 @@ function updateMishaps() {
 
 // Mouse click handler
 function mouseClicked() {
-    // If privacy policy is open, handle the close button first
-    if (showPrivacyPolicy) {
-        let popupWidth = width * 0.8;
-        let popupHeight = height * 0.8;
-        let popupX = width/2 - popupWidth/2;
-        let popupY = height/2 - popupHeight/2;
-        let closeButtonX = popupX + 30;
-        let closeButtonY = popupY + 30;
-        let closeButtonSize = 30;
-
-        // Check if click is on close button
-        if (dist(mouseX, mouseY, closeButtonX, closeButtonY) < closeButtonSize/2) {
-            showPrivacyPolicy = false;
-            cursor(ARROW);
-            return;
+    if (gameState === 'start') {
+        // Check if play button is clicked
+        const playButtonX = width/2;
+        const playButtonY = height/2;
+        const playButtonWidth = 200;
+        const playButtonHeight = 50;
+        
+        if (mouseX > playButtonX - playButtonWidth/2 && 
+            mouseX < playButtonX + playButtonWidth/2 && 
+            mouseY > playButtonY - playButtonHeight/2 && 
+            mouseY < playButtonY + playButtonHeight/2) {
+            startGame();
         }
-        // If privacy policy is open, don't handle other clicks
-        return;
-    }
-  
-    // Handle decision choices
-    if (showingDecision && currentDecision) {
-        let boxWidth = isMobileDevice() ? width * 0.9 : 400;
-        let boxHeight = 300;
-        let boxY = height/2 - boxHeight/2;
+    } else if (gameState === 'gameOver' || gameState === 'win') {
+        // Check if leaderboard button is clicked
+        const leaderboardButtonX = width/2;
+        const leaderboardButtonY = height/2 + 100;
+        const leaderboardButtonWidth = 200;
+        const leaderboardButtonHeight = 50;
         
-        // Calculate option positions
-        let optionSpacing = isMobileDevice() ? 50 : 45;
-        let optionStartY = boxY + (isMobileDevice() ? 100 : 110);
-        let buttonWidth = isMobileDevice() ? boxWidth * 0.8 : 360;
-        let buttonX = width/2 - buttonWidth/2;
+        if (mouseX > leaderboardButtonX - leaderboardButtonWidth/2 && 
+            mouseX < leaderboardButtonX + leaderboardButtonWidth/2 && 
+            mouseY > leaderboardButtonY - leaderboardButtonHeight/2 && 
+            mouseY < leaderboardButtonY + leaderboardButtonHeight/2) {
+            showLeaderboard = true;
+        }
         
-        // Check each option
-        for (let i = 0; i < currentDecision.options.length; i++) {
-            let y = optionStartY + i * optionSpacing;
-            if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth && 
-                mouseY >= y && mouseY <= y + 40) {
+        // Check if back button is clicked in leaderboard screen
+        if (showLeaderboard) {
+            const backButtonX = 50;
+            const backButtonY = 50;
+            const backButtonSize = 40;
+            
+            if (mouseX > backButtonX - backButtonSize/2 && 
+                mouseX < backButtonX + backButtonSize/2 && 
+                mouseY > backButtonY - backButtonSize/2 && 
+                mouseY < backButtonY + backButtonSize/2) {
+                showLeaderboard = false;
                 return;
             }
         }
+        
+        // Check if privacy policy link is clicked
+        const privacyLinkY = height * 0.9;
+        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
+            mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15) {
+            showPrivacyPolicy = true;
+            return;
+        }
     }
-  
-    if (gameState === 'start') {
-        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-            mouseY >= height/2 - 20 && mouseY <= height/2 + 20) {
-            startGame();
+    
+    // Check if privacy policy close button is clicked
+    if (showPrivacyPolicy) {
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + popupWidth - closeButtonSize - 10;
+        const closeButtonY = popupY + 10;
+        
+        if (mouseX > closeButtonX && 
+            mouseX < closeButtonX + closeButtonSize && 
+            mouseY > closeButtonY && 
+            mouseY < closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+            return;
         }
-        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-            mouseY >= height/2 + 50 && mouseY <= height/2 + 90) {
-            showLeaderboard = true;
-        }
-    } else if (gameState === 'gameOver') {
-        let gameOverPrivacyLinkY = height * 0.9;
-        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-            mouseY >= gameOverPrivacyLinkY - 15 && mouseY <= gameOverPrivacyLinkY + 15) {
-            showPrivacyPolicy = true;
-        }
-    } else if (gameState === 'win') {
-        let winPrivacyLinkY = height * 0.9;
-        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-            mouseY >= winPrivacyLinkY - 15 && mouseY <= winPrivacyLinkY + 15) {
-            showPrivacyPolicy = true;
-        }
-    } else if (showLeaderboard) {
-        // Back button click detection
-        let backBtnX = 50;
-        let backBtnY = 50;
-        if (mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
-            mouseY >= backBtnY - 20 && mouseY <= backBtnY + 20) {
-            showLeaderboard = false;
+        
+        // Check if accept button is clicked
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = width/2 - buttonWidth/2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        if (mouseX > buttonX && 
+            mouseX < buttonX + buttonWidth && 
+            mouseY > buttonY && 
+            mouseY < buttonY + buttonHeight) {
+            showPrivacyPolicy = false;
+            privacyPolicyAccepted = true;
             return;
         }
     }
@@ -4037,6 +4049,10 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
+    // Remove any existing input elements
+    const existingInputs = document.querySelectorAll('.game-email-input');
+    existingInputs.forEach(input => input.remove());
+    
     // Create a form element
     const form = document.createElement('form');
     form.style.position = 'fixed';
@@ -4136,17 +4152,26 @@ function createEmailInput(value) {
     
     // Focus the input with a delay and trigger virtual keyboard
     setTimeout(() => {
-        input.focus();
         if (isMobileDevice()) {
-            // Force keyboard to show on mobile
-            input.click();
-            input.focus();
-            // Ensure input is not read-only
-            input.readOnly = false;
-            // Force focus again after a short delay
+            // Create a temporary input to force keyboard
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            tempInput.style.height = '0';
+            tempInput.style.width = '0';
+            document.body.appendChild(tempInput);
+            
+            // Focus the temporary input first
+            tempInput.focus();
+            
+            // Then focus the real input
             setTimeout(() => {
                 input.focus();
+                // Remove the temporary input
+                tempInput.remove();
             }, 100);
+        } else {
+            input.focus();
         }
     }, 100);
     
@@ -4300,67 +4325,76 @@ function colorShift(hexColor) {
 // Add new function to draw privacy policy popup
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
-    // Draw semi-transparent overlay
+    if (!showPrivacyPolicy) return;
+    
+    // Create semi-transparent overlay
     fill(0, 0, 0, 200);
     noStroke();
     rect(0, 0, width, height);
-
+    
     // Calculate popup dimensions based on device type
     const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
     const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
     const popupX = (width - popupWidth) / 2;
     const popupY = (height - popupHeight) / 2;
-
-    // Draw popup background
+    
+    // Draw popup background with shadow
     fill(255);
     stroke(0);
     strokeWeight(2);
     rect(popupX, popupY, popupWidth, popupHeight, 20);
-
-    // Draw close button in upper left corner
+    
+    // Draw close button in left corner
     const closeButtonSize = isMobileDevice() ? 44 : 30;
     const closeButtonX = popupX + 10;
     const closeButtonY = popupY + 10;
     
-    // Check if mouse is hovering over close button
-    const isCloseHovering = mouseX > closeButtonX && mouseX < closeButtonX + closeButtonSize &&
-                           mouseY > closeButtonY && mouseY < closeButtonY + closeButtonSize;
-    
-    if (isCloseHovering) {
-        cursor(HAND);
-    }
-    
-    fill(255);
-    stroke(0);
-    strokeWeight(2);
+    fill(255, 0, 0);
+    noStroke();
     rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
     
-    // Use fallback font if Fredoka One isn't loaded
-    const fontToUse = fredokaOne ? fredokaOne : fallbackFont;
-    textFont(fontToUse);
+    fill(255);
     textSize(isMobileDevice() ? 24 : 20);
-    fill(0);
     textAlign(CENTER, CENTER);
-    text('×', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
-
+    text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
+    
     // Draw title
-    textSize(isMobileDevice() ? 32 : 28);
+    fill(0);
+    noStroke();
+    textSize(isMobileDevice() ? 28 : 24);
     textAlign(CENTER, TOP);
     text('Privacy Policy', width/2, popupY + 20);
-
-    // Draw policy text
+    
+    // Draw policy text with proper margins
     const margin = isMobileDevice() ? 30 : 40;
     const textX = popupX + margin;
-    const textY = popupY + (isMobileDevice() ? 80 : 60);
+    const textY = popupY + margin + 40;
     const textWidth = popupWidth - (margin * 2);
     
+    fill(0);
     textSize(isMobileDevice() ? 18 : 16);
     textAlign(LEFT, TOP);
-    fill(0);
+    textLeading(isMobileDevice() ? 28 : 24);
     
-    const policyText = "Your privacy is important to us. This game collects minimal data to improve your experience. We do not share your personal information with third parties. By playing this game, you agree to our privacy policy.";
+    const policyText = "We collect your email address to save your game progress and display your score on the leaderboard. We do not share your information with third parties. By using our game, you agree to our privacy policy.";
     
+    // Use p5.js text() function with width parameter for automatic word wrapping
     text(policyText, textX, textY, textWidth);
+    
+    // Draw accept button
+    const buttonWidth = isMobileDevice() ? 200 : 150;
+    const buttonHeight = isMobileDevice() ? 60 : 50;
+    const buttonX = width/2 - buttonWidth/2;
+    const buttonY = popupY + popupHeight - buttonHeight - 30;
+    
+    fill(0, 200, 0);
+    noStroke();
+    rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
+    
+    fill(255);
+    textSize(isMobileDevice() ? 24 : 20);
+    textAlign(CENTER, CENTER);
+    text('Accept', width/2, buttonY + buttonHeight/2);
 }
 
 function mousePressed() {
