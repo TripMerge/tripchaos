@@ -2908,6 +2908,35 @@ function drawGameOverScreen() {
         mouseY <= emailBoxY + emailBoxHeight) {
         isEmailInputActive = true;
         mouseIsPressed = false;
+        
+        // Show keyboard on mobile devices
+        if (isMobileDevice()) {
+            // Create a temporary input to force keyboard
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            tempInput.style.height = '0';
+            tempInput.style.width = '0';
+            document.body.appendChild(tempInput);
+            
+            // Focus the temporary input first
+            tempInput.focus();
+            
+            // Create the email input
+            const emailInput = createEmailInput(playerEmail);
+            
+            // Focus the email input after a delay
+            setTimeout(() => {
+                emailInput.focus();
+                tempInput.remove();
+            }, 100);
+            
+            // Force keyboard to show after a longer delay
+            setTimeout(() => {
+                emailInput.focus();
+                emailInput.click();
+            }, 300);
+        }
     }
 
     // Privacy Policy Checkbox
