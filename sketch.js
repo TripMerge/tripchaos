@@ -2864,8 +2864,8 @@ function shareScore(platform) {
 // Helper function to start the game
 function startGame() {
   console.log("Starting game...");  // Debug log
-  gameState = 'start';  // First go to start screen
-  window.gameState = 'start';
+  gameState = 'playing';  // Changed from 'start' to 'playing'
+  window.gameState = 'playing';
   
   // Reset all game variables
   score = 0;
@@ -3547,22 +3547,19 @@ function touchStarted() {
   
   if (gameState === 'start' && touches.length > 0) {
     let touch = touches[0];
-    // Adjust touch coordinates to account for viewport offset
-    let adjustedX = touch.x - offsetX;
-    let adjustedY = touch.y - offsetY;
     
-    let startBtnX = gameWidth/2 - (100 * window.gameScale);
-    let startBtnY = gameHeight - (100 * window.gameScale);
+    let startBtnX = width/2 - (100 * window.gameScale);
+    let startBtnY = height - (100 * window.gameScale);
     let startBtnW = 200 * window.gameScale;
     let startBtnH = 40 * window.gameScale;
     
     // Add extra touch area for better touch response
     let touchArea = 20 * window.gameScale;
     
-    if (adjustedX >= startBtnX - touchArea && 
-        adjustedX <= startBtnX + startBtnW + touchArea && 
-        adjustedY >= startBtnY - touchArea && 
-        adjustedY <= startBtnY + startBtnH + touchArea) {
+    if (touch.x >= startBtnX - touchArea && 
+        touch.x <= startBtnX + startBtnW + touchArea && 
+        touch.y >= startBtnY - touchArea && 
+        touch.y <= startBtnY + startBtnH + touchArea) {
       console.log("Start button touched");  // Debug log
       gameState = 'playing';
       window.gameState = 'playing';
