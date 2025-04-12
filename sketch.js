@@ -1186,17 +1186,17 @@ function updateGame() {
     // Make sure player is slowed only horizontally
     if (!player.isSlowed) {
         player.speed = 3.5; // Changed from 2.5 to 3.5 for less severe slowdown
-        player.isSlowed = true;
-        console.log("Player slowed: " + player.speed);
+      player.isSlowed = true;
+      console.log("Player slowed: " + player.speed);
     }
     
     player.cloudEffectCounter--;
     
     // When the effect ends
     if (player.cloudEffectCounter <= 0) {
-        player.speed = 5; // Reset to normal speed (5)
-        player.isSlowed = false;
-        console.log("Player speed reset: " + player.speed);
+      player.speed = 5; // Reset to normal speed (5)
+      player.isSlowed = false;
+      console.log("Player speed reset: " + player.speed);
     }
   }
   
@@ -1212,7 +1212,7 @@ function updateGame() {
     if (player.isJumping && player.isSlowed) {
         player.worldX += moveSpeed * 1.2; // 20% boost when jumping during cloud effect
     } else {
-        player.worldX += moveSpeed;
+    player.worldX += moveSpeed;
     }
     player.facingRight = true;
   }
@@ -1223,9 +1223,9 @@ function updateGame() {
         if (player.isJumping && player.isSlowed) {
             player.worldX -= moveSpeed * 1.2; // 20% boost when jumping during cloud effect
         } else {
-            player.worldX -= moveSpeed;
+      player.worldX -= moveSpeed;
         }
-        player.facingRight = false;
+      player.facingRight = false;
     }
   }
   if (keyIsDown(UP_ARROW) && !player.isJumping) {
@@ -1766,7 +1766,7 @@ function drawDetailedOcean() {
       vertex(-10, 0);
       bezierVertex(-5, -7, 5, -7, 10, 0);
       endShape();
-      pop();
+  pop();
     }
   }
   
@@ -2425,18 +2425,18 @@ function drawMishap(mishap) {
 function drawDecisionUI() {
   push();  // Save the current drawing state
   
-  // Semi-transparent overlay - reduced opacity
-  fill(0, 0, 0, 100);  // Reduced from 150 to 100
+  // Semi-transparent overlay
+  fill(0, 0, 0, 150);
   noStroke();
   rect(0, 0, width, height);
   
   // Box dimensions and position - adjust for mobile
-  let boxWidth = isMobileDevice() ? width * 0.9 : 500;
-  let boxHeight = isMobileDevice() ? height * 0.5 : 300;
+  let boxWidth = isMobileDevice() ? width * 0.95 : 500;
+  let boxHeight = isMobileDevice() ? height * 0.7 : 300;
   let boxX = width/2 - boxWidth/2;
-  let boxY = isMobileDevice() ? height * 0.2 : height/2 - boxHeight/2;
+  let boxY = isMobileDevice() ? height * 0.15 : height/2 - boxHeight/2;
   
-  // Decision box
+  // Decision box with shadow
   fill('#f5f7f8');
   stroke('#000000');
   strokeWeight(2);
@@ -2445,66 +2445,159 @@ function drawDecisionUI() {
   // Title bar
   fill(highlightTextColor);
   noStroke();
-  rect(boxX, boxY, boxWidth, 40, 10, 10, 0, 0);
+  rect(boxX, boxY, boxWidth, isMobileDevice() ? 60 : 40, 10, 10, 0, 0);
   
   // Decision title
   fill('#ffffff');
   textStyle(BOLD);
-  textAlign(CENTER, CENTER);  // Center both horizontally and vertically
-  textSize(isMobileDevice() ? 20 : 24);
-  text("DECISION POINT", width/2, boxY + 20);  // Center in 40px high title bar
+  textAlign(CENTER, CENTER);
+  textSize(isMobileDevice() ? 24 : 24);
+  text("DECISION POINT", width/2, boxY + (isMobileDevice() ? 30 : 20));
   
   // Question
   fill(primaryTextColor);
   textStyle(BOLD);
-  textSize(isMobileDevice() ? 18 : 22);
-  textAlign(CENTER);
-  text(currentDecision.question, width/2, boxY + 70);
+  textSize(isMobileDevice() ? 20 : 22);
+  textAlign(CENTER, CENTER);
+  
+  // Calculate question position and height
+  let questionY = boxY + (isMobileDevice() ? 100 : 90);
+  let questionHeight = 60;
+  text(currentDecision.question, boxX + boxWidth/2, questionY, boxWidth - 40);
   
   // Options
-  let optionSpacing = isMobileDevice() ? 50 : 45;
-  let optionStartY = boxY + (isMobileDevice() ? 100 : 110);
+  let optionSpacing = isMobileDevice() ? 80 : 60;
+  let optionStartY = questionY + questionHeight + (isMobileDevice() ? 20 : 10);
   
   for (let i = 0; i < currentDecision.options.length; i++) {
     let y = optionStartY + i * optionSpacing;
-    let buttonWidth = isMobileDevice() ? boxWidth * 0.8 : 360;
+    let buttonWidth = isMobileDevice() ? boxWidth * 0.9 : boxWidth * 0.8;
+    let buttonHeight = isMobileDevice() ? 60 : 40;
     let buttonX = width/2 - buttonWidth/2;
-    let isHovering = mouseX >= buttonX && mouseX <= buttonX + buttonWidth && 
-                     mouseY >= y && mouseY <= y + 40;
     
-    // Option button
+    let isHovering = mouseX >= buttonX && mouseX <= buttonX + buttonWidth && 
+                     mouseY >= y && mouseY <= y + buttonHeight;
+    
+    // Option button with clear hit area
     fill(isHovering ? '#c72a09' : '#f5f7f8');
     stroke('#000000');
-    strokeWeight(1);
-    rect(buttonX, y, buttonWidth, 40, 5);
+    strokeWeight(2);
+    rect(buttonX, y, buttonWidth, buttonHeight, 10);
     
     // Option text
     noStroke();
     fill(isHovering ? '#ffffff' : '#000000');
-    textAlign(LEFT, CENTER);  // Add CENTER alignment vertically
+    textAlign(CENTER, CENTER);
     textStyle(BOLD);
-    textSize(isMobileDevice() ? 16 : 18);
-    text(currentDecision.options[i].text, buttonX + 20, y + 20);  // Center vertically within 40px high button
+    textSize(isMobileDevice() ? 18 : 18);
+    text(currentDecision.options[i].text, buttonX + buttonWidth/2, y + buttonHeight/2);
     
-    // Change cursor on hover
-    if (isHovering) {
-      cursor(HAND);
-    }
-  }
-  
-  // Reset cursor if not hovering over any option
-  if (mouseY < boxY + 140 || mouseY > boxY + 140 + 3 * 40 || 
-      mouseX < width/2 - 180 || mouseX > width/2 + 180) {
-    cursor(ARROW);
+    // Store button coordinates for touch detection
+    currentDecision.options[i].buttonBounds = {
+      x: buttonX,
+      y: y,
+      width: buttonWidth,
+      height: buttonHeight
+    };
   }
   
   // Instruction text
   fill(primaryTextColor);
   textAlign(CENTER);
-  textSize(14);
-  text("Click an option or press 1-3 to choose", width/2, boxY + boxHeight - 20);
+  textSize(isMobileDevice() ? 16 : 14);
+  text("Tap an option to choose", width/2, boxY + boxHeight - 20);
   
-  pop();  // Restore the previous drawing state
+  pop();
+}
+
+function makeDecision(optionIndex) {
+  if (!currentDecision || !currentDecision.options[optionIndex]) return;
+  
+  // Prevent multiple selections
+  if (!showingDecision) return;
+  
+  // Store initial values
+  let oldBudget = budget;
+  let oldSatisfaction = satisfaction;
+  let oldTimeLeft = timeLeft;
+  
+  // Apply the effect
+  currentDecision.options[optionIndex].effect();
+  
+  // Calculate changes
+  let budgetChange = budget - oldBudget;
+  let satisfactionChange = satisfaction - oldSatisfaction;
+  let timeChange = timeLeft - oldTimeLeft;
+  
+  // Count how many changes we'll show
+  let changes = 0;
+  if (budgetChange !== 0) changes++;
+  if (satisfactionChange !== 0) changes++;
+  if (timeChange !== 0) changes++;
+  
+  // Calculate starting Y position
+  let startY = height/2 - (changes - 1) * 25;
+  let currentY = startY;
+  
+  // Create notifications
+  if (budgetChange !== 0) {
+    effectNotifications.push({
+      type: "Budget",
+      value: Math.round(budgetChange),
+      x: width/2,
+      y: currentY,
+      duration: NOTIFICATION_DURATION
+    });
+    currentY += 25;
+  }
+  
+  if (satisfactionChange !== 0) {
+    effectNotifications.push({
+      type: "Satisfaction",
+      value: Math.round(satisfactionChange),
+      x: width/2,
+      y: currentY,
+      duration: NOTIFICATION_DURATION
+    });
+    currentY += 25;
+  }
+  
+  if (timeChange !== 0) {
+    effectNotifications.push({
+      type: "Time",
+      value: Math.round(timeChange),
+      x: width/2,
+      y: currentY,
+      duration: NOTIFICATION_DURATION
+    });
+  }
+  
+  // Resume game immediately
+  showingDecision = false;
+  currentDecision = null;
+  decisionTimer = 0;
+  
+  // Clear lingering mishaps
+  mishaps = mishaps.filter(mishap => mishap.isStatic);
+}
+
+function touchStarted() {
+  if (showingDecision && currentDecision && touches.length > 0) {
+    let touch = touches[0];
+    
+    // Check each option's bounds
+    for (let i = 0; i < currentDecision.options.length; i++) {
+      let bounds = currentDecision.options[i].buttonBounds;
+      if (bounds && 
+          touch.x >= bounds.x && touch.x <= bounds.x + bounds.width &&
+          touch.y >= bounds.y && touch.y <= bounds.y + bounds.height) {
+        makeDecision(i);
+        return false;
+      }
+    }
+  }
+  
+  // ... rest of touchStarted function ...
 }
 
 // Trigger a random decision
@@ -2656,10 +2749,10 @@ function drawMeter(label, value, x, y) {
 
 // Draw game over screen with improved readability
 function drawGameOverScreen() {
-    if (showLeaderboard) {
-        drawLeaderboardScreen();
-        return;
-    }
+  if (showLeaderboard) {
+    drawLeaderboardScreen();
+    return;
+  }
 
     // Draw solid pink background
     background('#FF69B4');
@@ -2676,7 +2769,7 @@ function drawGameOverScreen() {
     // Ground with grid effect
     push();
     fill('#4B0082');  // Deep purple ground
-    noStroke();
+  noStroke();
     rect(0, height * 0.85, width, height * 0.15);
     
     // Grid lines
@@ -2697,94 +2790,190 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#4B0082');
-    textStyle(BOLD);
-    textSize(isMobileDevice() ? 40 : 48);
+  textStyle(BOLD);
+    textSize(64);
     textAlign(CENTER, CENTER);
-    text('GAME OVER', width/2, topY);
+    text("GAME OVER", width/2 + 4, topY + 4);
+    fill('#FFFFFF');
+    text("GAME OVER", width/2, topY);
     pop();
 
-    // Score Display
+    // Score and Achievement (left side, with proper spacing)
     push();
     textFont('Fredoka One');
-    fill(255);
-    textSize(isMobileDevice() ? 24 : 32);
-    textAlign(CENTER, CENTER);
-    text('Final Score: ' + score, width/2, topY + (isMobileDevice() ? 50 : 60));
-    pop();
-
-    // Play Again Button
-    let playAgainBtnY = topY + (isMobileDevice() ? 120 : 150);
-    let isPlayAgainHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                             mouseY >= playAgainBtnY - 20 && mouseY <= playAgainBtnY + 20;
-    
-    push();
-    fill(isPlayAgainHovering ? '#FF1493' : '#4B0082');
-    stroke(255);
-    strokeWeight(2);
-    rect(width/2 - 100, playAgainBtnY - 20, 200, 40, 10);
-    
-    fill(255);
-    noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 18 : 20);
-    textAlign(CENTER, CENTER);
-    text('Play Again', width/2, playAgainBtnY);
-    pop();
-
-    // Email Input Section
-    let emailSectionY = playAgainBtnY + (isMobileDevice() ? 60 : 80);
-    
-    // Email Input Box
-    push();
-    fill(255);
-    stroke('#4B0082');
-    strokeWeight(2);
-    rect(width/2 - 200, emailSectionY - 20, 400, 40, 10);
-    
-    fill('#4B0082');
-    noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 16 : 18);
+    fill('#FFFFFF');
+    textSize(24);
     textAlign(LEFT, CENTER);
-    text(playerEmail || 'Enter your email', width/2 - 190, emailSectionY);
+    let scoreX = width * 0.1;
+    text("YOUR SCORE: " + score, scoreX, topY);
+    
+    let achievement = getAchievement(score);
+    textSize(20);
+    text("🏆 " + achievement.title, scoreX, topY + 30);
     pop();
 
-    // Submit Button
-    let submitBtnY = emailSectionY + (isMobileDevice() ? 50 : 60);
-    let isSubmitHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                          mouseY >= submitBtnY - 20 && mouseY <= submitBtnY + 20;
+    // Play Again button (right side, smaller)
+    let playAgainX = width * 0.85;
+    let playAgainWidth = 200;
+    let playAgainHeight = 60;
+    let isPlayAgainHovering = mouseX >= playAgainX - playAgainWidth/2 && 
+                             mouseX <= playAgainX + playAgainWidth/2 && 
+                             mouseY >= topY - playAgainHeight/2 && 
+                             mouseY <= topY + playAgainHeight/2;
     
     push();
-    fill(isSubmitHovering ? '#FF1493' : '#4B0082');
-    stroke(255);
+    strokeWeight(4);
+    stroke('#4B0082');
+    fill(isPlayAgainHovering ? '#32CD32' : '#FF69B4');
+    rect(playAgainX - playAgainWidth/2, topY - playAgainHeight/2, playAgainWidth, playAgainHeight, 15);
+    
+    textFont('Fredoka One');
+    fill('#FFFFFF');
+    textSize(30);
+    textAlign(CENTER, CENTER);
+    text("PLAY AGAIN", playAgainX, topY);
+    pop();
+
+    if (isPlayAgainHovering) {
+        cursor(HAND);
+        if (mouseIsPressed) {
+            resetGame();
+            startGame();
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+
+    // Leaderboard Section (centered below the top section)
+    let leaderboardY = topY + 150;
+    push();
+    textFont('Fredoka One');
+    fill('#FFFFFF');
+    textSize(32);
+    textAlign(CENTER, CENTER);
+    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
+    pop();
+
+    // Email Submission Form
+    let emailBoxX = width/2 - 200;
+    let emailBoxY = leaderboardY + 50;
+    let emailBoxWidth = 400;
+    let emailBoxHeight = 50;
+
+    // Draw email input box
+    push();
     strokeWeight(2);
-    rect(width/2 - 100, submitBtnY - 20, 200, 40, 10);
+    stroke('#4B0082');
+    fill('#FFFFFF');
+    rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
     
-    fill(255);
-    noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 18 : 20);
-    textAlign(CENTER, CENTER);
-    text('Submit Score', width/2, submitBtnY);
+    // Draw email input text
+    fill('#000000');
+    textSize(20);
+    textAlign(LEFT, CENTER);
+    let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
+    text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
     pop();
 
-    // Privacy Policy Link
-    let privacyLinkY = height * 0.9;
-    let isPrivacyHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                           mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15;
+    // Check if email box is clicked
+    if (mouseIsPressed && 
+        mouseX >= emailBoxX && 
+        mouseX <= emailBoxX + emailBoxWidth && 
+        mouseY >= emailBoxY && 
+        mouseY <= emailBoxY + emailBoxHeight) {
+        isEmailInputActive = true;
+        mouseIsPressed = false;
+    }
+
+    // Privacy Policy Checkbox
+    let privacyY = emailBoxY + emailBoxHeight + 20;
+    let checkboxSize = 20;
+    let privacyX = width/2 - 250; // Position checkbox to the left of text
+    
+    let isCheckboxHovering = mouseX >= privacyX && 
+                            mouseX <= privacyX + checkboxSize && 
+                            mouseY >= privacyY - checkboxSize/2 && 
+                            mouseY <= privacyY + checkboxSize/2;
     
     push();
-    fill(isPrivacyHovering ? '#FF1493' : '#4B0082');
-    noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 16 : 18);
-    textAlign(CENTER, CENTER);
-    text('Privacy Policy', width/2, privacyLinkY);
+    strokeWeight(2);
+    stroke('#4B0082');
+    fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
+    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
+    
+    if (isCheckboxHovering) {
+        cursor(HAND);
+        if (mouseIsPressed) {
+            privacyPolicyAccepted = !privacyPolicyAccepted;
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+    
+    fill('#FFFFFF');
+    textSize(16);
+    textAlign(LEFT, CENTER);
+    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
+    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
     pop();
 
+    // Submit button (centered below the form)
+  let submitBtnX = width/2;
+    let submitBtnY = privacyY + 100; // Moved further down
+  let submitBtnWidth = 200;
+    let submitBtnHeight = 60;
+    let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
+                             mouseX <= submitBtnX + submitBtnWidth/2 && 
+                             mouseY >= submitBtnY - submitBtnHeight/2 && 
+                             mouseY <= submitBtnY + submitBtnHeight/2;
+    
+    push();
+    strokeWeight(4);
+    stroke('#4B0082');
+    fill(isSubmitBtnHovering ? '#32CD32' : '#FF69B4');
+    rect(submitBtnX - submitBtnWidth/2, submitBtnY - submitBtnHeight/2, submitBtnWidth, submitBtnHeight, 15);
+    
+    textFont('Fredoka One');
+    fill('#FFFFFF');
+    textSize(30);
+    textAlign(CENTER, CENTER);
+    text("SUBMIT", submitBtnX, submitBtnY);
+    pop();
+
+    if (isSubmitBtnHovering) {
+    cursor(HAND);
+        if (mouseIsPressed && privacyPolicyAccepted) {
+            submitScoreToLeaderboard();
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+
+    
     // Draw privacy policy popup if active
     if (showPrivacyPolicy) {
         drawPrivacyPolicyPopup();
+    }
+
+    // Privacy Policy link - positioned at the bottom of the screen
+    let gameOverPrivacyLinkY = height * 0.9;
+    let isGameOverPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
+                                       mouseY >= gameOverPrivacyLinkY - 15 && mouseY <= gameOverPrivacyLinkY + 15;
+    
+    push();
+    textFont('Fredoka One');
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
+    textStyle(NORMAL);
+    text("Privacy Policy", width/2, gameOverPrivacyLinkY);
+    pop();
+    
+    if (isGameOverPrivacyLinkHovering) {
+    cursor(HAND);
     }
 }
 
@@ -2794,7 +2983,7 @@ function drawWinScreen() {
     
     // Draw ground with grid effect
     fill('#FFD1DC');
-    noStroke();
+  noStroke();
     rect(0, height * 0.7, width, height * 0.3);
     
     // Draw grid lines on ground
@@ -2817,92 +3006,114 @@ function drawWinScreen() {
     // Draw title
     fill(255);
     textAlign(CENTER, CENTER);
-    textSize(isMobileDevice() ? 40 : 60);
+    textSize(60);
     textFont('Fredoka One');
     text('YOU WON!', width/2, height * 0.2);
     
     // Draw score in a bubble container
     fill(255, 200);
     noStroke();
-    ellipse(width * 0.15, height * 0.3, isMobileDevice() ? 150 : 200, isMobileDevice() ? 75 : 100);
+    ellipse(width * 0.15, height * 0.3, 200, 100);
     fill(0);
-    textSize(isMobileDevice() ? 24 : 30);
+    textSize(30);
     textAlign(CENTER, CENTER);
     text('Score: ' + score, width * 0.15, height * 0.3);
     
     // Draw play again button
-    let playAgainBtnY = height * 0.4;
-    let isPlayAgainHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                             mouseY >= playAgainBtnY - 20 && mouseY <= playAgainBtnY + 20;
-    
-    push();
-    fill(isPlayAgainHovering ? '#FF1493' : '#4B0082');
-    stroke(255);
-    strokeWeight(2);
-    rect(width/2 - 100, playAgainBtnY - 20, 200, 40, 10);
-    
     fill(255);
-    noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 18 : 20);
+    stroke(0);
+    strokeWeight(4);
+    rect(width * 0.85, height * 0.3, 200, 60, 15);
+    fill(0);
+    textSize(30);
     textAlign(CENTER, CENTER);
-    text('Play Again', width/2, playAgainBtnY);
-    pop();
-
-    // Email Input Section
-    let emailSectionY = playAgainBtnY + (isMobileDevice() ? 60 : 80);
+    text('PLAY AGAIN', width * 0.85 + 100, height * 0.3 + 30);
     
-    // Email Input Box
-    push();
+    // Draw social share buttons
+    const socialY = height * 0.4;
+    const socialSpacing = 60;
+    
+    // Twitter
     fill(255);
-    stroke('#4B0082');
-    strokeWeight(2);
-    rect(width/2 - 200, emailSectionY - 20, 400, 40, 10);
+    ellipse(width * 0.4, socialY, 50, 50);
+    fill(0);
+    textSize(30);
+    text('🐦', width * 0.4, socialY);
     
-    fill('#4B0082');
-    noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 16 : 18);
+    // Facebook
+    fill(255);
+    ellipse(width * 0.5, socialY, 50, 50);
+    fill(0);
+    text('📘', width * 0.5, socialY);
+    
+    // WhatsApp
+    fill(255);
+    ellipse(width * 0.6, socialY, 50, 50);
+    fill(0);
+    text('💬', width * 0.6, socialY);
+    
+    // Draw leaderboard section
+    fill(255);
+    textSize(24);
+    textAlign(CENTER, CENTER);
+    text('JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES', width/2, height * 0.5);
+    
+    // Draw email input box
+    fill(255);
+    stroke(0);
+    strokeWeight(2);
+    rect(width/2 - 150, height * 0.55, 300, 50, 10);
+    fill(0);
+    textSize(20);
     textAlign(LEFT, CENTER);
-    text(playerEmail || 'Enter your email', width/2 - 190, emailSectionY);
-    pop();
-
-    // Submit Button
-    let submitBtnY = emailSectionY + (isMobileDevice() ? 50 : 60);
-    let isSubmitHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                          mouseY >= submitBtnY - 20 && mouseY <= submitBtnY + 20;
+    text(emailInput, width/2 - 140, height * 0.55 + 25);
     
-    push();
-    fill(isSubmitHovering ? '#FF1493' : '#4B0082');
-    stroke(255);
-    strokeWeight(2);
-    rect(width/2 - 100, submitBtnY - 20, 200, 40, 10);
-    
+    // Draw privacy policy checkbox
     fill(255);
-    noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 18 : 20);
-    textAlign(CENTER, CENTER);
-    text('Submit Score', width/2, submitBtnY);
-    pop();
-
-    // Privacy Policy Link
-    let privacyLinkY = height * 0.9;
-    let isPrivacyHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                           mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15;
+    stroke(0);
+    strokeWeight(2);
+    rect(width/2 - 150, height * 0.62, 20, 20);
+    if (privacyAccepted) {
+        fill(0);
+        textSize(20);
+        text('✓', width/2 - 145, height * 0.62 + 15);
+    }
+    fill(0);
+    textSize(16);
+    textAlign(LEFT, CENTER);
+    text('I accept the privacy policy', width/2 - 120, height * 0.62 + 10);
     
-    push();
-    fill(isPrivacyHovering ? '#FF1493' : '#4B0082');
-    noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 16 : 18);
+    // Draw submit button
+    fill(255);
+    stroke(0);
+    strokeWeight(4);
+    rect(width/2 - 100, height * 0.7, 200, 60, 15);
+    fill(0);
+    textSize(30);
     textAlign(CENTER, CENTER);
-    text('Privacy Policy', width/2, privacyLinkY);
-    pop();
+    text('SUBMIT', width/2, height * 0.7 + 30);
 
     // Draw privacy policy popup if active
     if (showPrivacyPolicy) {
         drawPrivacyPolicyPopup();
+    }
+
+    // Privacy Policy link - positioned at the bottom of the screen
+    let winPrivacyLinkY = height * 0.9;
+    let isWinPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
+                                  mouseY >= winPrivacyLinkY - 15 && mouseY <= winPrivacyLinkY + 15;
+    
+    push();
+    textFont('Fredoka One');
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    fill(isWinPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
+    textStyle(NORMAL);
+    text("Privacy Policy", width/2, winPrivacyLinkY);
+    pop();
+    
+    if (isWinPrivacyLinkHovering) {
+        cursor(HAND);
     }
 }
 
@@ -2927,7 +3138,7 @@ function drawLeaderboardScreen() {
     // Ground with grid effect
     push();
     fill('#4B0082');  // Deep purple ground
-    noStroke();
+  noStroke();
     rect(0, height * 0.85, width, height * 0.15);
     
     // Grid lines
@@ -3540,12 +3751,12 @@ function updateMishaps() {
         // Level 2: 20% clouds (reduced from 30%), 45% dollars, 35% suitcases
         if (typeRand < 0.2) mishapType = 'cloud';
         else if (typeRand < 0.65) mishapType = 'dollar';
-        else mishapType = 'suitcase';
+      else mishapType = 'suitcase';
     } else {
         // Level 3: 10% clouds (reduced from 15%), 40% dollars, 50% suitcases
         if (typeRand < 0.1) mishapType = 'cloud';
         else if (typeRand < 0.5) mishapType = 'dollar';
-        else mishapType = 'suitcase';
+      else mishapType = 'suitcase';
     }
     
     // Scale falling speed with level but cap it
@@ -3618,7 +3829,7 @@ function mouseClicked() {
         }
     }
   
-    if (gameState === 'start') {
+  if (gameState === 'start') {
         if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
             mouseY >= height/2 - 20 && mouseY <= height/2 + 20) {
             startGame();
@@ -3662,49 +3873,168 @@ function keyTyped() {
 
 // Add touch support for mobile
 function touchStarted() {
-    if (isMobileDevice()) {
-        // Handle privacy policy touch
-        if (gameState === 'gameOver' || gameState === 'win') {
-            let privacyLinkY = height * 0.9;
+    // Calculate the game viewport offset
+    let gameWidth = 1000 * window.gameScale;
+    let gameHeight = 600 * window.gameScale;
+    let offsetX = (width - gameWidth) / 2;
+    let offsetY = (height - gameHeight) / 2;
+    
+    // Handle start screen touches
+  if (gameState === 'start') {
+        if (startScreenStep === 1) {
+            // Next button dimensions
+            let nextBtnX = width/2 - (150 * window.gameScale);
+            let nextBtnY = height - (120 * window.gameScale);
+            let nextBtnW = 300 * window.gameScale;
+            let nextBtnH = 60 * window.gameScale;
+            
+            // Check if Next button was touched
             if (touches.length > 0) {
                 let touch = touches[0];
-                if (touch.x >= width/2 - 100 && touch.x <= width/2 + 100 && 
-                    touch.y >= privacyLinkY - 15 && touch.y <= privacyLinkY + 15) {
-                    showPrivacyPolicy = true;
-                    return false;
-                }
+                if (touch.x >= nextBtnX && touch.x <= nextBtnX + nextBtnW &&
+                    touch.y >= nextBtnY && touch.y <= nextBtnY + nextBtnH) {
+                    startScreenStep = 2;
+        return false;
+      }
             }
-        }
-        
-        // Handle email input touch
-        if (isEmailInputActive) {
-            return false;
-        }
-
-        // Handle decision point touches
-        if (gameState === 'playing' && currentDecision) {
+        } else {
+            // Back button dimensions
+            let backBtnX = width/4 - (100 * window.gameScale);
+            let backBtnY = height - (120 * window.gameScale);
+            let backBtnW = 200 * window.gameScale;
+            let backBtnH = 60 * window.gameScale;
+            
+            // Start button dimensions
+            let startBtnX = width * 3/4 - (100 * window.gameScale);
+            let startBtnY = height - (120 * window.gameScale);
+    let startBtnW = 200 * window.gameScale;
+            let startBtnH = 60 * window.gameScale;
+            
             if (touches.length > 0) {
                 let touch = touches[0];
-                // Check if touch is within any option button
-                let optionHeight = 50;
-                let optionSpacing = 20;
-                let totalHeight = (optionHeight + optionSpacing) * currentDecision.options.length;
-                let startY = height/2 - totalHeight/2 + 100; // 100 is the offset from the top of the decision box
                 
-                for (let i = 0; i < currentDecision.options.length; i++) {
-                    let optionY = startY + i * (optionHeight + optionSpacing);
-                    if (touch.x >= width/2 - 150 && touch.x <= width/2 + 150 && 
-                        touch.y >= optionY && touch.y <= optionY + optionHeight) {
-                        handleDecisionOption(i);
-                        return false;
+                // Check if Back button was touched
+                if (touch.x >= backBtnX && touch.x <= backBtnX + backBtnW &&
+                    touch.y >= backBtnY && touch.y <= backBtnY + backBtnH) {
+                    startScreenStep = 1;
+      return false;
+    }
+  
+                // Check if Start button was touched
+                if (touch.x >= startBtnX && touch.x <= startBtnX + startBtnW &&
+                    touch.y >= startBtnY && touch.y <= startBtnY + startBtnH) {
+                    // Reset game state and start playing
+                    resetGame();
+      gameState = 'playing';
+      window.gameState = 'playing';
+                    currentLevelNumber = 1;
+                    if (window.currentLevelNumber !== undefined) {
+                        window.currentLevelNumber = 1;
                     }
+      return false;
+    }
+
+                // Check if email input was touched
+    let emailBoxX = width/2 - 200;
+                let emailBoxY = height/4 + 280 + 60;
+    let emailBoxWidth = 400;
+                let emailBoxHeight = 40;
+    
+                if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+                    touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+      isEmailInputActive = true;
+                    // Show keyboard on mobile devices
+                    if (isMobileDevice()) {
+                        const tempInput = createEmailInput(playerEmail);
+                        tempInput.style.top = '50%';
+                        tempInput.style.left = '50%';
+                        tempInput.style.transform = 'translate(-50%, -50%)';
+                        tempInput.style.width = '300px';
+                        tempInput.style.height = '40px';
+                        tempInput.style.zIndex = '9999';
+                        tempInput.style.pointerEvents = 'auto';
+                        tempInput.focus();
+                    }
+        return false;
                 }
             }
         }
     }
-    return true;
+
+    // Handle game over state
+    if (gameState === 'gameOver' && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Play Again button dimensions
+        let playAgainX = width/2 - (150 * window.gameScale);
+        let playAgainY = height/6 + 80;
+        let playAgainW = 300 * window.gameScale;
+        let playAgainH = 60 * window.gameScale;
+        
+        // Check if Play Again button was touched
+        if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
+            touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
+            startGame();
+        return false;
+      }
+      
+        // Email input box touch handling
+    let emailBoxX = width/2 - 200;
+        let emailBoxY = playAgainY + 500;
+    let emailBoxWidth = 400;
+        let emailBoxHeight = 50;
+    
+        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+      isEmailInputActive = true;
+            // Show keyboard on mobile devices
+            if (isMobileDevice()) {
+                const tempInput = createEmailInput(playerEmail);
+                tempInput.style.top = '50%';
+                tempInput.style.left = '50%';
+                tempInput.style.transform = 'translate(-50%, -50%)';
+                tempInput.style.width = '300px';
+                tempInput.style.height = '40px';
+                tempInput.style.zIndex = '9999';
+                tempInput.style.pointerEvents = 'auto';
+                tempInput.focus();
+            }
+      return false;
+        }
+    }
+    
+    // Handle decision state
+    if (showingDecision && currentDecision && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Box dimensions and position - match with drawDecisionUI
+        let boxWidth = isMobileDevice() ? width * 0.95 : 700;
+        let boxHeight = isMobileDevice() ? height * 0.7 : 400;
+        let boxX = width/2 - boxWidth/2;
+        let boxY = isMobileDevice() ? height * 0.15 : height/2 - boxHeight/2;
+        
+        // Options
+        let optionSpacing = isMobileDevice() ? 60 : 55;
+        let optionStartY = boxY + 160;
+        let buttonWidth = isMobileDevice() ? boxWidth * 0.9 : boxWidth * 0.8;
+        let buttonX = width/2 - buttonWidth/2;
+        
+        // Check each option button
+    for (let i = 0; i < currentDecision.options.length; i++) {
+            let y = optionStartY + i * optionSpacing;
+      
+            if (touch.x >= buttonX && touch.x <= buttonX + buttonWidth && 
+                touch.y >= y && touch.y <= y + 40) {
+        makeDecision(i);
+      return false;
+            }
+        }
+    }
+    
+    return false;  // Prevent default touch behavior
 }
 
+// Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
     // Remove any existing input elements
     const existingInputs = document.querySelectorAll('.game-email-input');
@@ -3759,42 +4089,8 @@ function createEmailInput(value) {
     input.style.backgroundColor = '#ffffff';
     input.style.color = '#333333';
     input.style.marginBottom = '20px';
-    input.style.webkitAppearance = 'none';
+    input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
-    
-    // Create privacy policy checkbox container
-    const checkboxContainer = document.createElement('div');
-    checkboxContainer.style.width = '100%';
-    checkboxContainer.style.marginBottom = '20px';
-    checkboxContainer.style.display = 'flex';
-    checkboxContainer.style.alignItems = 'center';
-    checkboxContainer.style.justifyContent = 'flex-start';
-    checkboxContainer.style.padding = '10px';
-    checkboxContainer.style.backgroundColor = '#f5f5f5';
-    checkboxContainer.style.borderRadius = '8px';
-    
-    // Create checkbox
-    const checkbox = document.createElement('input');
-    checkbox.setAttribute('type', 'checkbox');
-    checkbox.setAttribute('id', 'privacy-checkbox');
-    checkbox.style.width = isMobileDevice() ? '32px' : '24px';
-    checkbox.style.height = isMobileDevice() ? '32px' : '24px';
-    checkbox.style.marginRight = '15px';
-    checkbox.style.cursor = 'pointer';
-    checkbox.style.accentColor = '#FF1493';
-    
-    // Create checkbox label
-    const checkboxLabel = document.createElement('label');
-    checkboxLabel.setAttribute('for', 'privacy-checkbox');
-    checkboxLabel.textContent = 'I accept the privacy policy';
-    checkboxLabel.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    checkboxLabel.style.cursor = 'pointer';
-    checkboxLabel.style.userSelect = 'none';
-    checkboxLabel.style.color = '#333';
-    
-    // Add checkbox and label to container
-    checkboxContainer.appendChild(checkbox);
-    checkboxContainer.appendChild(checkboxLabel);
     
     // Add a submit button
     const submitBtn = document.createElement('button');
@@ -3808,6 +4104,7 @@ function createEmailInput(value) {
     submitBtn.style.border = 'none';
     submitBtn.style.borderRadius = '12px';
     submitBtn.style.cursor = 'pointer';
+    submitBtn.type = 'submit';
     
     // Add a close button
     const closeBtn = document.createElement('button');
@@ -3823,14 +4120,11 @@ function createEmailInput(value) {
     closeBtn.style.borderRadius = '22px';
     closeBtn.style.fontSize = '20px';
     closeBtn.style.cursor = 'pointer';
+    closeBtn.type = 'button';
     
     // Event handlers
     form.onsubmit = (e) => {
         e.preventDefault();
-        if (!checkbox.checked) {
-            alert('Please accept the privacy policy to continue');
-            return false;
-        }
         playerEmail = input.value;
         form.remove();
         isEmailInputActive = false;
@@ -3842,44 +4136,25 @@ function createEmailInput(value) {
         isEmailInputActive = false;
     };
     
-    // Add elements to the DOM
+    // Assemble the form
     container.appendChild(input);
-    container.appendChild(checkboxContainer);
     container.appendChild(submitBtn);
     form.appendChild(container);
     form.appendChild(closeBtn);
     document.body.appendChild(form);
     
-    // Focus the input and trigger keyboard
-    if (isMobileDevice()) {
-        // Create a temporary input to force keyboard
-        const tempInput = document.createElement('input');
-        tempInput.style.position = 'absolute';
-        tempInput.style.opacity = '0';
-        tempInput.style.height = '0';
-        tempInput.style.width = '0';
-        document.body.appendChild(tempInput);
-        
-        // Focus the temporary input first
-        tempInput.focus();
-        
-        // Then focus the real input
-        setTimeout(() => {
-            input.focus();
-            // Remove the temporary input
-            tempInput.remove();
-            
-            // Additional focus trigger after a short delay
-            setTimeout(() => {
-                input.focus();
-                input.click();
-            }, 200);
-        }, 100);
-    } else {
+    // Focus the input with a delay and trigger virtual keyboard
+    setTimeout(() => {
+        input.click();
         input.focus();
-    }
+        if (isMobileDevice()) {
+            input.readOnly = false;
+            input.blur();
+            input.focus();
+        }
+    }, 100);
     
-    isEmailInputActive = true;
+    return input;
 }
 
 // Function to draw the share popup modal
@@ -4029,81 +4304,90 @@ function colorShift(hexColor) {
 // Add new function to draw privacy policy popup
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
-    // Create semi-transparent overlay
+    if (!showPrivacyPolicy) return;
+    
+    // Semi-transparent overlay
     fill(0, 0, 0, 200);
     noStroke();
     rect(0, 0, width, height);
     
-    // Define popup dimensions
+    // Popup box
     const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
     const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-    const popupX = (width - popupWidth) / 2;
-    const popupY = (height - popupHeight) / 2;
+    const popupX = width / 2 - popupWidth / 2;
+    const popupY = height / 2 - popupHeight / 2;
     
-    // Draw popup background with white fill and black border
+    // Main box
     fill(255);
     stroke(0);
     strokeWeight(2);
     rect(popupX, popupY, popupWidth, popupHeight, 20);
     
-    // Draw title bar
-    const titleBarHeight = isMobileDevice() ? 80 : 60;
+    // Title bar
     fill('#FF1493');
     noStroke();
-    rect(popupX, popupY, popupWidth, titleBarHeight, 20, 20, 0, 0);
+    rect(popupX, popupY, popupWidth, isMobileDevice() ? 80 : 60);
     
-    // Draw title
-    textAlign(CENTER, CENTER);
-    textSize(isMobileDevice() ? 24 : 20);
+    // Title text
     fill(255);
-    text('Privacy Policy', popupX + popupWidth/2, popupY + titleBarHeight/2);
+    textFont(fredokaOne);
+    textSize(isMobileDevice() ? 28 : 24);
+    textAlign(CENTER, CENTER);
+    text('Privacy Policy', popupX + popupWidth/2, popupY + (isMobileDevice() ? 40 : 30));
     
-    // Draw close button
+    // Close button
     const closeBtnSize = isMobileDevice() ? 44 : 30;
     const closeBtnX = popupX + popupWidth - closeBtnSize - 10;
     const closeBtnY = popupY + 10;
     
     fill(255);
-    stroke(0);
+    stroke(255);
     strokeWeight(2);
-    rect(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, 10);
-    
-    textAlign(CENTER, CENTER);
-    textSize(isMobileDevice() ? 24 : 20);
-    fill(0);
-    text('✕', closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2);
-    
-    // Draw policy text
-    const policyText = `By submitting your email, you agree to receive occasional updates and marketing communications from TripMerge. We respect your privacy and will never share your information with third parties. You can unsubscribe at any time.`;
-    
-    textAlign(LEFT, TOP);
-    textSize(isMobileDevice() ? 18 : 16);
-    fill(0); // Explicitly set text color to black
-    const margin = isMobileDevice() ? 30 : 40;
-    text(policyText, popupX + margin, popupY + titleBarHeight + margin, popupWidth - 2*margin, popupHeight - titleBarHeight - 2*margin);
-    
-    // Draw accept button
-    const acceptBtnWidth = popupWidth * 0.6;
-    const acceptBtnHeight = isMobileDevice() ? 60 : 50;
-    const acceptBtnX = popupX + (popupWidth - acceptBtnWidth) / 2;
-    const acceptBtnY = popupY + popupHeight - acceptBtnHeight - margin;
+    ellipse(closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2, closeBtnSize);
     
     fill('#FF1493');
     noStroke();
-    rect(acceptBtnX, acceptBtnY, acceptBtnWidth, acceptBtnHeight, 15);
-    
+    textSize(isMobileDevice() ? 24 : 20);
     textAlign(CENTER, CENTER);
-    textSize(isMobileDevice() ? 20 : 18);
-    fill(255);
-    text('Accept', acceptBtnX + acceptBtnWidth/2, acceptBtnY + acceptBtnHeight/2);
+    text('✕', closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2);
     
-    // Add cursor feedback for accept button
-    if (mouseX > acceptBtnX && mouseX < acceptBtnX + acceptBtnWidth &&
-        mouseY > acceptBtnY && mouseY < acceptBtnY + acceptBtnHeight) {
-        cursor(HAND);
-    } else {
-        cursor(ARROW);
-    }
+    // Policy text
+    fill(0);
+    noStroke();
+    textFont(fredokaOne);
+    textSize(isMobileDevice() ? 18 : 16);
+    textAlign(LEFT, TOP);
+    
+    const margin = isMobileDevice() ? 30 : 40;
+    const textWidth = popupWidth - 2 * margin;
+    const textX = popupX + margin;
+    const textY = popupY + (isMobileDevice() ? 100 : 80);
+    
+    const policyText = "We collect your email address to display your score on the leaderboard. " +
+                      "Your email will not be used for any other purpose and will not be shared with third parties. " +
+                      "By submitting your email, you agree to these terms.";
+    
+    text(policyText, textX, textY, textWidth);
+    
+    // Accept button
+    const acceptBtnWidth = popupWidth - 2 * margin;
+    const acceptBtnHeight = isMobileDevice() ? 60 : 50;
+    const acceptBtnX = popupX + margin;
+    const acceptBtnY = popupY + popupHeight - acceptBtnHeight - margin;
+    
+    const isAcceptHovering = mouseX > acceptBtnX && mouseX < acceptBtnX + acceptBtnWidth &&
+                            mouseY > acceptBtnY && mouseY < acceptBtnY + acceptBtnHeight;
+    
+    fill(isAcceptHovering ? '#FF1493' : '#FF1493');
+    stroke(0);
+    strokeWeight(2);
+    rect(acceptBtnX, acceptBtnY, acceptBtnWidth, acceptBtnHeight, 10);
+    
+    fill(255);
+    noStroke();
+    textSize(isMobileDevice() ? 20 : 18);
+    textAlign(CENTER, CENTER);
+    text('I Accept', acceptBtnX + acceptBtnWidth/2, acceptBtnY + acceptBtnHeight/2);
 }
 
 
@@ -4404,7 +4688,7 @@ function shareScore(platform) {
 }
 
 function drawFogEffect() {
-    push();
+      push();
     // Create multiple layers of fog with different opacities and movement
     for (let i = 0; i < 3; i++) {
         let fogOpacity = map(i, 0, 2, 40, 20); // Increased base opacity
