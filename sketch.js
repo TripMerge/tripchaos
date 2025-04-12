@@ -4337,6 +4337,7 @@ function createEmailInput(value) {
     input.addEventListener('input', (e) => {
         e.stopPropagation();
         playerEmail = e.target.value;
+        input.value = playerEmail; // Ensure the input value stays in sync
     });
     
     // Add keydown event listener to prevent event bubbling
@@ -4364,28 +4365,13 @@ function createEmailInput(value) {
     
     // Force keyboard to show on mobile
     if (isMobileDevice()) {
-        // Create a temporary input to force keyboard
-        const tempInput = document.createElement('input');
-        tempInput.style.position = 'fixed';
-        tempInput.style.opacity = '0';
-        tempInput.style.pointerEvents = 'none';
-        document.body.appendChild(tempInput);
+        // Focus the input immediately
+        input.focus();
         
-        // Focus temporary input first
-        tempInput.focus();
-        
-        // Then focus the actual input
+        // Force keyboard to show after a short delay
         setTimeout(() => {
-            tempInput.remove();
             input.focus();
             input.click();
-            
-            // Force keyboard to show
-            const event = new Event('touchstart', {
-                bubbles: true,
-                cancelable: true
-            });
-            input.dispatchEvent(event);
         }, 100);
     } else {
         // For desktop, just focus normally
