@@ -3951,29 +3951,28 @@ function createEmailInput(value) {
     const form = document.createElement('form');
     form.setAttribute('novalidate', 'true');
     form.style.position = 'fixed';
-    form.style.top = '50%';
-    form.style.left = '50%';
-    form.style.transform = 'translate(-50%, -50%)';
-    form.style.width = isMobileDevice() ? '90%' : '80%';
-    form.style.maxWidth = '400px';
+    form.style.top = '0';
+    form.style.left = '0';
+    form.style.width = '100%';
+    form.style.height = '100%';
+    form.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
     form.style.zIndex = '9999';
-    form.style.backgroundColor = 'white';
+    form.style.display = 'flex';
+    form.style.flexDirection = 'column';
+    form.style.justifyContent = 'center';
+    form.style.alignItems = 'center';
     form.style.padding = '20px';
-    form.style.borderRadius = '12px';
-    form.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
     
-    form.onsubmit = (e) => {
-        e.preventDefault();
-        const input = form.querySelector('input');
-        if (input) {
-            playerEmail = input.value;
-            form.remove();
-            isEmailInputActive = false;
-        }
-        return false;
-    };
+    // Create container for input and button
+    const container = document.createElement('div');
+    container.style.width = isMobileDevice() ? '90%' : '400px';
+    container.style.backgroundColor = 'white';
+    container.style.padding = '20px';
+    container.style.borderRadius = '12px';
+    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    container.style.position = 'relative';
     
-    // Create the actual input element with improved styles for mobile
+    // Create the actual input element
     const input = document.createElement('input');
     input.setAttribute('type', 'email');
     input.setAttribute('inputmode', 'email');
@@ -3996,30 +3995,7 @@ function createEmailInput(value) {
     input.style.borderRadius = '12px';
     input.style.backgroundColor = '#ffffff';
     input.style.color = '#333333';
-    input.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
     input.style.marginBottom = '20px';
-    
-    // Add a close button for mobile
-    if (isMobileDevice()) {
-        const closeBtn = document.createElement('button');
-        closeBtn.textContent = '✕';
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.right = '10px';
-        closeBtn.style.top = '10px';
-        closeBtn.style.background = '#FF1493';
-        closeBtn.style.border = 'none';
-        closeBtn.style.color = 'white';
-        closeBtn.style.width = '44px';
-        closeBtn.style.height = '44px';
-        closeBtn.style.borderRadius = '22px';
-        closeBtn.style.fontSize = '20px';
-        closeBtn.style.cursor = 'pointer';
-        closeBtn.onclick = () => {
-            form.remove();
-            isEmailInputActive = false;
-        };
-        form.appendChild(closeBtn);
-    }
     
     // Add a submit button
     const submitBtn = document.createElement('button');
@@ -4034,11 +4010,43 @@ function createEmailInput(value) {
     submitBtn.style.borderRadius = '12px';
     submitBtn.style.cursor = 'pointer';
     
-    form.appendChild(input);
-    form.appendChild(submitBtn);
+    // Add a close button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '-44px';
+    closeBtn.style.right = '0';
+    closeBtn.style.background = '#FF1493';
+    closeBtn.style.border = 'none';
+    closeBtn.style.color = 'white';
+    closeBtn.style.width = '44px';
+    closeBtn.style.height = '44px';
+    closeBtn.style.borderRadius = '22px';
+    closeBtn.style.fontSize = '20px';
+    closeBtn.style.cursor = 'pointer';
+    
+    // Event handlers
+    form.onsubmit = (e) => {
+        e.preventDefault();
+        playerEmail = input.value;
+        form.remove();
+        isEmailInputActive = false;
+        return false;
+    };
+    
+    closeBtn.onclick = () => {
+        form.remove();
+        isEmailInputActive = false;
+    };
+    
+    // Assemble the form
+    container.appendChild(input);
+    container.appendChild(submitBtn);
+    form.appendChild(container);
+    form.appendChild(closeBtn);
     document.body.appendChild(form);
     
-    // Focus the input after a short delay to ensure it works on mobile
+    // Focus the input after a short delay
     setTimeout(() => {
         input.focus();
     }, 100);
@@ -4206,19 +4214,11 @@ function drawPrivacyPolicyPopup() {
     const popupX = width / 2 - popupWidth / 2;
     const popupY = height / 2 - popupHeight / 2;
     
-    // Shadow effect
-    drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    drawingContext.shadowBlur = 20;
-    drawingContext.shadowOffsetY = 10;
-    
     // Main box
     fill(255);
     stroke(0);
     strokeWeight(2);
     rect(popupX, popupY, popupWidth, popupHeight, 20);
-    
-    // Reset shadow
-    drawingContext.shadowColor = 'transparent';
     
     // Title bar
     fill('#FF1493');
