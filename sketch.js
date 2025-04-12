@@ -3780,168 +3780,28 @@ function keyTyped() {
 
 // Add touch support for mobile
 function touchStarted() {
-    // Calculate the game viewport offset
-    let gameWidth = 1000 * window.gameScale;
-    let gameHeight = 600 * window.gameScale;
-    let offsetX = (width - gameWidth) / 2;
-    let offsetY = (height - gameHeight) / 2;
-    
-    // Handle start screen touches
-  if (gameState === 'start') {
-        if (startScreenStep === 1) {
-            // Next button dimensions
-            let nextBtnX = width/2 - (150 * window.gameScale);
-            let nextBtnY = height - (120 * window.gameScale);
-            let nextBtnW = 300 * window.gameScale;
-            let nextBtnH = 60 * window.gameScale;
-            
-            // Check if Next button was touched
+    if (isMobileDevice()) {
+        // Handle privacy policy touch
+        if (gameState === 'gameOver' || gameState === 'win') {
+            let privacyLinkY = height * 0.9;
             if (touches.length > 0) {
                 let touch = touches[0];
-                if (touch.x >= nextBtnX && touch.x <= nextBtnX + nextBtnW &&
-                    touch.y >= nextBtnY && touch.y <= nextBtnY + nextBtnH) {
-                    startScreenStep = 2;
-        return false;
-      }
-            }
-        } else {
-            // Back button dimensions
-            let backBtnX = width/4 - (100 * window.gameScale);
-            let backBtnY = height - (120 * window.gameScale);
-            let backBtnW = 200 * window.gameScale;
-            let backBtnH = 60 * window.gameScale;
-            
-            // Start button dimensions
-            let startBtnX = width * 3/4 - (100 * window.gameScale);
-            let startBtnY = height - (120 * window.gameScale);
-            let startBtnW = 200 * window.gameScale;
-            let startBtnH = 60 * window.gameScale;
-            
-            if (touches.length > 0) {
-                let touch = touches[0];
-                
-                // Check if Back button was touched
-                if (touch.x >= backBtnX && touch.x <= backBtnX + backBtnW &&
-                    touch.y >= backBtnY && touch.y <= backBtnY + backBtnH) {
-                    startScreenStep = 1;
-      return false;
-    }
-  
-                // Check if Start button was touched
-                if (touch.x >= startBtnX && touch.x <= startBtnX + startBtnW &&
-                    touch.y >= startBtnY && touch.y <= startBtnY + startBtnH) {
-                    // Reset game state and start playing
-                    resetGame();
-                    gameState = 'playing';
-                    window.gameState = 'playing';
-                    currentLevelNumber = 1;
-                    if (window.currentLevelNumber !== undefined) {
-                        window.currentLevelNumber = 1;
-                    }
-      return false;
-    }
-
-                // Check if email input was touched
-    let emailBoxX = width/2 - 200;
-                let emailBoxY = height/4 + 280 + 60;
-    let emailBoxWidth = 400;
-                let emailBoxHeight = 40;
-    
-                if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-                    touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-      isEmailInputActive = true;
-                    // Show keyboard on mobile devices
-                    if (isMobileDevice()) {
-                        const tempInput = createEmailInput(playerEmail);
-                        tempInput.style.top = '50%';
-                        tempInput.style.left = '50%';
-                        tempInput.style.transform = 'translate(-50%, -50%)';
-                        tempInput.style.width = '300px';
-                        tempInput.style.height = '40px';
-                        tempInput.style.zIndex = '9999';
-                        tempInput.style.pointerEvents = 'auto';
-                        tempInput.focus();
-                    }
-      return false;
+                if (touch.x >= width/2 - 100 && touch.x <= width/2 + 100 && 
+                    touch.y >= privacyLinkY - 15 && touch.y <= privacyLinkY + 15) {
+                    showPrivacyPolicy = true;
+                    return false;
                 }
             }
         }
-    }
-
-    // Handle game over state
-    if (gameState === 'gameOver' && touches.length > 0) {
-        let touch = touches[0];
         
-        // Play Again button dimensions
-        let playAgainX = width/2 - (150 * window.gameScale);
-        let playAgainY = height/6 + 80;
-        let playAgainW = 300 * window.gameScale;
-        let playAgainH = 60 * window.gameScale;
-        
-        // Check if Play Again button was touched
-        if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
-            touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
-            startGame();
-      return false;
-    }
-
-        // Email input box touch handling
-    let emailBoxX = width/2 - 200;
-        let emailBoxY = playAgainY + 500;
-    let emailBoxWidth = 400;
-        let emailBoxHeight = 50;
-    
-        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-      isEmailInputActive = true;
-            // Show keyboard on mobile devices
-            if (isMobileDevice()) {
-                const tempInput = createEmailInput(playerEmail);
-                tempInput.style.top = '50%';
-                tempInput.style.left = '50%';
-                tempInput.style.transform = 'translate(-50%, -50%)';
-                tempInput.style.width = '300px';
-                tempInput.style.height = '40px';
-                tempInput.style.zIndex = '9999';
-                tempInput.style.pointerEvents = 'auto';
-                tempInput.focus();
-            }
-      return false;
+        // Handle email input touch
+        if (isEmailInputActive) {
+            return false;
         }
     }
-    
-    // Handle decision state
-    if (showingDecision && currentDecision && touches.length > 0) {
-        let touch = touches[0];
-        
-        // Box dimensions and position - match with drawDecisionUI
-        let boxWidth = isMobileDevice() ? width * 0.95 : 700;
-        let boxHeight = isMobileDevice() ? height * 0.7 : 400;
-        let boxX = width/2 - boxWidth/2;
-        let boxY = isMobileDevice() ? height * 0.15 : height/2 - boxHeight/2;
-        
-        // Options
-        let optionSpacing = isMobileDevice() ? 60 : 55;
-        let optionStartY = boxY + 160;
-        let buttonWidth = isMobileDevice() ? boxWidth * 0.9 : boxWidth * 0.8;
-        let buttonX = width/2 - buttonWidth/2;
-        
-        // Check each option button
-    for (let i = 0; i < currentDecision.options.length; i++) {
-            let y = optionStartY + i * optionSpacing;
-      
-            if (touch.x >= buttonX && touch.x <= buttonX + buttonWidth && 
-                touch.y >= y && touch.y <= y + 40) {
-        makeDecision(i);
-                return false;
-            }
-        }
-    }
-    
-    return false;  // Prevent default touch behavior
+    return true;
 }
 
-// Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
     // Remove any existing input elements
     const existingInputs = document.querySelectorAll('.game-email-input');
@@ -4049,6 +3909,10 @@ function createEmailInput(value) {
     // Focus the input after a short delay
     setTimeout(() => {
         input.focus();
+        // Force keyboard to show on mobile
+        if (isMobileDevice()) {
+            input.click();
+        }
     }, 100);
     
     return input;
