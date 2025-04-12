@@ -4098,6 +4098,8 @@ function createEmailInput(value) {
     input.style.marginBottom = '20px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
+    input.style.webkitTapHighlightColor = 'transparent';
+    input.style.touchAction = 'manipulation';
     
     // Add a submit button
     const submitBtn = document.createElement('button');
@@ -4170,6 +4172,30 @@ function createEmailInput(value) {
                 // Remove the temporary input
                 tempInput.remove();
             }, 100);
+            
+            // Force keyboard to show
+            input.click();
+            input.focus();
+            
+            // Ensure input is not read-only
+            input.readOnly = false;
+            
+            // Force focus again after a short delay
+            setTimeout(() => {
+                input.focus();
+                input.click();
+            }, 200);
+            
+            // Add touch event listener to ensure keyboard stays up
+            input.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                input.focus();
+            }, { passive: false });
+            
+            // Add focus event listener to ensure keyboard stays up
+            input.addEventListener('focus', () => {
+                input.click();
+            });
         } else {
             input.focus();
         }
