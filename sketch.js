@@ -3948,13 +3948,18 @@ function createEmailInput(value) {
     // Create a form element to properly handle submissions
     const form = document.createElement('form');
     form.setAttribute('novalidate', 'true');
-    form.style.position = 'fixed'; // Changed from absolute to fixed
+    form.style.position = 'fixed';
     form.style.top = '50%';
     form.style.left = '50%';
     form.style.transform = 'translate(-50%, -50%)';
-    form.style.width = '80%';
+    form.style.width = isMobileDevice() ? '90%' : '80%';
     form.style.maxWidth = '400px';
     form.style.zIndex = '9999';
+    form.style.backgroundColor = 'white';
+    form.style.padding = '20px';
+    form.style.borderRadius = '12px';
+    form.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    
     form.onsubmit = (e) => {
         e.preventDefault();
         const input = form.querySelector('input');
@@ -3990,6 +3995,7 @@ function createEmailInput(value) {
     input.style.backgroundColor = '#ffffff';
     input.style.color = '#333333';
     input.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+    input.style.marginBottom = '20px';
     
     // Add a close button for mobile
     if (isMobileDevice()) {
@@ -3997,7 +4003,7 @@ function createEmailInput(value) {
         closeBtn.textContent = '✕';
         closeBtn.style.position = 'absolute';
         closeBtn.style.right = '10px';
-        closeBtn.style.top = '-40px';
+        closeBtn.style.top = '10px';
         closeBtn.style.background = '#FF1493';
         closeBtn.style.border = 'none';
         closeBtn.style.color = 'white';
@@ -4013,24 +4019,27 @@ function createEmailInput(value) {
         form.appendChild(closeBtn);
     }
     
-    // Handle input events
-    input.addEventListener('input', () => {
-        playerEmail = input.value;
-    });
-    
-    input.addEventListener('blur', () => {
-        // Small delay to allow for form submission
-        setTimeout(() => {
-            if (document.activeElement !== form.querySelector('button')) {
-                form.remove();
-                isEmailInputActive = false;
-            }
-        }, 100);
-    });
+    // Add a submit button
+    const submitBtn = document.createElement('button');
+    submitBtn.textContent = 'Submit';
+    submitBtn.style.width = '100%';
+    submitBtn.style.height = isMobileDevice() ? '54px' : '44px';
+    submitBtn.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    submitBtn.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    submitBtn.style.backgroundColor = '#3498db';
+    submitBtn.style.color = 'white';
+    submitBtn.style.border = 'none';
+    submitBtn.style.borderRadius = '12px';
+    submitBtn.style.cursor = 'pointer';
     
     form.appendChild(input);
+    form.appendChild(submitBtn);
     document.body.appendChild(form);
-    input.focus();
+    
+    // Focus the input after a short delay to ensure it works on mobile
+    setTimeout(() => {
+        input.focus();
+    }, 100);
     
     return input;
 }
@@ -4182,69 +4191,98 @@ function colorShift(hexColor) {
 // Add new function to draw privacy policy popup
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
-    // Draw semi-transparent overlay to darken the background
-    fill(0, 0, 0, 150);
+    if (!showPrivacyPolicy) return;
+    
+    // Semi-transparent overlay
+    fill(0, 0, 0, 200);
     noStroke();
     rect(0, 0, width, height);
     
-    // Calculate popup dimensions - make it larger on mobile
-    let popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
-    let popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-    let popupX = width/2 - popupWidth/2;
-    let popupY = height/2 - popupHeight/2;
-
-    // Draw popup background
-    fill('#4B0082');
-    stroke('#FF1493');
-    strokeWeight(3);
-    rect(popupX, popupY, popupWidth, popupHeight, 20);
-
-    // Draw close button - larger on mobile and positioned in the corner
-    let closeButtonSize = isMobileDevice() ? 44 : 30; // Larger touch target on mobile
-    let closeButtonX = popupX + closeButtonSize/2 + 10;
-    let closeButtonY = popupY + closeButtonSize/2 + 10;
+    // Popup box
+    const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+    const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+    const popupX = width / 2 - popupWidth / 2;
+    const popupY = height / 2 - popupHeight / 2;
     
-    // Check if mouse/touch is over close button
-    let isCloseHovering = dist(mouseX, mouseY, closeButtonX, closeButtonY) < closeButtonSize/2;
+    // Shadow effect
+    drawingContext.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    drawingContext.shadowBlur = 20;
+    drawingContext.shadowOffsetY = 10;
     
-    // Draw close button with hover effect
-    fill(isCloseHovering ? '#FF1493' : '#4B0082');
-    stroke('#FF1493');
+    // Main box
+    fill(255);
+    stroke(0);
     strokeWeight(2);
-    circle(closeButtonX, closeButtonY, closeButtonSize);
+    rect(popupX, popupY, popupWidth, popupHeight, 20);
     
-    // Draw X symbol
-    fill('#FFFFFF');
+    // Reset shadow
+    drawingContext.shadowColor = 'transparent';
+    
+    // Title bar
+    fill('#FF1493');
     noStroke();
-    textFont('Fredoka One');
-    textSize(isMobileDevice() ? 32 : 24);
-    textAlign(CENTER, CENTER);
-    text('×', closeButtonX, closeButtonY);
-
-    // Draw privacy policy content
-    fill('#FFFFFF');
-    textFont('Fredoka One');
+    rect(popupX, popupY, popupWidth, isMobileDevice() ? 80 : 60);
+    
+    // Title text
+    fill(255);
+    textFont(fredokaOne);
     textSize(isMobileDevice() ? 28 : 24);
     textAlign(CENTER, CENTER);
-    text('Privacy Policy', width/2, popupY + (isMobileDevice() ? 70 : 50));
-
-    // Draw policy text - larger on mobile
-    fill('#FFFFFF');
-    textFont('Fredoka One');
+    text('Privacy Policy', popupX + popupWidth/2, popupY + (isMobileDevice() ? 40 : 30));
+    
+    // Close button
+    const closeBtnSize = isMobileDevice() ? 44 : 30;
+    const closeBtnX = popupX + popupWidth - closeBtnSize - 10;
+    const closeBtnY = popupY + 10;
+    
+    fill(255);
+    stroke(255);
+    strokeWeight(2);
+    ellipse(closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2, closeBtnSize);
+    
+    fill('#FF1493');
+    noStroke();
+    textSize(isMobileDevice() ? 24 : 20);
+    textAlign(CENTER, CENTER);
+    text('✕', closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2);
+    
+    // Policy text
+    fill(0);
+    noStroke();
+    textFont(fredokaOne);
     textSize(isMobileDevice() ? 18 : 16);
     textAlign(LEFT, TOP);
-    textStyle(NORMAL);
-    let policyText = "At TripMerge, we take your privacy seriously. This game collects minimal data to provide a better gaming experience:\n\n" +
-                    "1. Email Address: We collect your email address when you submit your score to the leaderboard. This is used solely for leaderboard purposes and to notify you if you achieve a high score.\n\n" +
-                    "2. Game Data: We store your game scores and achievements to maintain the leaderboard and track game statistics.\n\n" +
-                    "3. No Third-Party Sharing: We do not share your personal information with third parties.\n\n" +
-                    "4. Data Security: Your data is stored securely and protected using industry-standard security measures.\n\n" +
-                    "5. Data Retention: We retain your data only as long as necessary for the purposes outlined above.\n\n" +
-                    "By playing this game, you agree to this privacy policy. If you have any questions, please contact us at privacy@tripmerge.com";
     
-    let textMargin = isMobileDevice() ? 30 : 40;
-    text(policyText, popupX + textMargin, popupY + (isMobileDevice() ? 120 : 100), 
-         popupWidth - (textMargin * 2), popupHeight - (isMobileDevice() ? 170 : 150));
+    const margin = isMobileDevice() ? 30 : 40;
+    const textWidth = popupWidth - 2 * margin;
+    const textX = popupX + margin;
+    const textY = popupY + (isMobileDevice() ? 100 : 80);
+    
+    const policyText = "We collect your email address to display your score on the leaderboard. " +
+                      "Your email will not be used for any other purpose and will not be shared with third parties. " +
+                      "By submitting your email, you agree to these terms.";
+    
+    text(policyText, textX, textY, textWidth);
+    
+    // Accept button
+    const acceptBtnWidth = popupWidth - 2 * margin;
+    const acceptBtnHeight = isMobileDevice() ? 60 : 50;
+    const acceptBtnX = popupX + margin;
+    const acceptBtnY = popupY + popupHeight - acceptBtnHeight - margin;
+    
+    const isAcceptHovering = mouseX > acceptBtnX && mouseX < acceptBtnX + acceptBtnWidth &&
+                            mouseY > acceptBtnY && mouseY < acceptBtnY + acceptBtnHeight;
+    
+    fill(isAcceptHovering ? '#FF1493' : '#FF1493');
+    stroke(0);
+    strokeWeight(2);
+    rect(acceptBtnX, acceptBtnY, acceptBtnWidth, acceptBtnHeight, 10);
+    
+    fill(255);
+    noStroke();
+    textSize(isMobileDevice() ? 20 : 18);
+    textAlign(CENTER, CENTER);
+    text('I Accept', acceptBtnX + acceptBtnWidth/2, acceptBtnY + acceptBtnHeight/2);
 }
 
 
