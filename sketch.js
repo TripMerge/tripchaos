@@ -521,8 +521,10 @@ function windowResized() {
 
 // Update mobile detection to be more reliable
 function isMobileDevice() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-      || (window.matchMedia && window.matchMedia('(max-width: 926px)').matches);
+    // More comprehensive mobile detection
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+           window.innerWidth <= 768 || 
+           window.matchMedia("(max-width: 768px)").matches;
 }
 
 // Add orientation change handler
