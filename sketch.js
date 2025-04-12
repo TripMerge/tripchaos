@@ -724,19 +724,18 @@ function draw() {
     // Draw privacy policy popup if active (this should be drawn last to appear on top)
     if (showPrivacyPolicy) {
         // Draw semi-transparent overlay to darken the background
-        fill(0, 0, 0, 150);
+        push();
+        fill(0, 0, 0, 200);
         noStroke();
         rect(0, 0, width, height);
+        pop();
         
         // Draw the popup
         drawPrivacyPolicyPopup();
-        
-        // Don't process any other hover effects when popup is open
-        return;
     }
 
     // Only show hover effects when privacy policy is not open
-    if (gameState === 'gameOver' || gameState === 'win') {
+    if (!showPrivacyPolicy && (gameState === 'gameOver' || gameState === 'win')) {
         let restartButtonX = width/2;
         let restartButtonY = height/2 + 100;
         let buttonWidth = 200;
@@ -749,7 +748,7 @@ function draw() {
             cursor(HAND);
         }
 
-        let privacyLinkY = height/2 + 180;
+        let privacyLinkY = height * 0.9;
         if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
             mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15) {
             cursor(HAND);
@@ -2613,13 +2612,19 @@ function touchStarted() {
         const privacyLinkY = height * 0.9;
         
         // Make the click area larger for mobile
-        const clickAreaWidth = isMobileDevice() ? 200 : 100;
-        const clickAreaHeight = isMobileDevice() ? 30 : 15;
+        const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
+        const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
+        
+        // Debug log for touch position
+        console.log('Touch position:', touch.x, touch.y);
+        console.log('Privacy link area:', width/2 - clickAreaWidth/2, width/2 + clickAreaWidth/2, 
+                   privacyLinkY - clickAreaHeight/2, privacyLinkY + clickAreaHeight/2);
         
         if (touch.x >= width/2 - clickAreaWidth/2 && 
             touch.x <= width/2 + clickAreaWidth/2 && 
             touch.y >= privacyLinkY - clickAreaHeight/2 && 
             touch.y <= privacyLinkY + clickAreaHeight/2) {
+            console.log('Privacy policy link clicked');
             showPrivacyPolicy = true;
             return false;
         }
@@ -2640,11 +2645,16 @@ function touchStarted() {
         const closeButtonX = popupX + 10;
         const closeButtonY = popupY + 10;
         
+        // Debug log for close button area
+        console.log('Close button area:', closeButtonX, closeButtonX + closeButtonSize, 
+                   closeButtonY, closeButtonY + closeButtonSize);
+        
         // Check close button
         if (touch.x >= closeButtonX && 
             touch.x <= closeButtonX + closeButtonSize && 
             touch.y >= closeButtonY && 
             touch.y <= closeButtonY + closeButtonSize) {
+            console.log('Close button clicked');
             showPrivacyPolicy = false;
             return false;
         }
@@ -2660,6 +2670,7 @@ function touchStarted() {
             touch.x <= buttonX + buttonWidth && 
             touch.y >= buttonY && 
             touch.y <= buttonY + buttonHeight) {
+            console.log('Accept button clicked');
             showPrivacyPolicy = false;
             privacyPolicyAccepted = true;
             return false;
@@ -2809,6 +2820,65 @@ function touchStarted() {
                 tempInput.style.zIndex = '9999';
                 tempInput.style.pointerEvents = 'auto';
                 tempInput.focus();
+            }
+            return false;
+        }
+    }
+    
+    // Email input box touch handling
+    if (gameState === 'gameOver' && touches.length > 0) {
+        let touch = touches[0];
+        let emailBoxX = width/2 - 200;
+        let emailBoxY = height/2 + 200;
+        let emailBoxWidth = 400;
+        let emailBoxHeight = 50;
+        
+        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+            isEmailInputActive = true;
+            
+            // Create and show the email input
+            const emailInput = createEmailInput(playerEmail);
+            
+            // Force focus and keyboard on mobile
+            if (isMobileDevice()) {
+                // Remove any existing inputs first
+                const existingInputs = document.querySelectorAll('.game-email-input');
+                existingInputs.forEach(input => input.remove());
+                
+                // Create a new input
+                const input = document.createElement('input');
+                input.type = 'email';
+                input.value = playerEmail || '';
+                input.classList.add('game-email-input');
+                
+                // Style the input
+                input.style.position = 'fixed';
+                input.style.top = '50%';
+                input.style.left = '50%';
+                input.style.transform = 'translate(-50%, -50%)';
+                input.style.width = '300px';
+                input.style.height = '50px';
+                input.style.fontSize = '20px';
+                input.style.padding = '10px';
+                input.style.border = '2px solid #3498db';
+                input.style.borderRadius = '10px';
+                input.style.zIndex = '9999';
+                
+                // Add event listeners
+                input.addEventListener('input', (e) => {
+                    playerEmail = e.target.value;
+                });
+                
+                // Add to document and focus
+                document.body.appendChild(input);
+                input.focus();
+                
+                // Force keyboard to show
+                setTimeout(() => {
+                    input.focus();
+                    input.click();
+                }, 100);
             }
             return false;
         }
@@ -4442,12 +4512,18 @@ function createEmailInput(value) {
     // Add input event listener to ensure keyboard input is captured
     input.addEventListener('input', (e) => {
         e.stopPropagation();
-        input.value = e.target.value;
+        playerEmail = e.target.value;
+        input.value = playerEmail; // Ensure the input value stays in sync
     });
     
     // Add keydown event listener to prevent event bubbling
     input.addEventListener('keydown', (e) => {
         e.stopPropagation();
+    });
+    
+    // Add focus event listener to ensure keyboard shows
+    input.addEventListener('focus', () => {
+        input.focus();
     });
     
     // Add elements to form
