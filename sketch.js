@@ -4297,15 +4297,15 @@ function createEmailInput(value) {
     closeBtn.classList.add('email-close-btn');
     
     // Event handlers
-    form.onsubmit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         playerEmail = input.value;
         form.remove();
         isEmailInputActive = false;
         return false;
     };
     
-    // Enhanced close button event handling
     const handleClose = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -4313,6 +4313,11 @@ function createEmailInput(value) {
         isEmailInputActive = false;
         return false;
     };
+    
+    // Add event listeners for both click and touch events
+    form.onsubmit = handleSubmit;
+    submitBtn.onclick = handleSubmit;
+    submitBtn.ontouchstart = handleSubmit;
     
     closeBtn.onclick = handleClose;
     closeBtn.ontouchstart = handleClose;
@@ -4348,19 +4353,11 @@ function createEmailInput(value) {
     
     // Force keyboard to show on mobile
     if (isMobileDevice()) {
-        // Create a temporary input to force keyboard
-        const tempInput = document.createElement('input');
-        tempInput.style.position = 'fixed';
-        tempInput.style.opacity = '0';
-        tempInput.style.pointerEvents = 'none';
-        document.body.appendChild(tempInput);
+        // Focus the input immediately
+        input.focus();
         
-        // Focus temporary input first
-        tempInput.focus();
-        
-        // Then focus the actual input
+        // Force keyboard to show after a short delay
         setTimeout(() => {
-            tempInput.remove();
             input.focus();
             input.click();
         }, 100);
