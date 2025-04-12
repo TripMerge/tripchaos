@@ -4393,7 +4393,6 @@ function createEmailInput(value) {
         return false;
     };
     
-    // Enhanced close button click handler
     closeBtn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -4402,111 +4401,17 @@ function createEmailInput(value) {
         return false;
     };
     
-    // Add touch event handler for close button
-    closeBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.remove();
-        isEmailInputActive = false;
-        return false;
-    }, { passive: false });
-    
-    // Add input event listener to update playerEmail
-    input.addEventListener('input', (e) => {
-        playerEmail = e.target.value;
-    });
-    
-    // Add keydown event listener for Enter key
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            playerEmail = input.value;
-            form.remove();
-            isEmailInputActive = false;
-        }
-    });
-    
-    // Assemble the form
+    // Add elements to form
     container.appendChild(input);
     container.appendChild(submitBtn);
+    container.appendChild(closeBtn);
     form.appendChild(container);
-    form.appendChild(closeBtn);
     document.body.appendChild(form);
     
-    // Focus the input with a delay and trigger virtual keyboard
+    // Focus the input after a short delay
     setTimeout(() => {
-        if (isMobileDevice()) {
-            // Create a temporary input to force keyboard
-            const tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
-            tempInput.style.opacity = '0';
-            tempInput.style.height = '0';
-            tempInput.style.width = '0';
-            document.body.appendChild(tempInput);
-            
-            // Focus the temporary input first
-            tempInput.focus();
-            
-            // Then focus the real input
-            setTimeout(() => {
-                input.focus();
-                // Remove the temporary input
-                tempInput.remove();
-            }, 100);
-            
-            // Force keyboard to show
-            input.click();
-            input.focus();
-            
-            // Ensure input is not read-only
-            input.readOnly = false;
-            
-            // Force focus again after a short delay
-            setTimeout(() => {
-                input.focus();
-                input.click();
-            }, 200);
-            
-            // Add touch event listener to ensure keyboard stays up
-            input.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                input.focus();
-            }, { passive: false });
-            
-            // Add focus event listener to ensure keyboard stays up
-            input.addEventListener('focus', () => {
-                input.click();
-            });
-            
-            // Add click event listener to force keyboard
-            input.addEventListener('click', () => {
-                input.focus();
-                input.click();
-            });
-            
-            // Force keyboard to show after a longer delay
-            setTimeout(() => {
-                input.focus();
-                input.click();
-                
-                // Create and focus a temporary input to force keyboard
-                const forceInput = document.createElement('input');
-                forceInput.style.position = 'absolute';
-                forceInput.style.opacity = '0';
-                forceInput.style.height = '0';
-                forceInput.style.width = '0';
-                document.body.appendChild(forceInput);
-                
-                forceInput.focus();
-                
-                setTimeout(() => {
-                    input.focus();
-                    forceInput.remove();
-                }, 100);
-            }, 500);
-        } else {
-            input.focus();
-        }
+        input.focus();
+        input.click();
     }, 100);
     
     return input;
