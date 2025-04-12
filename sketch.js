@@ -4459,28 +4459,14 @@ function createEmailInput(value) {
     
     // Force keyboard to show on mobile
     if (isMobileDevice()) {
-        // Create a temporary input to force keyboard
-        const tempInput = document.createElement('input');
-        tempInput.style.position = 'absolute';
-        tempInput.style.opacity = '0';
-        tempInput.style.height = '0';
-        tempInput.style.width = '0';
-        document.body.appendChild(tempInput);
+        // Focus the input immediately
+        input.focus();
         
-        // Focus the temporary input first
-        tempInput.focus();
-        
-        // Focus the email input after a delay
-        setTimeout(() => {
-            input.focus();
-            tempInput.remove();
-        }, 100);
-        
-        // Force keyboard to show after a longer delay
+        // Force keyboard to show after a short delay
         setTimeout(() => {
             input.focus();
             input.click();
-        }, 300);
+        }, 100);
     } else {
         // For desktop, just focus normally
         input.focus();
