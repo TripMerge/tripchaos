@@ -9,6 +9,10 @@ let satisfaction = 100;
 let timeLeft = 60;
 let greyAtmosphere = 0; // Track grey atmosphere effect (0 to 1)
 
+// Font variables
+let fredokaOne;
+let fallbackFont = 'Arial';
+
 // Effect notification system
 let effectNotifications = [];
 const NOTIFICATION_DURATION = 60; // Duration in frames (1 second at 60fps)
@@ -1833,47 +1837,59 @@ function drawPalmTrees() {
   pop();
 }
 
-function drawPalmTree(x, y, scale) {
-  push();
-  translate(x, y);
-  scale(scale);
-  
-  // Trunk
-  stroke('#4B0082');  // Deep purple trunk
-  strokeWeight(15);
-  noFill();
-  beginShape();
-  vertex(0, 0);
-  bezierVertex(0, -20, 10, -40, 20, -60);
-  endShape();
-  
-  // Leaves
-  fill('#00A86B');  // Jade green
-  noStroke();
-  
-  // Draw each leaf as a curved shape
-  for (let angle = -PI/3; angle <= PI/3; angle += PI/6) {
+function drawPalmTree(x, y, treeScale) {
     push();
-    translate(20, -60);  // Move to top of trunk
-    rotate(angle);
+    let trunkHeight = 120 * treeScale;
+    let trunkWidth = 20 * treeScale;
+    let segments = 5;
+    let segmentHeight = trunkHeight / segments;
     
-    // Main leaf shape
-    beginShape();
-    vertex(0, 0);
-    bezierVertex(20, -10, 40, -15, 60, -10);
-    bezierVertex(40, 0, 20, 5, 0, 0);
-    endShape(CLOSE);
+    // Draw trunk segments with darker color
+    fill('#8B4513');  // Saddle brown for trunk
+    stroke('#4B0082');
+    strokeWeight(3);
     
-    // Darker section for depth
-    fill('#008B4B');
-    beginShape();
-    vertex(5, 0);
-    bezierVertex(20, -8, 35, -12, 50, -8);
-    bezierVertex(35, 0, 20, 4, 5, 0);
-    endShape(CLOSE);
+    // Draw trunk segments
+    for (let i = 0; i < segments; i++) {
+        rect(x - trunkWidth/2, 
+             y - trunkHeight + (i * segmentHeight), 
+             trunkWidth, 
+             segmentHeight);
+    }
+    
+    // Larger, more visible leaves
+    fill('#98FB98');  // Pale green for leaves
+    stroke('#228B22');  // Forest green for leaf outline
+    strokeWeight(3);
+    
+    // Draw leaves in a symmetrical fan pattern
+    let numLeaves = 7;
+    let startAngle = -PI * 0.8;
+    let angleStep = (PI * 1.6) / (numLeaves - 1);
+    
+    for (let i = 0; i < numLeaves; i++) {
+        let angle = startAngle + (i * angleStep);
+        push();
+        translate(x, y - trunkHeight);
+        rotate(angle);
+        
+        // Draw a larger curved triangular leaf
+        beginShape();
+        vertex(0, 0);
+        bezierVertex(
+            30 * treeScale, -30 * treeScale,
+            60 * treeScale, -45 * treeScale,
+            75 * treeScale, -22.5 * treeScale
+        );
+        bezierVertex(
+            60 * treeScale, -7.5 * treeScale,
+            30 * treeScale, 0,
+            0, 0
+        );
+        endShape(CLOSE);
+        pop();
+    }
     pop();
-  }
-  pop();
 }
 
 function drawCityTheme() {
@@ -1972,26 +1988,34 @@ function drawDetailedOcean() {
 }
 
 function drawStars() {
-  push();
-  // Static stars
-  for (let i = 0; i < 100; i++) {
-    let x = (i * 50 - cameraOffset * 0.1) % width;
-    let y = random(height/2);
-    fill(255, 255, 255, random(100, 200));
+    // Draw stars in the background
+    fill(255);
     noStroke();
-    ellipse(x, y, random(1, 3));
-  }
-  
-  // Twinkling stars
-  for (let i = 0; i < 20; i++) {
-    let x = (i * 100 - cameraOffset * 0.1) % width;
-    let y = random(height/3);
-    let twinkle = sin(frameCount * 0.1 + i) * 127 + 128;
-    fill(255, 255, 255, twinkle);
+    for (let i = 0; i < 100; i++) {
+        let x = random(width);
+        let y = random(height * 0.7);
+        let size = random(1, 3);
+        ellipse(x, y, size, size);
+    }
+}
+
+function drawStar(x, y, size) {
+    push();
+    fill(255);
     noStroke();
-    ellipse(x, y, random(2, 4));
-  }
-  pop();
+    beginShape();
+    for (let i = 0; i < 5; i++) {
+        let angle = TWO_PI * i / 5 - PI / 2;
+        let px = x + cos(angle) * size;
+        let py = y + sin(angle) * size;
+        vertex(px, py);
+        angle += TWO_PI / 10;
+        px = x + cos(angle) * (size/2);
+        py = y + sin(angle) * (size/2);
+        vertex(px, py);
+    }
+    endShape(CLOSE);
+    pop();
 }
 
 function drawMoon() {
@@ -3138,7 +3162,7 @@ function drawLeaderboardScreen() {
     // Ground with grid effect
     push();
     fill('#4B0082');  // Deep purple ground
-  noStroke();
+    noStroke();
     rect(0, height * 0.85, width, height * 0.15);
     
     // Grid lines
@@ -3155,28 +3179,28 @@ function drawLeaderboardScreen() {
     // Back button in upper left corner
     let backBtnX = 50;
     let backBtnY = 50;
-  let isBackHovering = mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
+    let isBackHovering = mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
                         mouseY >= backBtnY - 20 && mouseY <= backBtnY + 20;
   
     // Draw back button with same style as start game button
     push();
     textFont('Fredoka One');
     stroke('#4B0082');
-  strokeWeight(3);
+    strokeWeight(3);
     fill(isBackHovering ? '#FF1493' : '#FF69B4');
     textStyle(BOLD);
     textSize(30);
-  text("BACK", backBtnX, backBtnY);
+    text("BACK", backBtnX, backBtnY);
     pop();
     
     // Leaderboard Title with shadow effect - moved higher up and adjusted spacing
     push();
     textFont('Fredoka One');
-  noStroke();
+    noStroke();
     fill('#4B0082');
     textStyle(BOLD);
     textSize(64);
-  textAlign(CENTER);
+    textAlign(CENTER);
     text("LEADERBOARD", width/2 + 3, height/12 + 3);  // Moved up to height/12
     fill('#FFFFFF');
     text("LEADERBOARD", width/2, height/12);  // Moved up to height/12
@@ -3193,7 +3217,7 @@ function drawLeaderboardScreen() {
     fill('#4B0082');
     textSize(16);  // Reduced header text size
     textStyle(BOLD);
-  textAlign(CENTER);
+    textAlign(CENTER);
     
     // Header positions - adjusted for compact layout
     let rankX = tableX + 30;
@@ -3212,13 +3236,13 @@ function drawLeaderboardScreen() {
         
         // Draw row background
         fill(i % 2 === 0 ? '#FFFFFF' : '#FFD1DC');
-  noStroke();
+        noStroke();
         rect(tableX, y, tableWidth, rowHeight);
         
         // Draw rank
         fill('#4B0082');
         textSize(14);  // Reduced text size
-    textStyle(NORMAL);
+        textStyle(NORMAL);
         textAlign(CENTER);
         text(i + 1, rankX, y + rowHeight/2 + 4);
         
@@ -3260,32 +3284,6 @@ function drawLeaderboardScreen() {
     
     // Threads button
     drawCircularShareButton('t', '#000000', width/2 + buttonSpacing, shareY, 60);
-
-    // Privacy Policy button
-    let privacyButtonX = width - 150;
-    let privacyButtonY = 50;
-    let isPrivacyHovering = mouseX >= privacyButtonX - 60 && mouseX <= privacyButtonX + 60 && 
-                           mouseY >= privacyButtonY - 20 && mouseY <= privacyButtonY + 20;
-    
-    push();
-    textFont('Fredoka One');
-    stroke('#4B0082');
-    strokeWeight(3);
-    fill(isPrivacyHovering ? '#FF1493' : '#FF69B4');
-    textStyle(BOLD);
-    textSize(20);
-    textAlign(CENTER, CENTER);
-    text("Privacy Policy", privacyButtonX, privacyButtonY);
-    pop();
-    
-    if (isPrivacyHovering) {
-      cursor(HAND);
-  }
-
-    // Draw privacy policy popup if active
-    if (showPrivacyPolicy) {
-        drawPrivacyPolicyPopup();
-  }
 }
 
 // Helper function to mask email for privacy
@@ -3823,13 +3821,12 @@ function mouseClicked() {
             let y = optionStartY + i * optionSpacing;
             if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth && 
                 mouseY >= y && mouseY <= y + 40) {
-                makeDecision(i);
                 return;
             }
         }
     }
   
-  if (gameState === 'start') {
+    if (gameState === 'start') {
         if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
             mouseY >= height/2 - 20 && mouseY <= height/2 + 20) {
             startGame();
@@ -3851,9 +3848,13 @@ function mouseClicked() {
             showPrivacyPolicy = true;
         }
     } else if (showLeaderboard) {
-        if (mouseX >= 50 - 50 && mouseX <= 50 + 50 && 
-            mouseY >= 50 - 20 && mouseY <= 50 + 20) {
-        showLeaderboard = false;
+        // Back button click detection
+        let backBtnX = 50;
+        let backBtnY = 50;
+        if (mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
+            mouseY >= backBtnY - 20 && mouseY <= backBtnY + 20) {
+            showLeaderboard = false;
+            return;
         }
     }
 }
@@ -4036,29 +4037,19 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    // Remove any existing input elements
-    const existingInputs = document.querySelectorAll('.game-email-input');
-    existingInputs.forEach(input => input.remove());
-    
-    // Create a form element to properly handle submissions
+    // Create a form element
     const form = document.createElement('form');
-    form.setAttribute('novalidate', 'true');
     form.style.position = 'fixed';
-    form.style.top = '0';
-    form.style.left = '0';
-    form.style.width = '100%';
-    form.style.height = '100%';
-    form.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    form.style.top = '50%';
+    form.style.left = '50%';
+    form.style.transform = 'translate(-50%, -50%)';
     form.style.zIndex = '9999';
-    form.style.display = 'flex';
-    form.style.flexDirection = 'column';
-    form.style.justifyContent = 'center';
-    form.style.alignItems = 'center';
-    form.style.padding = '20px';
+    form.style.width = isMobileDevice() ? '90%' : '400px';
+    form.style.maxWidth = '500px';
     
     // Create container for input and button
     const container = document.createElement('div');
-    container.style.width = isMobileDevice() ? '90%' : '400px';
+    container.style.width = '100%';
     container.style.backgroundColor = 'white';
     container.style.padding = '20px';
     container.style.borderRadius = '12px';
@@ -4145,12 +4136,17 @@ function createEmailInput(value) {
     
     // Focus the input with a delay and trigger virtual keyboard
     setTimeout(() => {
-        input.click();
         input.focus();
         if (isMobileDevice()) {
-            input.readOnly = false;
-            input.blur();
+            // Force keyboard to show on mobile
+            input.click();
             input.focus();
+            // Ensure input is not read-only
+            input.readOnly = false;
+            // Force focus again after a short delay
+            setTimeout(() => {
+                input.focus();
+            }, 100);
         }
     }, 100);
     
@@ -4304,391 +4300,129 @@ function colorShift(hexColor) {
 // Add new function to draw privacy policy popup
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
-    if (!showPrivacyPolicy) return;
-    
-    // Semi-transparent overlay
+    // Draw semi-transparent overlay
     fill(0, 0, 0, 200);
     noStroke();
     rect(0, 0, width, height);
-    
-    // Popup box
+
+    // Calculate popup dimensions based on device type
     const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
     const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-    const popupX = width / 2 - popupWidth / 2;
-    const popupY = height / 2 - popupHeight / 2;
-    
-    // Main box
+    const popupX = (width - popupWidth) / 2;
+    const popupY = (height - popupHeight) / 2;
+
+    // Draw popup background
     fill(255);
     stroke(0);
     strokeWeight(2);
     rect(popupX, popupY, popupWidth, popupHeight, 20);
-    
-    // Title bar
-    fill('#FF1493');
-    noStroke();
-    rect(popupX, popupY, popupWidth, isMobileDevice() ? 80 : 60);
-    
-    // Title text
-    fill(255);
-    textFont(fredokaOne);
-    textSize(isMobileDevice() ? 28 : 24);
-    textAlign(CENTER, CENTER);
-    text('Privacy Policy', popupX + popupWidth/2, popupY + (isMobileDevice() ? 40 : 30));
-    
-    // Close button
-    const closeBtnSize = isMobileDevice() ? 44 : 30;
-    const closeBtnX = popupX + popupWidth - closeBtnSize - 10;
-    const closeBtnY = popupY + 10;
-    
-    fill(255);
-    stroke(255);
-    strokeWeight(2);
-    ellipse(closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2, closeBtnSize);
-    
-    fill('#FF1493');
-    noStroke();
-    textSize(isMobileDevice() ? 24 : 20);
-    textAlign(CENTER, CENTER);
-    text('✕', closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2);
-    
-    // Policy text
-    fill(0);
-    noStroke();
-    textFont(fredokaOne);
-    textSize(isMobileDevice() ? 18 : 16);
-    textAlign(LEFT, TOP);
-    
-    const margin = isMobileDevice() ? 30 : 40;
-    const textWidth = popupWidth - 2 * margin;
-    const textX = popupX + margin;
-    const textY = popupY + (isMobileDevice() ? 100 : 80);
-    
-    const policyText = "We collect your email address to display your score on the leaderboard. " +
-                      "Your email will not be used for any other purpose and will not be shared with third parties. " +
-                      "By submitting your email, you agree to these terms.";
-    
-    text(policyText, textX, textY, textWidth);
-    
-    // Accept button
-    const acceptBtnWidth = popupWidth - 2 * margin;
-    const acceptBtnHeight = isMobileDevice() ? 60 : 50;
-    const acceptBtnX = popupX + margin;
-    const acceptBtnY = popupY + popupHeight - acceptBtnHeight - margin;
-    
-    const isAcceptHovering = mouseX > acceptBtnX && mouseX < acceptBtnX + acceptBtnWidth &&
-                            mouseY > acceptBtnY && mouseY < acceptBtnY + acceptBtnHeight;
-    
-    fill(isAcceptHovering ? '#FF1493' : '#FF1493');
-    stroke(0);
-    strokeWeight(2);
-    rect(acceptBtnX, acceptBtnY, acceptBtnWidth, acceptBtnHeight, 10);
-    
-    fill(255);
-    noStroke();
-    textSize(isMobileDevice() ? 20 : 18);
-    textAlign(CENTER, CENTER);
-    text('I Accept', acceptBtnX + acceptBtnWidth/2, acceptBtnY + acceptBtnHeight/2);
-}
 
-
-// Draw win screen with improved readability
-function drawWinScreen() {
-    // Draw solid pink background
-    background('#FFB6C1');
+    // Draw close button in upper left corner
+    const closeButtonSize = isMobileDevice() ? 44 : 30;
+    const closeButtonX = popupX + 10;
+    const closeButtonY = popupY + 10;
     
-    // Draw ground with grid effect
-    fill('#FFD1DC');
-  noStroke();
-    rect(0, height * 0.7, width, height * 0.3);
+    // Check if mouse is hovering over close button
+    const isCloseHovering = mouseX > closeButtonX && mouseX < closeButtonX + closeButtonSize &&
+                           mouseY > closeButtonY && mouseY < closeButtonY + closeButtonSize;
     
-    // Draw grid lines on ground
-    stroke(255, 200);
-    strokeWeight(2);
-    for (let x = 0; x < width; x += 50) {
-        line(x, height * 0.7, x, height);
-    }
-    for (let y = height * 0.7; y < height; y += 50) {
-        line(0, y, width, y);
-    }
-    
-    // Draw palm trees at the bottom
-    drawPalmTree(width * 0.2, height * 0.7, 0.8);
-    drawPalmTree(width * 0.8, height * 0.7, 0.8);
-    
-    // Draw stars
-    drawStars();
-    
-    // Draw title
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(60);
-    textFont('Fredoka One');
-    text('YOU WON!', width/2, height * 0.2);
-    
-    // Draw score in a bubble container
-    fill(255, 200);
-    noStroke();
-    ellipse(width * 0.15, height * 0.3, 200, 100);
-    fill(0);
-    textSize(30);
-    textAlign(CENTER, CENTER);
-    text('Score: ' + score, width * 0.15, height * 0.3);
-    
-    // Draw play again button
-    fill(255);
-    stroke(0);
-    strokeWeight(4);
-    rect(width * 0.85, height * 0.3, 200, 60, 15);
-    fill(0);
-    textSize(30);
-    textAlign(CENTER, CENTER);
-    text('PLAY AGAIN', width * 0.85 + 100, height * 0.3 + 30);
-    
-    // Draw social share buttons
-    const socialY = height * 0.4;
-    const socialSpacing = 60;
-    
-    // Twitter
-    fill(255);
-    ellipse(width * 0.4, socialY, 50, 50);
-    fill(0);
-    textSize(30);
-    text('🐦', width * 0.4, socialY);
-    
-    // Facebook
-    fill(255);
-    ellipse(width * 0.5, socialY, 50, 50);
-    fill(0);
-    text('📘', width * 0.5, socialY);
-    
-    // WhatsApp
-    fill(255);
-    ellipse(width * 0.6, socialY, 50, 50);
-    fill(0);
-    text('💬', width * 0.6, socialY);
-    
-    // Draw leaderboard section
-    fill(255);
-    textSize(24);
-    textAlign(CENTER, CENTER);
-    text('JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES', width/2, height * 0.5);
-    
-    // Draw email input box
-    fill(255);
-    stroke(0);
-    strokeWeight(2);
-    rect(width/2 - 150, height * 0.55, 300, 50, 10);
-    fill(0);
-    textSize(20);
-    textAlign(LEFT, CENTER);
-    text(emailInput, width/2 - 140, height * 0.55 + 25);
-    
-    // Draw privacy policy checkbox
-    fill(255);
-    stroke(0);
-    strokeWeight(2);
-    rect(width/2 - 150, height * 0.62, 20, 20);
-    if (privacyAccepted) {
-        fill(0);
-        textSize(20);
-        text('✓', width/2 - 145, height * 0.62 + 15);
-    }
-    fill(0);
-    textSize(16);
-    textAlign(LEFT, CENTER);
-    text('I accept the privacy policy', width/2 - 120, height * 0.62 + 10);
-    
-    // Draw submit button
-    fill(255);
-    stroke(0);
-    strokeWeight(4);
-    rect(width/2 - 100, height * 0.7, 200, 60, 15);
-    fill(0);
-    textSize(30);
-    textAlign(CENTER, CENTER);
-    text('SUBMIT', width/2, height * 0.7 + 30);
-
-    // Draw privacy policy popup if active
-    if (showPrivacyPolicy) {
-        drawPrivacyPolicyPopup();
-    }
-
-    // Privacy Policy link - positioned at the bottom of the screen
-    let winPrivacyLinkY = height * 0.9;
-    let isWinPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                                  mouseY >= winPrivacyLinkY - 15 && mouseY <= winPrivacyLinkY + 15;
-    
-    push();
-    textFont('Fredoka One');
-    textSize(16);
-    textAlign(CENTER, CENTER);
-    fill(isWinPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
-    textStyle(NORMAL);
-    text("Privacy Policy", width/2, winPrivacyLinkY);
-    pop();
-    
-    if (isWinPrivacyLinkHovering) {
+    if (isCloseHovering) {
         cursor(HAND);
     }
-}
-
-function drawStar(x, y, size) {
-    push();
+    
     fill(255);
-    noStroke();
-    beginShape();
-    for (let i = 0; i < 5; i++) {
-        let angle = TWO_PI * i / 5 - PI / 2;
-        let px = x + cos(angle) * size;
-        let py = y + sin(angle) * size;
-        vertex(px, py);
-        angle += TWO_PI / 10;
-        px = x + cos(angle) * (size/2);
-        py = y + sin(angle) * (size/2);
-        vertex(px, py);
-    }
-    endShape(CLOSE);
-    pop();
-  }
+    stroke(0);
+    strokeWeight(2);
+    rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
+    
+    // Use fallback font if Fredoka One isn't loaded
+    const fontToUse = fredokaOne ? fredokaOne : fallbackFont;
+    textFont(fontToUse);
+    textSize(isMobileDevice() ? 24 : 20);
+    fill(0);
+    textAlign(CENTER, CENTER);
+    text('×', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
 
-function drawPalmTree(x, y, scale) {
-    push();
-    let trunkHeight = 120 * scale;
-    let trunkWidth = 20 * scale;
-    let segments = 5;
-    let segmentHeight = trunkHeight / segments;
+    // Draw title
+    textSize(isMobileDevice() ? 32 : 28);
+    textAlign(CENTER, TOP);
+    text('Privacy Policy', width/2, popupY + 20);
+
+    // Draw policy text
+    const margin = isMobileDevice() ? 30 : 40;
+    const textX = popupX + margin;
+    const textY = popupY + (isMobileDevice() ? 80 : 60);
+    const textWidth = popupWidth - (margin * 2);
     
-    // Draw trunk segments with darker color
-    fill('#8B4513');  // Saddle brown for trunk
-    stroke('#4B0082');
-    strokeWeight(3);
+    textSize(isMobileDevice() ? 18 : 16);
+    textAlign(LEFT, TOP);
+    fill(0);
     
-    // Draw trunk segments
-    for (let i = 0; i < segments; i++) {
-        rect(x - trunkWidth/2, 
-             y - trunkHeight + (i * segmentHeight), 
-             trunkWidth, 
-             segmentHeight);
-    }
+    const policyText = "Your privacy is important to us. This game collects minimal data to improve your experience. We do not share your personal information with third parties. By playing this game, you agree to our privacy policy.";
     
-    // Larger, more visible leaves
-    fill('#98FB98');  // Pale green for leaves
-    stroke('#228B22');  // Forest green for leaf outline
-    strokeWeight(3);
-    
-    // Draw leaves in a symmetrical fan pattern
-    let numLeaves = 7;
-    let startAngle = -PI * 0.8;
-    let angleStep = (PI * 1.6) / (numLeaves - 1);
-    
-    for (let i = 0; i < numLeaves; i++) {
-        let angle = startAngle + (i * angleStep);
-        push();
-        translate(x, y - trunkHeight);
-        rotate(angle);
+    text(policyText, textX, textY, textWidth);
+}
+
+function mousePressed() {
+    if (showPrivacyPolicy) {
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
         
-        // Draw a larger curved triangular leaf
-        beginShape();
-        vertex(0, 0);
-        bezierVertex(
-            30 * scale, -30 * scale,
-            60 * scale, -45 * scale,
-            75 * scale, -22.5 * scale
-        );
-        bezierVertex(
-            60 * scale, -7.5 * scale,
-            30 * scale, 0,
-            0, 0
-        );
-        endShape(CLOSE);
-    pop();
-  }
-    pop();
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Check if close button was clicked
+        if (mouseX > closeButtonX && mouseX < closeButtonX + closeButtonSize &&
+            mouseY > closeButtonY && mouseY < closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+        }
+    }
+    // ... rest of the mousePressed function ...
 }
 
-function drawBubbleContainer(x, y, w, h, color) {
-    push();
-    // Shadow effect
-    fill(0, 0, 0, 50);
-    noStroke();
-    rect(x + 5, y + 5, w, h, 20);
-    
-    // Main container
-    fill(color);
-    noStroke();
-    rect(x, y, w, h, 20);
-    pop();
-}
+// ... existing code ...
 
-function preload() {
-    // Load game assets
-    // Example: playerImage = loadImage('assets/player.png');
-    // Add more asset loading as needed
-}
-
-// Add this function after the other game functions
-
-// Draw effect notifications
 function drawEffectNotifications() {
-  for (let i = effectNotifications.length - 1; i >= 0; i--) {
-    let notification = effectNotifications[i];
-    
-    // Update position
-    notification.y -= NOTIFICATION_RISE_SPEED;
-    notification.duration--;
-    
-    // Draw notification
-    push();
-    textAlign(CENTER);
-    textSize(20);
-    
-    // Fade out near the end
-    let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
-    
-    if (notification.value > 0) {
-      fill(50, 205, 50, alpha); // Green for positive
-      text("+" + notification.value + " " + notification.type, notification.x, notification.y);
-    } else {
-      fill(255, 50, 50, alpha); // Red for negative
-      text(notification.value + " " + notification.type, notification.x, notification.y);
+    for (let i = effectNotifications.length - 1; i >= 0; i--) {
+        let notification = effectNotifications[i];
+        
+        // Update position
+        notification.y -= NOTIFICATION_RISE_SPEED;
+        notification.duration--;
+        
+        // Draw notification
+        push();
+        textAlign(CENTER);
+        textSize(20);
+        
+        // Fade out near the end
+        let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
+        
+        if (notification.value > 0) {
+            fill(50, 205, 50, alpha); // Green for positive
+            text("+" + notification.value + " " + notification.type, notification.x, notification.y);
+        } else {
+            fill(255, 50, 50, alpha); // Red for negative
+            text(notification.value + " " + notification.type, notification.x, notification.y);
+        }
+        pop();
+        
+        // Remove expired notifications
+        if (notification.duration <= 0) {
+            effectNotifications.splice(i, 1);
+        }
     }
-    pop();
-    
-    // Remove expired notifications
-    if (notification.duration <= 0) {
-      effectNotifications.splice(i, 1);
-    }
-  }
 }
 
-// Add shareScore function
-function shareScore(platform) {
-    // For testing, use a placeholder URL
-    const gameUrl = window.location.href || 'https://tripmerge.com/games/tripchaos';
-    const shareText = `I scored ${score} points in TripChaos! Can you beat my score?`;
-    let shareUrl = '';
-    
-    switch(platform) {
-        case 'twitter':
-            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(gameUrl)}`;
-            break;
-        case 'facebook':
-            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(gameUrl)}&quote=${encodeURIComponent(shareText)}`;
-            break;
-        case 'threads':
-            // Since Threads doesn't have a direct sharing API, we'll use Twitter's
-            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(gameUrl)}`;
-            break;
-    }
-    
-    if (shareUrl) {
-        console.log('Sharing URL:', shareUrl); // Debug log
-        window.open(shareUrl, '_blank', 'noopener,noreferrer');
-    }
-}
+// ... existing code ...
 
 function drawFogEffect() {
-      push();
+    push();
     // Create multiple layers of fog with different opacities and movement
     for (let i = 0; i < 3; i++) {
         let fogOpacity = map(i, 0, 2, 40, 20); // Increased base opacity
