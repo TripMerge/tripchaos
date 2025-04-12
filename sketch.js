@@ -4030,16 +4030,16 @@ function touchStarted() {
     }
 
                 // Check if email input was touched
-    let emailBoxX = width/2 - 200;
+                let emailBoxX = width/2 - 200;
                 let emailBoxY = height/4 + 280 + 60;
-    let emailBoxWidth = 400;
+                let emailBoxWidth = 400;
                 let emailBoxHeight = 40;
     
                 if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
                     touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-      isEmailInputActive = true;
-                    // Show keyboard on mobile devices
-                    if (isMobileDevice()) {
+                    // Only activate email input on desktop
+                    if (!isMobileDevice()) {
+                        isEmailInputActive = true;
                         const tempInput = createEmailInput(playerEmail);
                         tempInput.style.top = '50%';
                         tempInput.style.left = '50%';
@@ -4050,7 +4050,7 @@ function touchStarted() {
                         tempInput.style.pointerEvents = 'auto';
                         tempInput.focus();
                     }
-        return false;
+                    return false;
                 }
             }
         }
@@ -4074,16 +4074,17 @@ function touchStarted() {
       }
       
         // Email input box touch handling
-    let emailBoxX = width/2 - 200;
+        let emailBoxX = width/2 - 200;
         let emailBoxY = playAgainY + 500;
-    let emailBoxWidth = 400;
+        let emailBoxWidth = 400;
         let emailBoxHeight = 50;
     
         if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
             touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-      isEmailInputActive = true;
-            // Show keyboard on mobile devices
-            if (isMobileDevice()) {
+            // Only activate email input on desktop
+            if (!isMobileDevice()) {
+                isEmailInputActive = true;
+                // Show keyboard on mobile devices
                 const tempInput = createEmailInput(playerEmail);
                 tempInput.style.top = '50%';
                 tempInput.style.left = '50%';
@@ -4131,6 +4132,11 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
+    // Don't create email input on mobile devices
+    if (isMobileDevice()) {
+        return null;
+    }
+    
     // Remove any existing input elements
     const existingInputs = document.querySelectorAll('form');
     existingInputs.forEach(input => input.remove());
