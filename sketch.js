@@ -3561,11 +3561,14 @@ function touchStarted() {
         touch.y >= startBtnY - touchArea && 
         touch.y <= startBtnY + startBtnH + touchArea) {
       console.log("Start button touched");  // Debug log
+      // Reset game state and start playing
+      resetGame();
       gameState = 'playing';
       window.gameState = 'playing';
-      // Ensure level number is reset to 1
       currentLevelNumber = 1;
-      resetGame();
+      if (window.currentLevelNumber !== undefined) {
+        window.currentLevelNumber = 1;
+      }
       return false;
     }
   }
