@@ -4591,3 +4591,49 @@ function createTouchFriendlyButton(x, y, width, height, label, color, hoverColor
   // Return hover state for click detection
   return isHovering;
 }
+
+function touchStarted() {
+  // Calculate the game viewport offset
+  let gameWidth = 1000 * window.gameScale;
+  let gameHeight = 600 * window.gameScale;
+  let offsetX = (width - gameWidth) / 2;
+  let offsetY = (height - gameHeight) / 2;
+  
+  // Handle decision point touches
+  if (showingDecision && touches.length > 0) {
+    let touch = touches[0];
+    // Adjust touch coordinates to account for viewport offset
+    let adjustedX = touch.x - offsetX;
+    let adjustedY = touch.y - offsetY;
+    
+    // Calculate decision box dimensions
+    let boxWidth = isMobileDevice() ? gameWidth * 0.9 : 500;
+    let boxHeight = isMobileDevice() ? gameHeight * 0.5 : 300;
+    let boxX = gameWidth/2 - boxWidth/2;
+    let boxY = isMobileDevice() ? gameHeight * 0.2 : gameHeight/2 - boxHeight/2;
+    
+    // Calculate option positions
+    let optionSpacing = isMobileDevice() ? 50 : 45;
+    let optionStartY = boxY + (isMobileDevice() ? 100 : 110);
+    
+    for (let i = 0; i < currentDecision.options.length; i++) {
+      let y = optionStartY + i * optionSpacing;
+      let buttonWidth = isMobileDevice() ? boxWidth * 0.8 : 360;
+      let buttonX = gameWidth/2 - buttonWidth/2;
+      
+      // Add extra touch area for better touch response
+      let touchArea = 20 * window.gameScale;
+      
+      if (adjustedX >= buttonX - touchArea && 
+          adjustedX <= buttonX + buttonWidth + touchArea && 
+          adjustedY >= y - touchArea && 
+          adjustedY <= y + 40 + touchArea) {
+        console.log("Decision option touched:", i);  // Debug log
+        makeDecision(i);
+        return false;
+      }
+    }
+  }
+  
+  // ... existing code for start, gameOver, and win screens ...
+}
