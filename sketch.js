@@ -2628,8 +2628,19 @@ function touchStarted() {
     if (gameState === 'gameOver' && isEmailInputActive) {
         const input = document.querySelector('.game-email-input');
         if (input) {
-            input.focus();
-            return false;
+            // Get the input's position and dimensions
+            const rect = input.getBoundingClientRect();
+            
+            // Check if touch is within the input area
+            if (touches[0].x >= rect.left && 
+                touches[0].x <= rect.right && 
+                touches[0].y >= rect.top && 
+                touches[0].y <= rect.bottom) {
+                // Focus the input and show keyboard
+                input.focus();
+                input.click();
+                return false;
+            }
         }
     }
     
