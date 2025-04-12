@@ -1,0 +1,16 @@
+{
+  "name": "tripchaos",
+  "version": "1.0.0",
+  "description": "A travel management adventure game",
+  "main": "sketch.js",
+  "scripts": {
+    "build": "mkdir -p dist && cp *.js *.html *.css *.webmanifest dist/",
+    "start": "http-server -p 8080"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+} 
