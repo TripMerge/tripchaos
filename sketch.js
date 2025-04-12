@@ -3509,6 +3509,42 @@ function touchStarted() {
   let offsetX = (width - gameWidth) / 2;
   let offsetY = (height - gameHeight) / 2;
   
+  // Handle decision point touches
+  if (showingDecision && touches.length > 0) {
+    let touch = touches[0];
+    // Adjust touch coordinates to account for viewport offset
+    let adjustedX = touch.x - offsetX;
+    let adjustedY = touch.y - offsetY;
+    
+    // Calculate decision box dimensions
+    let boxWidth = isMobileDevice() ? gameWidth * 0.9 : 500;
+    let boxHeight = isMobileDevice() ? gameHeight * 0.5 : 300;
+    let boxX = gameWidth/2 - boxWidth/2;
+    let boxY = isMobileDevice() ? gameHeight * 0.2 : gameHeight/2 - boxHeight/2;
+    
+    // Calculate option positions
+    let optionSpacing = isMobileDevice() ? 50 : 45;
+    let optionStartY = boxY + (isMobileDevice() ? 100 : 110);
+    
+    for (let i = 0; i < currentDecision.options.length; i++) {
+      let y = optionStartY + i * optionSpacing;
+      let buttonWidth = isMobileDevice() ? boxWidth * 0.8 : 360;
+      let buttonX = gameWidth/2 - buttonWidth/2;
+      
+      // Add extra touch area for better touch response
+      let touchArea = 20 * window.gameScale;
+      
+      if (adjustedX >= buttonX - touchArea && 
+          adjustedX <= buttonX + buttonWidth + touchArea && 
+          adjustedY >= y - touchArea && 
+          adjustedY <= y + 40 + touchArea) {
+        console.log("Decision option touched:", i);  // Debug log
+        makeDecision(i);
+        return false;
+      }
+    }
+  }
+  
   if (gameState === 'start' && touches.length > 0) {
     let touch = touches[0];
     // Adjust touch coordinates to account for viewport offset
@@ -3737,98 +3773,7 @@ function touchStarted() {
     }
   }
   
-  // Handle gameplay touch controls with adjusted coordinates
-  if (gameState === 'playing' && !showingDecision && touches.length > 0) {
-    let touch = touches[0];
-    // Adjust touch coordinates
-    let adjustedX = touch.x - offsetX;
-    let adjustedY = touch.y - offsetY;
-    
-    // Use the stored button properties from draw function
-    let btnSize = window.jumpButtonSize || 80 * window.gameScale;
-    let touchArea = 20 * window.gameScale; // Increased touch area for better responsiveness
-    
-    // Add touch feedback with scaling
-    let touchFeedback = (x, y) => {
-      push();
-      noFill();
-      stroke('#c72a09');
-      strokeWeight(3 * window.gameScale);
-      ellipse(x + btnSize/2, y + btnSize/2, btnSize/2);
-      pop();
-    };
-    
-    // Jump button check with enhanced touch area
-    let jumpBtnX = window.jumpButtonX || 30 * window.gameScale;
-    let jumpBtnY = window.jumpButtonY || (gameHeight - btnSize - (30 * window.gameScale));
-    
-    if (adjustedX >= jumpBtnX - touchArea && 
-        adjustedX <= jumpBtnX + btnSize + touchArea &&
-        adjustedY >= jumpBtnY - touchArea && 
-        adjustedY <= jumpBtnY + btnSize + touchArea) {
-      
-      touchFeedback(jumpBtnX, jumpBtnY);
-      
-      if (!player.isJumping) {
-        player.velocityY = -player.jumpForce;
-        player.isJumping = true;
-        playSound(jumpSound);
-      }
-      
-      return false;
-    }
-    
-    // Left button check with enhanced touch area
-    let leftBtnX = window.leftButtonX || ((isMobileDevice() ? 1000 * window.gameScale : width) - (btnSize * 2) - (50 * window.gameScale));
-    let leftBtnY = window.leftButtonY || jumpBtnY;
-    
-    if (adjustedX >= leftBtnX - touchArea && 
-        adjustedX <= leftBtnX + btnSize + touchArea &&
-        adjustedY >= leftBtnY - touchArea && 
-        adjustedY <= leftBtnY + btnSize + touchArea) {
-      
-      touchFeedback(leftBtnX, leftBtnY);
-      playerDirection = -1;
-      return false;
-    }
-    
-    // Right button check with enhanced touch area
-    let rightBtnX = window.rightButtonX || ((isMobileDevice() ? 1000 * window.gameScale : width) - btnSize - (30 * window.gameScale));
-    let rightBtnY = window.rightButtonY || jumpBtnY;
-    
-    if (adjustedX >= rightBtnX - touchArea && 
-        adjustedX <= rightBtnX + btnSize + touchArea &&
-        adjustedY >= rightBtnY - touchArea && 
-        adjustedY <= rightBtnY + btnSize + touchArea) {
-      
-      touchFeedback(rightBtnX, rightBtnY);
-      playerDirection = 1;
-      return false;
-    }
-  }
-
-  // Handle decision options in playing state
-  if (gameState === 'playing' && showingDecision && touches.length > 0) {
-    let touch = touches[0];
-    
-    // Calculate decision box position
-    let boxWidth = 500;
-    let boxHeight = 300;
-    let boxY = height/2 - boxHeight/2;
-    
-    // Check if a decision option was touched
-    for (let i = 0; i < currentDecision.options.length; i++) {
-      let y = boxY + 120 + i * 50;
-      
-      if (touch.x >= width/2 - 180 && touch.x <= width/2 + 180 && 
-          touch.y >= y && touch.y <= y + 40) {
-        makeDecision(i);
-        break;
-      }
-    }
-  }
-  
-  return true;
+  return false; // Prevent default touch behavior
 }
 
 // Add a wrapper function to make email submission more reliable
