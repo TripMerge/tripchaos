@@ -3762,6 +3762,35 @@ function createEmailInput(value) {
     input.style.webkitAppearance = 'none';
     input.style.appearance = 'none';
     
+    // Create privacy policy checkbox container
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.style.width = '100%';
+    checkboxContainer.style.marginBottom = '20px';
+    checkboxContainer.style.display = 'flex';
+    checkboxContainer.style.alignItems = 'center';
+    checkboxContainer.style.justifyContent = 'flex-start';
+    
+    // Create checkbox
+    const checkbox = document.createElement('input');
+    checkbox.setAttribute('type', 'checkbox');
+    checkbox.setAttribute('id', 'privacy-checkbox');
+    checkbox.style.width = isMobileDevice() ? '24px' : '20px';
+    checkbox.style.height = isMobileDevice() ? '24px' : '20px';
+    checkbox.style.marginRight = '10px';
+    checkbox.style.cursor = 'pointer';
+    
+    // Create checkbox label
+    const checkboxLabel = document.createElement('label');
+    checkboxLabel.setAttribute('for', 'privacy-checkbox');
+    checkboxLabel.textContent = 'I accept the privacy policy';
+    checkboxLabel.style.fontSize = isMobileDevice() ? '16px' : '14px';
+    checkboxLabel.style.cursor = 'pointer';
+    checkboxLabel.style.userSelect = 'none';
+    
+    // Add checkbox and label to container
+    checkboxContainer.appendChild(checkbox);
+    checkboxContainer.appendChild(checkboxLabel);
+    
     // Add a submit button
     const submitBtn = document.createElement('button');
     submitBtn.textContent = 'Submit';
@@ -3793,6 +3822,10 @@ function createEmailInput(value) {
     // Event handlers
     form.onsubmit = (e) => {
         e.preventDefault();
+        if (!checkbox.checked) {
+            alert('Please accept the privacy policy to continue');
+            return false;
+        }
         playerEmail = input.value;
         form.remove();
         isEmailInputActive = false;
@@ -3806,6 +3839,7 @@ function createEmailInput(value) {
     
     // Add elements to the DOM
     container.appendChild(input);
+    container.appendChild(checkboxContainer);
     container.appendChild(submitBtn);
     form.appendChild(container);
     form.appendChild(closeBtn);
@@ -3818,6 +3852,8 @@ function createEmailInput(value) {
         if (isMobileDevice()) {
             input.click();
             input.focus();
+            // Additional mobile-specific focus trigger
+            input.setAttribute('autofocus', 'true');
         }
     }, 100);
     
@@ -4019,7 +4055,7 @@ function drawPrivacyPolicyPopup() {
     text('✕', closeBtnX + closeBtnSize/2, closeBtnY + closeBtnSize/2);
     
     // Policy text - larger and more readable on mobile
-    fill(0);
+    fill('#000000'); // Explicit black color for text
     noStroke();
     textFont(fredokaOne);
     textSize(isMobileDevice() ? 18 : 16);
