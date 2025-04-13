@@ -449,46 +449,70 @@
         }
 
         /* Mobile input field adjustments */
-        @media (max-width: 767px) {
+        @media screen and (max-width: 926px) {
             .input-field {
-                font-size: 16px;
-                padding: 14px 18px;
-                border-width: 3px;
+                font-size: 16px !important;
+                padding: 14px 18px !important;
+                border-width: 2px !important;
+                border-radius: 12px !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                background-color: #ffffff !important;
+                box-shadow: none !important;
+                touch-action: manipulation !important;
+                -webkit-tap-highlight-color: transparent !important;
+            }
+            
+            .game-email-input {
+                min-height: 54px !important;
+                padding: 14px 20px !important;
+                font-size: 18px !important;
+                line-height: 1.5 !important;
+                border-radius: 12px !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                background-color: #ffffff !important;
+                box-shadow: none !important;
+                touch-action: manipulation !important;
+                -webkit-tap-highlight-color: transparent !important;
+            }
+            
+            button {
+                min-height: 54px !important;
+                padding: 14px 24px !important;
+                font-size: 18px !important;
+                line-height: 1.5 !important;
+                border-radius: 12px !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                touch-action: manipulation !important;
+                -webkit-tap-highlight-color: transparent !important;
             }
         }
         
-        /* Safari-specific adjustments */
+        /* iOS-specific input adjustments */
         @supports (-webkit-touch-callout: none) {
-            body {
-                height: -webkit-fill-available; /* Better height handling for Safari */
-            }
-            
-            #game-container {
-                height: -webkit-fill-available;
-                padding-top: env(safe-area-inset-top);
-                padding-bottom: env(safe-area-inset-bottom);
-            }
-            
-            #canvas-container {
-                padding-top: env(safe-area-inset-top);
-                padding-bottom: env(safe-area-inset-bottom);
-            }
-            
-            /* iOS-specific input adjustments */
-            .input-field {
+            .input-field,
+            .game-email-input {
                 font-size: 16px !important;
+                padding: 14px 18px !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                background-color: #ffffff !important;
+                box-shadow: none !important;
+                touch-action: manipulation !important;
+                -webkit-tap-highlight-color: transparent !important;
             }
             
-            /* Notched device adjustments */
-            @media screen and (max-width: 926px) and (orientation: landscape) {
-                canvas {
-                    transform: translate(-50%, calc(-50% - env(safe-area-inset-top, 0px) / 2));
-                    max-height: calc(85vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-                }
-                
-                #game-controls {
-                    bottom: max(20px, env(safe-area-inset-bottom));
-                }
+            button {
+                min-height: 54px !important;
+                padding: 14px 24px !important;
+                font-size: 18px !important;
+                line-height: 1.5 !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                touch-action: manipulation !important;
+                -webkit-tap-highlight-color: transparent !important;
             }
         }
 
@@ -534,30 +558,6 @@
         .game-title {
             font-family: 'Fredoka One', cursive;
         }
-
-        /* Style for the overlaid email input */
-        #emailInputOverlay {
-            position: absolute;
-            display: none; /* Hidden by default */
-            z-index: 50; /* Below controls but above canvas */
-            background-color: #FFFFFF;
-            border: 2px solid #4B0082; /* Match game over screen style */
-            border-radius: 10px;
-            color: #000000;
-            font-family: 'Inter', sans-serif;
-            box-sizing: border-box; /* Include padding and border in element's total width and height */
-            -webkit-appearance: none; /* Remove default iOS styling */
-            appearance: none;
-            touch-action: manipulation; /* Ensure good touch interaction */
-            -webkit-tap-highlight-color: transparent;
-            padding: 0 10px; /* Add some horizontal padding */
-        }
-
-        #emailInputOverlay:focus {
-            outline: none;
-            border-color: #FF1493; /* Highlight color on focus */
-            box-shadow: 0 0 8px rgba(255, 20, 147, 0.5);
-        }
     </style>
 </head>
 <body>
@@ -568,9 +568,8 @@
     </div>
     <div id="game-container">
         <div id="canvas-container">
-            <input type="email" id="emailInputOverlay" placeholder="Enter your email" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="email">
-            <div id="loading">Loading...</div>
-            <div id="error"></div>
+        <div id="loading">Loading...</div>
+        <div id="error"></div>
         </div>
         <div id="game-controls">
             <div class="control-group-left">
