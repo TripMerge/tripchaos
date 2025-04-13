@@ -491,41 +491,29 @@ let decisions = [
 
 // Setup function
 function setup() {
-    // Create canvas with proper scaling for mobile
-    let canvasWidth = isMobileDevice() ? window.innerWidth : 1000;
-    let canvasHeight = isMobileDevice() ? window.innerHeight : 600;
+    // Create canvas with fixed dimensions
+    let canvas = createCanvas(1000, 600);
+    canvas.parent('game-container');
     
-    // Create canvas with proper dimensions
-    let canvas = createCanvas(canvasWidth, canvasHeight);
-    canvas.parent('canvas-container');
+    // Set initial scale
+    window.gameScale = 1;
     
-    // Set up game scale for mobile
-    if (isMobileDevice()) {
-        window.gameScale = min(canvasWidth / 1000, canvasHeight / 600);
-    } else {
-        window.gameScale = 1;
-    }
+    // Initialize level length
+    levelLength = 3000;
     
-    // Set up game state
+    // Set initial game state
     gameState = 'start';
-    currentLevelNumber = 1;
-    score = 0;
-    budget = 100;
-    satisfaction = 100;
-    timeLeft = 100;
-    playerEmail = '';
-    privacyPolicyAccepted = false;
-    showPrivacyPolicy = false;
-    isEmailInputActive = false;
+    window.gameState = 'start';
+  
+  // Initialize game objects and settings
+  resetGame();
+  
+  // Add window resize handler
+  window.addEventListener('resize', windowResized);
     
-    // Initialize game elements
-    initializeGameElements();
-    
-    // Set up game controls
-    setupGameControls();
-    
-    // Set up game loop
-    frameRate(60);
+    // Debug log
+    console.log('Canvas created:', canvas);
+    console.log('Game state:', gameState);
 }
 
 // Handle window resize events
@@ -711,37 +699,60 @@ function generateLevel() {
   
 // Main draw function
 function draw() {
-    // Clear the background
-    background(0);
-    
-    // Handle different game states
-    switch(gameState) {
-        case 'start':
-            drawStartScreen();
-            break;
-        case 'playing':
-            // Apply proper scaling for mobile
-            if (isMobileDevice()) {
-                push();
-                scale(window.gameScale);
-                translate((width/window.gameScale - 1000)/2, (height/window.gameScale - 600)/2);
-                drawGame();
-                pop();
-            } else {
-                drawGame();
-            }
-            break;
-        case 'gameOver':
-            drawGameOverScreen();
-            break;
-        case 'win':
-            drawWinScreen();
-            break;
+    // Reset cursor to default at the start of each frame
+    cursor(ARROW);
+
+    // Draw appropriate screen based on game state
+    if (gameState === 'start') {
+        drawStartScreen();
+    } else if (gameState === 'playing') {
+        if (!showingDecision) {
+            updateGame();
+        }
+        drawPlayingScreen();
+    } else if (gameState === 'gameOver') {
+        drawGameOverScreen();
+    } else if (gameState === 'win') {
+        drawWinScreen();
     }
-    
-    // Draw privacy policy popup if needed
+
+    // Draw leaderboard if active
+    if (showLeaderboard) {
+        drawLeaderboardScreen();
+    }
+
+    // Draw privacy policy popup if active (this should be drawn last to appear on top)
     if (showPrivacyPolicy) {
+        // Draw semi-transparent overlay to darken the background
+        push();
+        fill(0, 0, 0, 200);
+        noStroke();
+        rect(0, 0, width, height);
+        pop();
+        
+        // Draw the popup
         drawPrivacyPolicyPopup();
+    }
+
+    // Only show hover effects when privacy policy is not open
+    if (!showPrivacyPolicy && (gameState === 'gameOver' || gameState === 'win')) {
+        let restartButtonX = width/2;
+        let restartButtonY = height/2 + 100;
+        let buttonWidth = 200;
+        let buttonHeight = 60;
+        
+        if (mouseX > restartButtonX - buttonWidth/2 && 
+            mouseX < restartButtonX + buttonWidth/2 && 
+            mouseY > restartButtonY - buttonHeight/2 && 
+            mouseY < restartButtonY + buttonHeight/2) {
+            cursor(HAND);
+        }
+
+        let privacyLinkY = height * 0.9;
+        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
+            mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15) {
+            cursor(HAND);
+        }
     }
 }
 
@@ -1501,49 +1512,70 @@ function updateCompanion() {
 
 // Draw the playing screen
 function drawPlayingScreen() {
-    // Clear the background
-    background(0);
-    
-    // Apply proper scaling and positioning for mobile
-    if (isMobileDevice()) {
-        push();
-        // Calculate the game viewport center offset
-        let gameWidth = 1000 * window.gameScale;
-        let gameHeight = 600 * window.gameScale;
-        let offsetX = (width - gameWidth) / 2;
-        let offsetY = (height - gameHeight) / 2;
-        
-        // Apply translation to center the game viewport
-        translate(offsetX, offsetY);
-        
-        // Draw the game content
-        drawBackgroundElements();
-        drawPlatforms();
-        drawPlayer();
-        drawCompanion();
-        drawPerks();
-        drawMishaps();
-        drawLevelEndMarker();
-        
-        pop();
-    } else {
-        // Desktop version
-        drawBackgroundElements();
-        drawPlatforms();
-        drawPlayer();
-        drawCompanion();
-        drawPerks();
-        drawMishaps();
-        drawLevelEndMarker();
-    }
-    
-    // Draw UI elements
-    drawGameUI();
-    
-    // Draw decision UI if active
-    if (showingDecision) {
-        drawDecisionUI();
-    }
+  // Clear the entire canvas at the start of each frame
+  clear();
+  
+  // Draw the current theme background first
+  if (currentTheme === "beach") {
+    drawBeachTheme();
+  } else if (currentTheme === "city") {
+    drawCityTheme();
+  } else {
+    drawAdventureTheme();
+  }
+
+  // Apply camera transform for game objects
+  push();
+  translate(-cameraOffset, 0);
+  
+  // Draw all game objects in order of depth
+  // Draw background elements first
+  drawBackgroundElements();
+  
+  // Draw platforms
+  for (let platform of platforms) {
+    drawPlatform(platform);
+  }
+  
+  // Draw perks
+  for (let perk of perks) {
+    drawPerk(perk);
+  }
+  
+  // Draw mishaps
+  for (let mishap of mishaps) {
+    drawMishap(mishap);
+  }
+  
+  // Draw level end marker (portal)
+  if (levelEndMarker) {
+    drawLevelEndMarker();
+  }
+  
+  // Draw characters last
+  drawCompanion();
+  drawPlayer();
+  
+  pop(); // End camera transform
+  
+  // Draw UI elements (not affected by camera)
+  drawGameUI();
+  
+  // Apply fog effect if active (on top of everything)
+  if (player.cloudEffectCounter > 0) {
+    drawFogEffect();
+  }
+  
+  // Draw decision UI if active (should be on top of fog)
+  if (showingDecision) {
+    drawDecisionUI();
+  }
+  
+  // Draw effect notifications
+  drawEffectNotifications();
+  
+  // Draw slowdown message if active
+  drawSlowdownMessage();
 }
 
 // Helper function to draw background elements
@@ -1967,7 +1999,7 @@ function drawStars() {
 }
 
 function drawStar(x, y, size) {
-  push();
+    push();
     fill(255);
     noStroke();
     beginShape();
@@ -1982,7 +2014,7 @@ function drawStar(x, y, size) {
         vertex(px, py);
     }
     endShape(CLOSE);
-  pop();
+    pop();
 }
 
 function drawMoon() {
@@ -2705,11 +2737,6 @@ function drawGameUI() {
     
     // Apply translation to center the game viewport
     translate(offsetX, offsetY);
-    
-    // Draw a background to ensure the viewport is visible
-    fill(0);
-    noStroke();
-    rect(0, 0, gameWidth, gameHeight);
   }
   
   // Draw UI elements
@@ -2738,8 +2765,6 @@ function drawGameUI() {
     drawMeter("Time", timeLeft, meterSpacing * 3, meterY);
     drawMeter("Score", score, meterSpacing * 4, meterY);
   }
-  
-  pop();
 }
 
 // Draw a meter for game stats
@@ -2830,7 +2855,7 @@ function drawGameOverScreen() {
     let scoreX = width * 0.1;
     text("YOUR SCORE: " + score, scoreX, topY);
     
-  let achievement = getAchievement(score);
+    let achievement = getAchievement(score);
     textSize(20);
     text("🏆 " + achievement.title, scoreX, topY + 30);
     pop();
@@ -3190,7 +3215,7 @@ function drawLeaderboardScreen() {
     // Ground with grid effect
     push();
     fill('#4B0082');  // Deep purple ground
-  noStroke();
+    noStroke();
     rect(0, height * 0.85, width, height * 0.15);
     
     // Grid lines
@@ -3207,24 +3232,24 @@ function drawLeaderboardScreen() {
     // Back button in upper left corner
     let backBtnX = 50;
     let backBtnY = 50;
-  let isBackHovering = mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
+    let isBackHovering = mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
                         mouseY >= backBtnY - 20 && mouseY <= backBtnY + 20;
   
     // Draw back button with same style as start game button
     push();
     textFont('Fredoka One');
     stroke('#4B0082');
-  strokeWeight(3);
+    strokeWeight(3);
     fill(isBackHovering ? '#FF1493' : '#FF69B4');
     textStyle(BOLD);
     textSize(30);
-  text("BACK", backBtnX, backBtnY);
+    text("BACK", backBtnX, backBtnY);
     pop();
     
     // Leaderboard Title with shadow effect - moved higher up and adjusted spacing
     push();
     textFont('Fredoka One');
-  noStroke();
+    noStroke();
     fill('#4B0082');
     textStyle(BOLD);
     textSize(64);
@@ -3245,7 +3270,7 @@ function drawLeaderboardScreen() {
     fill('#4B0082');
     textSize(16);  // Reduced header text size
     textStyle(BOLD);
-  textAlign(CENTER);
+    textAlign(CENTER);
     
     // Header positions - adjusted for compact layout
     let rankX = tableX + 30;
@@ -3264,13 +3289,13 @@ function drawLeaderboardScreen() {
         
         // Draw row background
         fill(i % 2 === 0 ? '#FFFFFF' : '#FFD1DC');
-  noStroke();
+        noStroke();
         rect(tableX, y, tableWidth, rowHeight);
         
         // Draw rank
         fill('#4B0082');
         textSize(14);  // Reduced text size
-    textStyle(NORMAL);
+        textStyle(NORMAL);
         textAlign(CENTER);
         text(i + 1, rankX, y + rowHeight/2 + 4);
         
@@ -3812,7 +3837,7 @@ function updateMishaps() {
 
 // Mouse click handler
 function mouseClicked() {
-  if (gameState === 'start') {
+    if (gameState === 'start') {
         // Check if play button is clicked
         const playButtonX = width/2;
         const playButtonY = height/2;
@@ -3824,8 +3849,8 @@ function mouseClicked() {
             mouseY > playButtonY - playButtonHeight/2 && 
             mouseY < playButtonY + playButtonHeight/2) {
             startGame();
-    }
-  } else if (gameState === 'gameOver' || gameState === 'win') {
+        }
+    } else if (gameState === 'gameOver' || gameState === 'win') {
         // Check if leaderboard button is clicked
         const leaderboardButtonX = width/2;
         const leaderboardButtonY = height/2 + 100;
@@ -3840,7 +3865,7 @@ function mouseClicked() {
         }
         
         // Check if back button is clicked in leaderboard screen
-    if (showLeaderboard) {
+        if (showLeaderboard) {
             const backButtonX = 50;
             const backButtonY = 50;
             const backButtonSize = 40;
@@ -3849,7 +3874,7 @@ function mouseClicked() {
                 mouseX < backButtonX + backButtonSize/2 && 
                 mouseY > backButtonY - backButtonSize/2 && 
                 mouseY < backButtonY + backButtonSize/2) {
-        showLeaderboard = false;
+                showLeaderboard = false;
                 return;
             }
         }
@@ -3933,7 +3958,7 @@ function touchStarted() {
                     form.remove();
                     isEmailInputActive = false;
                 }
-        return false;
+                return false;
             }
         }
     }
@@ -3958,7 +3983,7 @@ function touchStarted() {
             touch.y <= privacyLinkY + clickAreaHeight/2) {
             console.log('Privacy policy link clicked');
             showPrivacyPolicy = true;
-        return false;
+            return false;
         }
     }
 
@@ -3988,9 +4013,9 @@ function touchStarted() {
             touch.y <= closeButtonY + closeButtonSize) {
             console.log('Close button clicked');
             showPrivacyPolicy = false;
-      return false;
-    }
-  
+            return false;
+        }
+        
         // Accept button dimensions
         const buttonWidth = isMobileDevice() ? 200 : 150;
         const buttonHeight = isMobileDevice() ? 60 : 50;
@@ -4005,9 +4030,9 @@ function touchStarted() {
             console.log('Accept button clicked');
             showPrivacyPolicy = false;
             privacyPolicyAccepted = true;
-      return false;
-    }
-
+            return false;
+        }
+        
         return false; // Prevent other touch events when popup is open
     }
     
@@ -4109,7 +4134,7 @@ function touchStarted() {
                         tempInput.style.pointerEvents = 'auto';
                         tempInput.focus();
                     }
-      return false;
+        return false;
                 }
             }
         }
@@ -4129,8 +4154,8 @@ function touchStarted() {
         if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
             touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
             startGame();
-      return false;
-    }
+        return false;
+      }
       
         // Email input box touch handling
     let emailBoxX = width/2 - 200;
@@ -4190,11 +4215,6 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    // Return early for mobile devices
-    if (isMobileDevice()) {
-        return null;
-    }
-    
     // Remove any existing input elements
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
@@ -4206,7 +4226,7 @@ function createEmailInput(value) {
     form.style.left = '50%';
     form.style.transform = 'translate(-50%, -50%)';
     form.style.zIndex = '9999';
-    form.style.width = '400px';
+    form.style.width = isMobileDevice() ? '90%' : '400px';
     form.style.maxWidth = '500px';
     
     // Create container for input and button
@@ -4231,11 +4251,11 @@ function createEmailInput(value) {
     input.classList.add('game-email-input');
     input.value = value || '';
     
-    // Apply styles for better desktop UX
+    // Apply styles for better mobile UX
     input.style.width = '100%';
-    input.style.height = '44px';
-    input.style.fontSize = '16px';
-    input.style.padding = '12px 16px';
+    input.style.height = isMobileDevice() ? '54px' : '44px';
+    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
     input.style.boxSizing = 'border-box';
     input.style.border = '2px solid #3498db';
     input.style.borderRadius = '12px';
@@ -4244,14 +4264,18 @@ function createEmailInput(value) {
     input.style.marginBottom = '20px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
+    input.style.webkitTapHighlightColor = 'transparent';
+    input.style.touchAction = 'manipulation';
+    input.style.webkitUserSelect = 'text';
+    input.style.userSelect = 'text';
     
     // Add a submit button
     const submitBtn = document.createElement('button');
     submitBtn.textContent = 'Submit';
     submitBtn.style.width = '100%';
-    submitBtn.style.height = '44px';
-    submitBtn.style.fontSize = '16px';
-    submitBtn.style.padding = '12px 16px';
+    submitBtn.style.height = isMobileDevice() ? '54px' : '44px';
+    submitBtn.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    submitBtn.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
     submitBtn.style.backgroundColor = '#3498db';
     submitBtn.style.color = 'white';
     submitBtn.style.border = 'none';
@@ -4275,6 +4299,11 @@ function createEmailInput(value) {
     closeBtn.style.cursor = 'pointer';
     closeBtn.style.zIndex = '10000';
     closeBtn.style.pointerEvents = 'auto';
+    closeBtn.style.webkitTapHighlightColor = 'transparent';
+    closeBtn.style.touchAction = 'manipulation';
+    closeBtn.style.display = 'flex';
+    closeBtn.style.alignItems = 'center';
+    closeBtn.style.justifyContent = 'center';
     closeBtn.type = 'button';
     closeBtn.classList.add('email-close-btn');
     
@@ -4296,20 +4325,35 @@ function createEmailInput(value) {
         return false;
     };
     
-    // Add event listeners
+    // Add event listeners for both click and touch events
     form.onsubmit = handleSubmit;
     submitBtn.onclick = handleSubmit;
-    closeBtn.onclick = handleClose;
+    submitBtn.ontouchstart = handleSubmit;
     
-    // Add input event listener
+    closeBtn.onclick = handleClose;
+    closeBtn.ontouchstart = handleClose;
+    
+    // Add input event listener to ensure keyboard input is captured
     input.addEventListener('input', (e) => {
         e.stopPropagation();
         playerEmail = e.target.value;
+        input.value = playerEmail; // Keep input value in sync
     });
     
-    // Add keydown event listener
+    // Add keydown event listener to prevent event bubbling
     input.addEventListener('keydown', (e) => {
         e.stopPropagation();
+    });
+    
+    // Add focus event listener to ensure keyboard shows
+    input.addEventListener('focus', () => {
+        input.focus();
+    });
+    
+    // Add touch event listener for mobile
+    input.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        input.focus();
     });
     
     // Add elements to form
@@ -4319,8 +4363,20 @@ function createEmailInput(value) {
     form.appendChild(container);
     document.body.appendChild(form);
     
-    // Focus the input
-    input.focus();
+    // Force keyboard to show on mobile
+    if (isMobileDevice()) {
+        // Focus the input immediately
+        input.focus();
+        
+        // Force keyboard to show after a short delay
+        setTimeout(() => {
+            input.focus();
+            input.click();
+        }, 100);
+    } else {
+        // For desktop, just focus normally
+        input.focus();
+    }
     
     return input;
 }
@@ -4561,7 +4617,7 @@ function drawPrivacyPolicyPopup() {
     textAlign(CENTER, CENTER);
     text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
     pop();
-  }
+}
 
 function mousePressed() {
     if (showPrivacyPolicy) {
@@ -4588,35 +4644,35 @@ function mousePressed() {
 // ... existing code ...
 
 function drawEffectNotifications() {
-  for (let i = effectNotifications.length - 1; i >= 0; i--) {
-    let notification = effectNotifications[i];
-    
-    // Update position
-    notification.y -= NOTIFICATION_RISE_SPEED;
-    notification.duration--;
-    
-    // Draw notification
-    push();
-    textAlign(CENTER);
-    textSize(20);
-    
-    // Fade out near the end
-    let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
-    
-    if (notification.value > 0) {
-      fill(50, 205, 50, alpha); // Green for positive
-      text("+" + notification.value + " " + notification.type, notification.x, notification.y);
-    } else {
-      fill(255, 50, 50, alpha); // Red for negative
-      text(notification.value + " " + notification.type, notification.x, notification.y);
+    for (let i = effectNotifications.length - 1; i >= 0; i--) {
+        let notification = effectNotifications[i];
+        
+        // Update position
+        notification.y -= NOTIFICATION_RISE_SPEED;
+        notification.duration--;
+        
+        // Draw notification
+        push();
+        textAlign(CENTER);
+        textSize(20);
+        
+        // Fade out near the end
+        let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
+        
+        if (notification.value > 0) {
+            fill(50, 205, 50, alpha); // Green for positive
+            text("+" + notification.value + " " + notification.type, notification.x, notification.y);
+        } else {
+            fill(255, 50, 50, alpha); // Red for negative
+            text(notification.value + " " + notification.type, notification.x, notification.y);
+        }
+        pop();
+        
+        // Remove expired notifications
+        if (notification.duration <= 0) {
+            effectNotifications.splice(i, 1);
+        }
     }
-    pop();
-    
-    // Remove expired notifications
-    if (notification.duration <= 0) {
-      effectNotifications.splice(i, 1);
-    }
-  }
 }
 
 // ... existing code ...
