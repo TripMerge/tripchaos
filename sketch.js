@@ -4741,3 +4741,73 @@ function submitEmailToLeaderboard() {
         fallbackToLocalStorage();
     });
 }
+
+// Simplified email input creation
+function createEmailInput(value) {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'email');
+    input.setAttribute('inputmode', 'email');
+    input.setAttribute('autocapitalize', 'none');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('spellcheck', 'false');
+    input.setAttribute('autocomplete', 'email');
+    input.setAttribute('placeholder', 'Enter your email');
+    input.classList.add('game-email-input');
+    input.value = value || '';
+    
+    document.body.appendChild(input);
+    
+    input.addEventListener('input', function(e) {
+        playerEmail = e.target.value;
+        emailInputCursor = playerEmail.length;
+    });
+    
+    input.addEventListener('blur', function() {
+        setTimeout(function() {
+            input.remove();
+            isEmailInputActive = false;
+        }, 100);
+    });
+    
+    setTimeout(() => {
+        input.focus();
+        input.click();
+    }, 100);
+    
+    return input;
+}
+
+// Simplified touch handling
+function touchStarted() {
+    if (gameState === 'gameOver' && touches.length > 0) {
+        let touch = touches[0];
+        let emailBoxX = width/2 - 200;
+        let emailBoxY = playAgainY + 500;
+        let emailBoxWidth = 400;
+        let emailBoxHeight = 50;
+        
+        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+            isEmailInputActive = true;
+            createEmailInput(playerEmail);
+            return false;
+        }
+    }
+    return false;
+}
+
+// Simplified key handling
+function keyTyped() {
+    if (isEmailInputActive) return false;
+    return true;
+}
+
+function keyPressed() {
+    if (isEmailInputActive) return false;
+    return true;
+}
+
+function mouseClicked() {
+    if (gameState === 'gameOver' && isEmailInputActive) return false;
+    return true;
+}
