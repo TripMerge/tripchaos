@@ -2628,8 +2628,8 @@ function touchStarted() {
         }
     }
     
-    // Handle email input touch
-    if (gameState === 'gameOver' && isEmailInputActive) {
+    // Handle email input touch - only on desktop
+    if (!isMobileDevice() && gameState === 'gameOver' && isEmailInputActive) {
         const input = document.querySelector('.game-email-input');
         if (input) {
             // Get the input's position and dimensions
@@ -2945,8 +2945,8 @@ function drawGameOverScreen() {
         }
     }
 
-    // Privacy Policy Checkbox
-    let privacyY = leaderboardY + (isMobileDevice() ? 30 : 100);
+    // Privacy Policy Checkbox - Adjusted positioning
+    let privacyY = leaderboardY + (isMobileDevice() ? 30 : 120); // Increased vertical spacing on desktop
     let checkboxSize = isMobileDevice() ? 30 : 20;
     let privacyX = width/2 - (isMobileDevice() ? 150 : 250);
     
@@ -3991,14 +3991,35 @@ function mouseClicked() {
 
 // Add keyTyped function to handle email input
 function keyTyped() {
-    if (isEmailInputActive) {
-        // Only add printable characters
-        if (key.length === 1 && key.charCodeAt(0) >= 32) {
-            playerEmail = playerEmail.substring(0, emailInputCursor) + key + playerEmail.substring(emailInputCursor);
-            emailInputCursor++;
+    // Only handle email input on desktop
+    if (!isMobileDevice() && isEmailInputActive) {
+        if (keyCode === BACKSPACE) {
+            playerEmail = playerEmail.slice(0, -1);
+            return false;
+        } else if (keyCode === ENTER) {
+            isEmailInputActive = false;
+            submitScoreToLeaderboard();
+            return false;
+        } else if (keyCode === ESCAPE) {
+            isEmailInputActive = false;
+            return false;
+        } else {
+            playerEmail += key;
+            return false;
         }
-        return false; // Prevent default behavior
     }
+    
+    // Handle game state transitions
+    if (keyCode === 32) { // SPACE key
+        if (gameState === 'start') {
+            startGame();
+            return false;
+        } else if (gameState === 'gameOver' || gameState === 'win') {
+            startGame();
+            return false;
+        }
+    }
+    
     return true;
 }
 
@@ -4278,28 +4299,33 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    // Remove any existing input elements
-    const existingInputs = document.querySelectorAll('.game-email-input');
-    existingInputs.forEach(input => input.remove());
-    
-    // Create a simple input element
+    // Don't create input on mobile devices
+    if (isMobileDevice()) {
+        return null;
+    }
+
+    // Remove any existing input
+    const existingInput = document.querySelector('.game-email-input');
+    if (existingInput) {
+        existingInput.remove();
+    }
+
+    // Create input element
     const input = document.createElement('input');
-    input.setAttribute('type', 'email');
-    input.setAttribute('inputmode', 'email');
-    input.setAttribute('autocapitalize', 'none');
-    input.setAttribute('autocorrect', 'off');
-    input.setAttribute('spellcheck', 'false');
-    input.setAttribute('autocomplete', 'email');
-    input.setAttribute('placeholder', 'Enter your email');
-    input.classList.add('game-email-input');
+    input.type = 'email';
     input.value = value || '';
+    input.className = 'game-email-input';
+    input.placeholder = 'Enter your email';
+    input.autocomplete = 'email';
+    input.inputmode = 'email';
+    input.autocapitalize = 'none';
     
-    // Basic styling
+    // Style the input
     input.style.position = 'fixed';
-    input.style.top = isMobileDevice() ? '-1000px' : '50%';
-    input.style.left = isMobileDevice() ? '-1000px' : '50%';
-    input.style.transform = isMobileDevice() ? 'none' : 'translate(-50%, -50%)';
-    input.style.width = isMobileDevice() ? '0' : '300px';
+    input.style.top = '50%';
+    input.style.left = '50%';
+    input.style.transform = 'translate(-50%, -50%)';
+    input.style.width = '300px';
     input.style.height = '44px';
     input.style.padding = '10px 15px';
     input.style.fontSize = '16px';
