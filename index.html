@@ -68,10 +68,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            visibility: visible;
-            opacity: 1;
             z-index: 1;
             transform: none !important;
+            transition: visibility 0s, opacity 0.3s ease-in-out;
+        }
+        
+        #game-container.loaded {
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         
         #canvas-container {
@@ -82,8 +86,6 @@
             justify-content: center;
             align-items: center;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-            visibility: visible;
-            opacity: 1;
             z-index: 2;
             transform: none !important;
         }
@@ -92,7 +94,7 @@
             position: absolute;
             left: 50%;
             top: 45%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) !important;
             width: auto;
             height: auto;
             max-width: min(1920px, 90vw);
@@ -100,10 +102,7 @@
             aspect-ratio: 16/9;
             object-fit: contain;
             display: block;
-            visibility: visible;
-            opacity: 1;
             z-index: 3;
-            transform: translate(-50%, -50%) !important;
         }
         
         #game-controls {
@@ -691,49 +690,49 @@
     
     <!-- Game script -->
     <script>
-        // Set initial state
+        // Set initial loading state
         const gameContainer = document.getElementById('game-container');
         const canvasContainer = document.getElementById('canvas-container');
-        const canvas = document.querySelector('canvas');
         
-        // Ensure proper initial positioning
-        gameContainer.style.position = 'fixed';
-        gameContainer.style.top = '0';
-        gameContainer.style.left = '0';
-        gameContainer.style.width = '100%';
-        gameContainer.style.height = '100%';
-        gameContainer.style.transform = 'none';
+        // Hide game container initially
+        gameContainer.style.visibility = 'hidden';
         
-        // Ensure canvas container is properly positioned
-        canvasContainer.style.position = 'relative';
-        canvasContainer.style.width = '100%';
-        canvasContainer.style.height = '100%';
-        canvasContainer.style.transform = 'none';
-        
-        // Ensure canvas is properly positioned
-        if (canvas) {
-            canvas.style.position = 'absolute';
-            canvas.style.left = '50%';
-            canvas.style.top = '45%';
-            canvas.style.transform = 'translate(-50%, -50%)';
-        }
-        
-        // Wait for window load and p5.js initialization
+        // Wait for both DOM and p5.js to be ready
         window.addEventListener('load', function() {
-            // Wait until sketch.js has fully loaded and initialized
-            setTimeout(function() {
-                gameContainer.classList.remove('loading');
-                gameContainer.classList.add('loaded');
-                
-                if (typeof player !== 'undefined') {
-                    // Make sure player object is accessible globally
-                    window.player = player;
-                    window.gameState = gameState;
-                    window.showingDecision = showingDecision;
+            // Hide game container during setup
+            gameContainer.style.visibility = 'hidden';
+            
+            // Wait for p5.js to create the canvas
+            const checkCanvas = setInterval(() => {
+                const canvas = document.querySelector('canvas');
+                if (canvas && typeof window.setup !== 'undefined') {
+                    clearInterval(checkCanvas);
                     
-                    console.log("Game controls initialized");
+                    // Position elements after canvas is created
+                    gameContainer.style.position = 'fixed';
+                    gameContainer.style.top = '0';
+                    gameContainer.style.left = '0';
+                    gameContainer.style.width = '100%';
+                    gameContainer.style.height = '100%';
+                    gameContainer.style.transform = 'none';
+                    
+                    canvasContainer.style.position = 'relative';
+                    canvasContainer.style.width = '100%';
+                    canvasContainer.style.height = '100%';
+                    canvasContainer.style.transform = 'none';
+                    
+                    canvas.style.position = 'absolute';
+                    canvas.style.left = '50%';
+                    canvas.style.top = '45%';
+                    canvas.style.transform = 'translate(-50%, -50%)';
+                    
+                    // Show game container once everything is positioned
+                    setTimeout(() => {
+                        gameContainer.style.visibility = 'visible';
+                        gameContainer.classList.add('loaded');
+                    }, 100);
                 }
-            }, 100);
+            }, 10);
         });
 
         // Mobile control state
