@@ -2638,29 +2638,18 @@ function touchStarted() {
             touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
             isEmailInputActive = true;
             
-            // Create and focus the email input
+            // Create a simple input element
             const input = document.createElement('input');
             input.type = 'email';
             input.value = playerEmail || '';
             input.style.position = 'fixed';
-            input.style.top = '50%';
-            input.style.left = '50%';
-            input.style.transform = 'translate(-50%, -50%)';
-            input.style.width = '300px';
-            input.style.height = '40px';
-            input.style.zIndex = '9999';
-            input.style.fontSize = '16px';
-            input.style.padding = '10px';
-            input.style.border = '2px solid #3498db';
-            input.style.borderRadius = '8px';
-            input.style.backgroundColor = '#ffffff';
-            input.style.color = '#333333';
-            input.style.webkitAppearance = 'none';
-            input.style.appearance = 'none';
-            input.style.webkitTapHighlightColor = 'transparent';
-            input.style.touchAction = 'manipulation';
-            input.style.webkitUserSelect = 'text';
-            input.style.userSelect = 'text';
+            input.style.top = '0';
+            input.style.left = '0';
+            input.style.width = '1px';
+            input.style.height = '1px';
+            input.style.opacity = '0';
+            input.style.pointerEvents = 'none';
+            input.style.zIndex = '-1';
             
             // Add event listeners
             input.addEventListener('input', (e) => {
@@ -2674,26 +2663,11 @@ function touchStarted() {
             
             // Add to document and focus
             document.body.appendChild(input);
-            input.focus();
             
             // Force keyboard to show on mobile
             if (isMobileDevice()) {
-                // Create a temporary input to force keyboard
-                const tempInput = document.createElement('input');
-                tempInput.style.position = 'fixed';
-                tempInput.style.opacity = '0';
-                tempInput.style.pointerEvents = 'none';
-                document.body.appendChild(tempInput);
-                
-                // Focus temporary input first
-                tempInput.focus();
-                
-                // Then focus the actual input
-                setTimeout(() => {
-                    tempInput.remove();
-                    input.focus();
-                    input.click();
-                }, 100);
+                input.focus();
+                input.click();
             }
             
             return false;
