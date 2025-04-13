@@ -2920,13 +2920,14 @@ function drawGameOverScreen() {
             height: 60
         };
 
-        if ((mouseIsPressed || touches.length > 0) && 
+        if ((mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) && 
             (mouseX >= leaderboardArea.x || (touches.length > 0 && touches[0].x >= leaderboardArea.x)) && 
             (mouseX <= leaderboardArea.x + leaderboardArea.width || (touches.length > 0 && touches[0].x <= leaderboardArea.x + leaderboardArea.width)) && 
             (mouseY >= leaderboardArea.y || (touches.length > 0 && touches[0].y >= leaderboardArea.y)) && 
             (mouseY <= leaderboardArea.y + leaderboardArea.height || (touches.length > 0 && touches[0].y <= leaderboardArea.y + leaderboardArea.height))) {
             showMobileEmailForm();
             mouseIsPressed = false;
+            return;
         }
     } else {
         // Desktop email submission form (unchanged)
