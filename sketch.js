@@ -3116,15 +3116,6 @@ function showMobileEmailForm() {
 
     // Make sure the form is visible
     form.style.display = 'flex';
-    form.style.position = 'fixed';
-    form.style.top = '0';
-    form.style.left = '0';
-    form.style.width = '100%';
-    form.style.height = '100%';
-    form.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    form.style.zIndex = '9999';
-    form.style.justifyContent = 'center';
-    form.style.alignItems = 'center';
     
     // Set initial values
     emailInput.value = playerEmail || '';
