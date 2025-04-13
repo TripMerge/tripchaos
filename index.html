@@ -534,6 +534,27 @@
         .game-title {
             font-family: 'Fredoka One', cursive;
         }
+
+        #email-input-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            display: none;
+        }
+        
+        #email-input {
+            width: 200px;
+            height: 40px;
+            padding: 5px 10px;
+            border: 2px solid #4B0082;
+            border-radius: 10px;
+            font-size: 20px;
+            font-family: 'Fredoka One', sans-serif;
+            background-color: #FFFFFF;
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
@@ -544,9 +565,13 @@
     </div>
     <div id="game-container">
         <div id="canvas-container">
+            <canvas></canvas>
+        </div>
+        <div id="email-input-container">
+            <input type="email" id="email-input" placeholder="Enter your email">
+        </div>
         <div id="loading">Loading...</div>
         <div id="error"></div>
-        </div>
         <div id="game-controls">
             <div class="control-group-left">
                 <button class="game-button jump-button" id="jumpBtn">↑</button>

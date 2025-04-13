@@ -4419,37 +4419,29 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    // Create a hidden input element for mobile keyboard
-    const input = document.createElement('input');
-    input.type = 'email';
+    const inputContainer = document.getElementById('email-input-container');
+    const input = document.getElementById('email-input');
+    
+    if (!input || !inputContainer) return null;
+    
+    // Set initial value
     input.value = value || '';
-    input.style.position = 'fixed';
-    input.style.top = '0';
-    input.style.left = '0';
-    input.style.width = '1px';
-    input.style.height = '1px';
-    input.style.opacity = '0';
-    input.style.pointerEvents = 'none';
-    input.style.zIndex = '-1';
+    
+    // Show the input container
+    inputContainer.style.display = 'block';
     
     // Add event listeners
-    input.addEventListener('input', (e) => {
+    input.oninput = (e) => {
         playerEmail = e.target.value;
-    });
+    };
     
-    input.addEventListener('blur', () => {
-        input.remove();
+    input.onblur = () => {
+        inputContainer.style.display = 'none';
         isEmailInputActive = false;
-    });
+    };
     
-    // Add to document and focus
-    document.body.appendChild(input);
-    
-    // Force keyboard to show on mobile
-    if (isMobileDevice()) {
-        input.focus();
-        input.click();
-    }
+    // Focus the input to show keyboard
+    input.focus();
     
     return input;
 }
