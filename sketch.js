@@ -4300,50 +4300,26 @@ function touchStarted() {
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
     // Remove any existing input
-    const existingInput = document.querySelector('.game-email-input');
+    const existingInput = document.querySelector('.mobile-email-input');
     if (existingInput) {
         existingInput.remove();
     }
 
-    // Create a container for the input
+    // Create container
     const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '100%';
-    container.style.height = '100%';
-    container.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-    container.style.zIndex = '9999';
-    container.style.display = 'flex';
-    container.style.justifyContent = 'center';
-    container.style.alignItems = 'center';
+    container.className = 'mobile-email-container';
 
     // Create input element
     const input = document.createElement('input');
     input.type = 'email';
     input.value = value || '';
-    input.className = 'game-email-input';
+    input.className = 'mobile-email-input';
     input.placeholder = 'Enter your email';
     input.autocomplete = 'email';
     input.inputmode = 'email';
     input.autocapitalize = 'none';
     input.autocorrect = 'off';
     input.spellcheck = 'false';
-    
-    // Style the input
-    input.style.width = isMobileDevice() ? '80%' : '300px';
-    input.style.height = '44px';
-    input.style.padding = '12px 15px';
-    input.style.fontSize = '16px';
-    input.style.border = '2px solid #3498db';
-    input.style.borderRadius = '8px';
-    input.style.backgroundColor = 'white';
-    input.style.color = 'black';
-    input.style.fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    input.style.boxSizing = 'border-box';
-    input.style.margin = '0';
-    input.style.WebkitAppearance = 'none';
-    input.style.appearance = 'none';
     
     // Add input to container
     container.appendChild(input);
@@ -4354,6 +4330,11 @@ function createEmailInput(value) {
     // Focus and show keyboard
     setTimeout(() => {
         input.focus();
+        // Force keyboard to appear on iOS
+        if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+            input.click();
+            input.focus();
+        }
     }, 100);
     
     // Handle input completion
