@@ -9,13 +9,6 @@ let satisfaction = 100;
 let timeLeft = 60;
 let greyAtmosphere = 0; // Track grey atmosphere effect (0 to 1)
 
-// Cloud slowdown effect variables
-let cloudSlowdownActive = false;
-let cloudSlowdownTimer = 0;
-let cloudSlowdownDuration = 180; // 3 seconds at 60fps
-let fadingGreyAtmosphere = false;
-let cloudSlowdownEndTime = 0; // When the cloud effect should end (in millis)
-
 // Font variables
 let fredokaOne;
 let fallbackFont = 'Arial';
@@ -125,6 +118,16 @@ let emailInputCursor = 0;
 let lastKeyPressed = 0;
 let cursorBlinkRate = 30; // Frames for cursor blink
 
+// Add these variables to the top of the file with other global variables
+let cloudSlowdownActive = false;
+let cloudSlowdownTimer = 0;
+let cloudSlowdownDuration = 180; // 3 seconds at 60fps
+let originalPlayerSpeed = 5; // Updated to match new default speed
+let fadingGreyAtmosphere = false;
+
+// Add this at the top with other global variables
+let cloudSlowdownEndTime = 0; // When the cloud effect should end (in millis)
+
 // Near the top with other global variables
 let showSharePopup = false; // Controls visibility of share popup
 let showPrivacyPolicy = false; // Controls visibility of privacy policy popup
@@ -149,15 +152,18 @@ function maskEmail(email) {
 let player = {
   x: 100,
   y: 300,
-  width: 45,
-  height: 75,
-  speed: PLAYER_NORMAL_SPEED,
-  jumpForce: PLAYER_NORMAL_JUMP_FORCE,
+  width: 45,  // Increased from 30
+  height: 75, // Increased from 50
+  speed: 5,
+  jumpForce: 15,
   velocityY: 1,
   isJumping: false,
   isColliding: false,
   worldX: 100,
-  facingRight: true
+  facingRight: true,
+  // Cloud effect properties
+  cloudEffectCounter: 0,
+  isSlowed: false
 };
 
 // Companion variables
@@ -545,7 +551,17 @@ function resetGame() {
     }
     
   // Reset player
-  resetPlayer();
+  player.worldX = 100;
+  player.x = 100;
+  player.y = 300;
+  player.velocityY = 1; // Reset to 1 as requested
+  player.isJumping = false;
+  player.isColliding = false;
+  player.facingRight = true;
+  player.speed = 5; // Reset to 5 as requested
+  player.jumpForce = 15; // Reset to 15 as requested
+  player.cloudEffectCounter = 0;
+  player.isSlowed = false;
   
   // Reset grey atmosphere
   cloudSlowdownEndTime = 0;
@@ -1168,14 +1184,30 @@ function updateGame() {
   // Update mishaps
   updateMishaps();
   
-  // Update player
-  updatePlayer();
+  // Handle cloud slowdown effect with explicit speed control
+  if (player.cloudEffectCounter > 0) {
+    // Make sure player is slowed only horizontally
+    if (!player.isSlowed) {
+        player.speed = 3.5; // Changed from 2.5 to 3.5 for less severe slowdown
+      player.isSlowed = true;
+      console.log("Player slowed: " + player.speed);
+    }
+    
+    player.cloudEffectCounter--;
+    
+    // When the effect ends
+    if (player.cloudEffectCounter <= 0) {
+      player.speed = 5; // Reset to normal speed (5)
+      player.isSlowed = false;
+      console.log("Player speed reset: " + player.speed);
+    }
+  }
   
   // Apply gravity to player - keep jump force constant regardless of cloud effect
   player.velocityY += 0.7;
   player.y += player.velocityY;
 
-  // Apply movement based on keyboard input
+  // Apply CONTROLLED movement based on keyboard input
   let moveSpeed = player.speed; // Use the current speed value
   
   if (keyIsDown(RIGHT_ARROW)) {
@@ -1200,7 +1232,8 @@ function updateGame() {
     }
   }
   if (keyIsDown(UP_ARROW) && !player.isJumping) {
-    handleJump();
+    player.velocityY = -player.jumpForce; // Always use full jump force
+    player.isJumping = true;
   }
   
   // Check platform collisions
@@ -1314,10 +1347,9 @@ function updateGame() {
       if (mishap.type === 'cloud') {
         satisfaction -= 10; // Reduced from 15
         // Set cloud effect
-        cloudSlowdownActive = true;
-        cloudSlowdownTimer = cloudSlowdownDuration;
         player.speed = 3.5; // Match the new speed
         player.isSlowed = true;
+        player.cloudEffectCounter = 120; // Changed from 180 to 120 (2 seconds instead of 3)
         greyAtmosphere = 1;
         effectNotifications.push({
           type: "Speed",
@@ -1389,9 +1421,8 @@ function updateGame() {
       score += 50; // Bonus for completing level
       
       // Reset any active cloud effects
-      cloudSlowdownActive = false;
-      cloudSlowdownTimer = 0;
-      player.speed = PLAYER_NORMAL_SPEED; // Reset to original speed
+      player.cloudEffectCounter = 0;
+      player.speed = 5; // Reset to normal speed (5)
       greyAtmosphere = 0;
       
       // Check if all three levels are completed
@@ -1531,7 +1562,7 @@ function drawPlayingScreen() {
   drawGameUI();
   
   // Apply fog effect if active (on top of everything)
-  if (cloudSlowdownActive) {
+  if (player.cloudEffectCounter > 0) {
     drawFogEffect();
   }
   
@@ -1544,9 +1575,7 @@ function drawPlayingScreen() {
   drawEffectNotifications();
   
   // Draw slowdown message if active
-  if (cloudSlowdownActive) {
-    drawSlowdownMessage();
-  }
+  drawSlowdownMessage();
 }
 
 // Helper function to draw background elements
@@ -1578,12 +1607,14 @@ function drawLevelEndMarker() {
 
 // Simple function to show message when slowed
 function drawSlowdownMessage() {
-  push();
-  textAlign(CENTER, CENTER);
-  textSize(24);
-  fill('#9370DB'); // Match the purple cloud color
-  text("SLOWED DOWN BECAUSE OF THE RAIN!", width/2, 50);
-  pop();
+  if (player.cloudEffectCounter > 0) {
+    push();
+    textAlign(CENTER, CENTER);
+    textSize(24);
+    fill('#9370DB'); // Match the purple cloud color
+    text("SLOWED DOWN BECAUSE OF THE RAIN!", width/2, 50);
+    pop();
+  }
 }
 
 // Draw beach theme
@@ -2575,14 +2606,12 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
-    // Handle privacy policy link click first
+    // Handle privacy policy link click
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
         const privacyLinkY = height * 0.9;
-        
-        // Make the click area larger for mobile
-        const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
-        const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
+        const clickAreaWidth = isMobileDevice() ? 300 : 100;
+        const clickAreaHeight = isMobileDevice() ? 50 : 15;
         
         if (touch.x >= width/2 - clickAreaWidth/2 && 
             touch.x <= width/2 + clickAreaWidth/2 && 
@@ -2592,29 +2621,28 @@ function touchStarted() {
             return false;
         }
     }
-
+    
     // Handle email input touch
-    if (gameState === 'gameOver' && isEmailInputActive) {
-        const input = document.querySelector('.game-email-input');
-        if (input) {
-            // Get the input's position and dimensions
-            const rect = input.getBoundingClientRect();
-            
-            // Check if touch is within the input area
-            if (touches[0].x >= rect.left && 
-                touches[0].x <= rect.right && 
-                touches[0].y >= rect.top && 
-                touches[0].y <= rect.bottom) {
-                // Focus the input and show keyboard
-                input.focus();
-                input.click();
-            return false;
+    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+        let touch = touches[0];
+        const emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
+        const emailBoxY = height * 0.55;
+        const emailBoxWidth = isMobileDevice() ? 300 : 400;
+        const emailBoxHeight = isMobileDevice() ? 54 : 44;
+        
+        if (touch.x >= emailBoxX && 
+            touch.x <= emailBoxX + emailBoxWidth && 
+            touch.y >= emailBoxY && 
+            touch.y <= emailBoxY + emailBoxHeight) {
+            if (!isEmailInputActive) {
+                isEmailInputActive = true;
+                createEmailInput(playerEmail);
+                return false;
             }
         }
     }
     
-    // Rest of the touch handling code...
-    // ... existing code ...
+    return true;
 }
 
 // Trigger a random decision
@@ -2766,73 +2794,38 @@ function drawMeter(label, value, x, y) {
 
 // Draw game over screen with improved readability
 function drawGameOverScreen() {
-  if (showLeaderboard) {
-    drawLeaderboardScreen();
-    return;
-  }
-
-    // Draw solid pink background
-    background('#FF69B4');
-    
-    // Draw stars
-    for (let i = 0; i < 20; i++) {
-        drawStar(random(width), random(height * 0.4), random(5, 15));
+    if (showLeaderboard) {
+        drawLeaderboardScreen();
+        return;
     }
 
-    // Draw palm trees at the bottom
-    drawPalmTree(width * 0.2, height * 0.85, 0.8);
-    drawPalmTree(width * 0.8, height * 0.85, 0.8);
-
-    // Ground with grid effect
-    push();
-    fill('#4B0082');  // Deep purple ground
-    noStroke();
-    rect(0, height * 0.85, width, height * 0.15);
+    // Draw background
+    background('#1a1a2e');
     
-    // Grid lines
-    stroke('#FF1493');  // Deep pink lines
-    strokeWeight(1);
-    for(let x = 0; x < width; x += 50) {
-        line(x, height * 0.85, x, height);
-    }
-    for(let y = height * 0.85; y < height; y += 25) {
-        line(0, y, width, y);
-    }
-    pop();
-
-    // Top Section: Game Info
-    let topY = height/8;
-    
-    // Game Over Title (centered)
+    // Draw title
+    let topY = height * 0.2;
     push();
     textFont('Fredoka One');
-    fill('#4B0082');
-    textStyle(BOLD);
+    fill('#FF69B4');
     textSize(isMobileDevice() ? 48 : 64);
     textAlign(CENTER, CENTER);
-    text("GAME OVER", width/2 + 4, topY + 4);
-    fill('#FFFFFF');
     text("GAME OVER", width/2, topY);
     pop();
 
-    // Score and Achievement (left side, with proper spacing)
+    // Draw score
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 20 : 24);
-    textAlign(LEFT, CENTER);
-    let scoreX = width * 0.1;
-    text("YOUR SCORE: " + score, scoreX, topY);
-    
-    let achievement = getAchievement(score);
-    textSize(isMobileDevice() ? 16 : 20);
-    text("🏆 " + achievement.title, scoreX, topY + 30);
+    textSize(isMobileDevice() ? 32 : 48);
+    textAlign(CENTER, CENTER);
+    text("Score: " + score, width/2, topY + 80);
     pop();
 
-    // Play Again button (right side, smaller)
-    let playAgainX = width * 0.85;
-    let playAgainWidth = isMobileDevice() ? 150 : 200;
-    let playAgainHeight = isMobileDevice() ? 50 : 60;
+    // Play Again button
+    let playAgainX = width/2;
+    let playAgainWidth = isMobileDevice() ? 200 : 300;
+    let playAgainHeight = isMobileDevice() ? 60 : 80;
+    
     let isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
                              mouseX <= playAgainX + playAgainWidth/2 && 
                              mouseY >= topY - playAgainHeight/2 && 
@@ -2867,21 +2860,21 @@ function drawGameOverScreen() {
         cursor(ARROW);
     }
 
-    // Leaderboard Section (centered below the top section)
-    let leaderboardY = topY + 150;
+    // Email input section
+    let emailY = topY + 200;
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
     textSize(isMobileDevice() ? 24 : 32);
     textAlign(CENTER, CENTER);
-    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
+    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, emailY);
     pop();
 
-    // Email Submission Form
+    // Email input box
     let emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
-    let emailBoxY = leaderboardY + 50;
+    let emailBoxY = emailY + 50;
     let emailBoxWidth = isMobileDevice() ? 300 : 400;
-    let emailBoxHeight = isMobileDevice() ? 40 : 50;
+    let emailBoxHeight = isMobileDevice() ? 54 : 44;
 
     // Draw email input box
     push();
@@ -2898,7 +2891,7 @@ function drawGameOverScreen() {
     text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
     pop();
 
-    // Check if email box is clicked
+    // Handle email input box click
     if ((mouseIsPressed || touches.length > 0) && 
         (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
         (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
@@ -2909,32 +2902,14 @@ function drawGameOverScreen() {
         
         // Show keyboard on mobile devices
         if (isMobileDevice()) {
-            // Create a temporary input to force keyboard
-            const tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
-            tempInput.style.opacity = '0';
-            tempInput.style.height = '0';
-            tempInput.style.width = '0';
-            document.body.appendChild(tempInput);
-            
-            // Focus the temporary input first
-            tempInput.focus();
-            
-            // Create the email input
-            const emailInput = createEmailInput(playerEmail);
-            
-            // Focus the email input after a delay
-            setTimeout(() => {
-                emailInput.focus();
-                tempInput.remove();
-            }, 100);
+            createEmailInput(playerEmail);
         }
     }
 
     // Privacy Policy Checkbox
     let privacyY = emailBoxY + emailBoxHeight + 20;
     let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - (isMobileDevice() ? 150 : 250); // Position checkbox to the left of text
+    let privacyX = width/2 - (isMobileDevice() ? 150 : 250);
     
     let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
                             (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
@@ -2964,9 +2939,9 @@ function drawGameOverScreen() {
     text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
     pop();
 
-    // Submit button (centered below the form)
+    // Submit button
     let submitBtnX = width/2;
-    let submitBtnY = privacyY + 100; // Moved further down
+    let submitBtnY = privacyY + 100;
     let submitBtnWidth = isMobileDevice() ? 150 : 200;
     let submitBtnHeight = isMobileDevice() ? 50 : 60;
     let isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 || (touches.length > 0 && touches[0].x >= submitBtnX - submitBtnWidth/2)) && 
@@ -3002,7 +2977,7 @@ function drawGameOverScreen() {
         drawPrivacyPolicyPopup();
     }
 
-    // Privacy Policy link - positioned at the bottom of the screen
+    // Privacy Policy link
     let gameOverPrivacyLinkY = height * 0.9;
     let isGameOverPrivacyLinkHovering = (mouseX >= width/2 - 100 || (touches.length > 0 && touches[0].x >= width/2 - 100)) && 
                                        (mouseX <= width/2 + 100 || (touches.length > 0 && touches[0].x <= width/2 + 100)) && 
@@ -3152,15 +3127,33 @@ function drawWinScreen() {
     // Draw email input box
     let emailBoxWidth = isMobileDevice() ? 250 : 300;
     let emailBoxHeight = isMobileDevice() ? 40 : 50;
+    let emailBoxX = width/2 - emailBoxWidth/2;
+    let emailBoxY = height * 0.55;
     
     fill(255);
     stroke(0);
     strokeWeight(2);
-    rect(width/2 - emailBoxWidth/2, height * 0.55, emailBoxWidth, emailBoxHeight, 10);
+    rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
     fill(0);
     textSize(isMobileDevice() ? 16 : 20);
     textAlign(LEFT, CENTER);
-    text(emailInput, width/2 - emailBoxWidth/2 + 10, height * 0.55 + emailBoxHeight/2);
+    let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
+    text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
+    
+    // Handle email input box click
+    if ((mouseIsPressed || touches.length > 0) && 
+        (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
+        (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
+        (mouseY >= emailBoxY || (touches.length > 0 && touches[0].y >= emailBoxY)) && 
+        (mouseY <= emailBoxY + emailBoxHeight || (touches.length > 0 && touches[0].y <= emailBoxY + emailBoxHeight))) {
+        isEmailInputActive = true;
+        mouseIsPressed = false;
+        
+        // Show keyboard on mobile devices
+        if (isMobileDevice()) {
+            createEmailInput(playerEmail);
+        }
+    }
     
     // Draw privacy policy checkbox
     let checkboxSize = isMobileDevice() ? 30 : 20;
@@ -3198,19 +3191,21 @@ function drawWinScreen() {
     // Draw submit button
     let submitWidth = isMobileDevice() ? 150 : 200;
     let submitHeight = isMobileDevice() ? 50 : 60;
-    let isSubmitHovering = (mouseX >= width/2 - submitWidth/2 || (touches.length > 0 && touches[0].x >= width/2 - submitWidth/2)) && 
-                          (mouseX <= width/2 + submitWidth/2 || (touches.length > 0 && touches[0].x <= width/2 + submitWidth/2)) && 
-                          (mouseY >= height * 0.7 || (touches.length > 0 && touches[0].y >= height * 0.7)) && 
-                          (mouseY <= height * 0.7 + submitHeight || (touches.length > 0 && touches[0].y <= height * 0.7 + submitHeight));
+    let submitX = width/2 - submitWidth/2;
+    let submitY = height * 0.7;
+    let isSubmitHovering = (mouseX >= submitX || (touches.length > 0 && touches[0].x >= submitX)) && 
+                          (mouseX <= submitX + submitWidth || (touches.length > 0 && touches[0].x <= submitX + submitWidth)) && 
+                          (mouseY >= submitY || (touches.length > 0 && touches[0].y >= submitY)) && 
+                          (mouseY <= submitY + submitHeight || (touches.length > 0 && touches[0].y <= submitY + submitHeight));
     
     fill(255);
     stroke(0);
     strokeWeight(4);
-    rect(width/2 - submitWidth/2, height * 0.7, submitWidth, submitHeight, 15);
+    rect(submitX, submitY, submitWidth, submitHeight, 15);
     fill(0);
     textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
-    text('SUBMIT', width/2, height * 0.7 + submitHeight/2);
+    text('SUBMIT', submitX + submitWidth/2, submitY + submitHeight/2);
 
     if (isSubmitHovering && (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) && privacyPolicyAccepted) {
         submitScoreToLeaderboard();
@@ -3222,7 +3217,7 @@ function drawWinScreen() {
         drawPrivacyPolicyPopup();
     }
 
-    // Privacy Policy link - positioned at the bottom of the screen
+    // Privacy Policy link
     let winPrivacyLinkY = height * 0.9;
     let isWinPrivacyLinkHovering = (mouseX >= width/2 - 100 || (touches.length > 0 && touches[0].x >= width/2 - 100)) && 
                                   (mouseX <= width/2 + 100 || (touches.length > 0 && touches[0].x <= width/2 + 100)) && 
@@ -3703,7 +3698,8 @@ function keyPressed() {
   // Original game key handling for UP_ARROW jump
   if (gameState === 'playing' && !showingDecision) {
     if (keyCode === UP_ARROW && !player.isJumping) {
-      handleJump();
+      player.velocityY = -player.jumpForce;
+      player.isJumping = true;
       return false;
     }
   }
@@ -3811,67 +3807,880 @@ function drawModernButton(x, y, w, h, label, isHovering) {
   drawingContext.shadowBlur = 0;
 }
 
-function resetPlayer() {
-  player = {
-    x: 100,
-    y: height - 100,
-    speed: PLAYER_NORMAL_SPEED,
-    jumpForce: PLAYER_NORMAL_JUMP_FORCE,
-    yVelocity: 0,
-    isJumping: false,
-    satisfaction: 100,
-    money: 100,
-    isMoving: false,
-    direction: 1,
-    animationFrame: 0,
-    frameCounter: 0,
-    lastJumpTime: 0
-  };
-}
-
-function updatePlayer() {
-  // Handle cloud slowdown effect
-  if (cloudSlowdownActive) {
-    cloudSlowdownTimer--;
-    if (cloudSlowdownTimer <= 0) {
-      cloudSlowdownActive = false;
-      player.speed = PLAYER_NORMAL_SPEED;
-      player.jumpForce = PLAYER_NORMAL_JUMP_FORCE;
-      showNotification("Cloud effect has worn off!", "#9370DB");
+// Update mishaps (including falling ones)
+function updateMishaps() {
+  // Update existing mishaps
+  for (let i = mishaps.length - 1; i >= 0; i--) {
+    let mishap = mishaps[i];
+    if (!mishap.isStatic) {
+      // Apply gravity to falling mishaps
+      mishap.velocityY += 0.2;
+      mishap.y += mishap.velocityY;
+      
+      // Remove mishap if it falls below screen or exists too long
+      if (mishap.y > height + 50 || millis() - mishap.creationTime > 10000) {
+        mishaps.splice(i, 1);
+      }
     }
   }
   
-  // Handle player movement
-  handlePlayerMovement();
-}
-
-function handleCloudMishap() {
-  cloudSlowdownActive = true;
-  cloudSlowdownTimer = cloudSlowdownDuration;
-  player.speed = PLAYER_SLOWED_SPEED;
-  player.jumpForce = PLAYER_SLOWED_JUMP_FORCE;
-  showNotification("You've been caught in a storm cloud!", "#9370DB");
-  decreaseSatisfaction(10);
-}
-
-function resetGameState() {
-  resetPlayer();
-  cloudSlowdownActive = false;
-  cloudSlowdownTimer = 0;
-  // ... existing code ...
-}
-
-// Game constants
-const PLAYER_NORMAL_SPEED = 5;
-const PLAYER_SLOWED_SPEED = 3.5;
-const PLAYER_NORMAL_JUMP_FORCE = 15;
-const PLAYER_SLOWED_JUMP_FORCE = 12;
-
-function handleJump() {
-  if (!player.isJumping) {
-    let jumpForce = player.jumpForce;
-    player.velocityY = -jumpForce;
-    player.isJumping = true;
-    player.lastJumpTime = millis();
+  // Scale spawn rate and max mishaps with level
+  let baseSpawnRate = 0.015; // Base spawn rate
+  let spawnRate = baseSpawnRate * (1 + (currentLevelNumber - 1) * 0.4); // Reduced scaling from 0.6 to 0.4
+  let maxMishaps = 2 + Math.floor((currentLevelNumber - 1) * 1.5); // Reduced from 2 to 1.5 multiplier
+  
+  // Spawn new falling mishaps with scaled frequency
+  if (!showingDecision && random() < spawnRate && mishaps.length < maxMishaps) {
+    // Calculate spawn position relative to player
+    let spawnX = player.worldX + random(-50, 250);
+    spawnX = constrain(spawnX, 100, levelLength - 100);
+    
+    // Determine mishap type based on level
+    let mishapType;
+    let typeRand = random();
+    
+    if (currentLevelNumber === 1) {
+        // Level 1: 30% clouds, 70% dollars (unchanged)
+        mishapType = typeRand < 0.3 ? 'cloud' : 'dollar';
+    } else if (currentLevelNumber === 2) {
+        // Level 2: 20% clouds (reduced from 30%), 45% dollars, 35% suitcases
+        if (typeRand < 0.2) mishapType = 'cloud';
+        else if (typeRand < 0.65) mishapType = 'dollar';
+      else mishapType = 'suitcase';
+    } else {
+        // Level 3: 10% clouds (reduced from 15%), 40% dollars, 50% suitcases
+        if (typeRand < 0.1) mishapType = 'cloud';
+        else if (typeRand < 0.5) mishapType = 'dollar';
+      else mishapType = 'suitcase';
+    }
+    
+    // Scale falling speed with level but cap it
+    let baseVelocity = 0.8 + Math.min(currentLevelNumber - 1, 2) * 0.3; // Reduced from 0.4, capped at level 3
+    
+    mishaps.push({
+      x: spawnX,
+      y: -50,  // Start above the screen
+      width: 20,
+      height: 20,
+      type: mishapType,
+      velocityY: baseVelocity,
+      gravity: 0.15, // Reduced from 0.2 to make falling slower
+      isStatic: false,
+      creationTime: millis()
+    });
   }
+  
+  // Handle active cloud slow effects
+  if (greyAtmosphere > 0) {
+    greyAtmosphere -= 0.02;
+    if (greyAtmosphere < 0) {
+      greyAtmosphere = 0;
+    }
+  }
+}
+
+// Mouse click handler
+function mouseClicked() {
+    if (gameState === 'start') {
+        // Check if play button is clicked
+        const playButtonX = width/2;
+        const playButtonY = height/2;
+        const playButtonWidth = 200;
+        const playButtonHeight = 50;
+        
+        if (mouseX > playButtonX - playButtonWidth/2 && 
+            mouseX < playButtonX + playButtonWidth/2 && 
+            mouseY > playButtonY - playButtonHeight/2 && 
+            mouseY < playButtonY + playButtonHeight/2) {
+            startGame();
+        }
+    } else if (gameState === 'gameOver' || gameState === 'win') {
+        // Check if leaderboard button is clicked
+        const leaderboardButtonX = width/2;
+        const leaderboardButtonY = height/2 + 100;
+        const leaderboardButtonWidth = 200;
+        const leaderboardButtonHeight = 50;
+        
+        if (mouseX > leaderboardButtonX - leaderboardButtonWidth/2 && 
+            mouseX < leaderboardButtonX + leaderboardButtonWidth/2 && 
+            mouseY > leaderboardButtonY - leaderboardButtonHeight/2 && 
+            mouseY < leaderboardButtonY + leaderboardButtonHeight/2) {
+            showLeaderboard = true;
+        }
+        
+        // Check if back button is clicked in leaderboard screen
+        if (showLeaderboard) {
+            const backButtonX = 50;
+            const backButtonY = 50;
+            const backButtonSize = 40;
+            
+            if (mouseX > backButtonX - backButtonSize/2 && 
+                mouseX < backButtonX + backButtonSize/2 && 
+                mouseY > backButtonY - backButtonSize/2 && 
+                mouseY < backButtonY + backButtonSize/2) {
+                showLeaderboard = false;
+                return;
+            }
+        }
+        
+        // Check if privacy policy link is clicked
+        const privacyLinkY = height * 0.9;
+        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
+            mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15) {
+            showPrivacyPolicy = true;
+            return;
+        }
+    }
+    
+    // Check if privacy policy close button is clicked
+    if (showPrivacyPolicy) {
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + popupWidth - closeButtonSize - 10;
+        const closeButtonY = popupY + 10;
+        
+        if (mouseX > closeButtonX && 
+            mouseX < closeButtonX + closeButtonSize && 
+            mouseY > closeButtonY && 
+            mouseY < closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+            return;
+        }
+        
+        // Check if accept button is clicked
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        if (mouseX > buttonX && 
+            mouseX < buttonX + buttonWidth && 
+            mouseY > buttonY && 
+            mouseY < buttonY + buttonHeight) {
+            showPrivacyPolicy = false;
+            privacyPolicyAccepted = true;
+            return;
+        }
+    }
+    
+    return true;
+}
+
+// Add keyTyped function to handle email input
+function keyTyped() {
+    if (isEmailInputActive) {
+        // Only add printable characters
+        if (key.length === 1 && key.charCodeAt(0) >= 32) {
+            playerEmail = playerEmail.substring(0, emailInputCursor) + key + playerEmail.substring(emailInputCursor);
+            emailInputCursor++;
+        }
+        return false; // Prevent default behavior
+    }
+    return true;
+}
+
+// Add touch support for mobile
+function touchStarted() {
+    // Check if we're in the game over state and showing the email input
+    if (gameState === 'gameOver' && isEmailInputActive) {
+        // Get the close button element
+        const closeBtn = document.querySelector('.game-email-input').parentElement.querySelector('button[type="button"]');
+        if (closeBtn) {
+            // Get the close button's position and dimensions
+            const rect = closeBtn.getBoundingClientRect();
+            
+            // Check if the touch is within the close button's area
+            if (touches[0].x >= rect.left && touches[0].x <= rect.right &&
+                touches[0].y >= rect.top && touches[0].y <= rect.bottom) {
+                // Remove the email input form
+                const form = closeBtn.closest('form');
+                if (form) {
+                    form.remove();
+                    isEmailInputActive = false;
+                }
+                return false;
+            }
+        }
+    }
+    
+    // Handle privacy policy link click first
+    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+        let touch = touches[0];
+        const privacyLinkY = height * 0.9;
+        
+        // Make the click area larger for mobile
+        const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
+        const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
+        
+        // Debug log for touch position
+        console.log('Touch position:', touch.x, touch.y);
+        console.log('Privacy link area:', width/2 - clickAreaWidth/2, width/2 + clickAreaWidth/2, 
+                   privacyLinkY - clickAreaHeight/2, privacyLinkY + clickAreaHeight/2);
+        
+        if (touch.x >= width/2 - clickAreaWidth/2 && 
+            touch.x <= width/2 + clickAreaWidth/2 && 
+            touch.y >= privacyLinkY - clickAreaHeight/2 && 
+            touch.y <= privacyLinkY + clickAreaHeight/2) {
+            console.log('Privacy policy link clicked');
+            showPrivacyPolicy = true;
+            return false;
+        }
+    }
+
+    // Handle privacy policy popup
+    if (showPrivacyPolicy && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Debug log for close button area
+        console.log('Close button area:', closeButtonX, closeButtonX + closeButtonSize, 
+                   closeButtonY, closeButtonY + closeButtonSize);
+        
+        // Check close button
+        if (touch.x >= closeButtonX && 
+            touch.x <= closeButtonX + closeButtonSize && 
+            touch.y >= closeButtonY && 
+            touch.y <= closeButtonY + closeButtonSize) {
+            console.log('Close button clicked');
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // Accept button dimensions
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        // Check accept button
+        if (touch.x >= buttonX && 
+            touch.x <= buttonX + buttonWidth && 
+            touch.y >= buttonY && 
+            touch.y <= buttonY + buttonHeight) {
+            console.log('Accept button clicked');
+            showPrivacyPolicy = false;
+            privacyPolicyAccepted = true;
+            return false;
+        }
+        
+        return false; // Prevent other touch events when popup is open
+    }
+    
+    // Calculate the game viewport offset
+    let gameWidth = 1000 * window.gameScale;
+    let gameHeight = 600 * window.gameScale;
+    let offsetX = (width - gameWidth) / 2;
+    let offsetY = (height - gameHeight) / 2;
+    
+    // Handle decision UI touches
+    if (showingDecision && currentDecision && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Check each option's bounds
+        for (let i = 0; i < currentDecision.options.length; i++) {
+            let bounds = currentDecision.options[i].buttonBounds;
+            if (bounds && 
+                touch.x >= bounds.x && touch.x <= bounds.x + bounds.width &&
+                touch.y >= bounds.y && touch.y <= bounds.y + bounds.height) {
+                makeDecision(i);
+                return false;
+            }
+        }
+    }
+    
+    // Handle start screen touches
+    if (gameState === 'start') {
+        if (startScreenStep === 1) {
+            // Next button dimensions
+            let nextBtnX = width/2 - (150 * window.gameScale);
+            let nextBtnY = height - (120 * window.gameScale);
+            let nextBtnW = 300 * window.gameScale;
+            let nextBtnH = 60 * window.gameScale;
+            
+            // Check if Next button was touched
+            if (touches.length > 0) {
+                let touch = touches[0];
+                if (touch.x >= nextBtnX && touch.x <= nextBtnX + nextBtnW &&
+                    touch.y >= nextBtnY && touch.y <= nextBtnY + nextBtnH) {
+                    startScreenStep = 2;
+                    return false;
+                }
+            }
+        } else {
+            // Back button dimensions
+            let backBtnX = width/4 - (100 * window.gameScale);
+            let backBtnY = height - (120 * window.gameScale);
+            let backBtnW = 200 * window.gameScale;
+            let backBtnH = 60 * window.gameScale;
+            
+            // Start button dimensions
+            let startBtnX = width * 3/4 - (100 * window.gameScale);
+            let startBtnY = height - (120 * window.gameScale);
+            let startBtnW = 200 * window.gameScale;
+            let startBtnH = 60 * window.gameScale;
+            
+            if (touches.length > 0) {
+                let touch = touches[0];
+                
+                // Check if Back button was touched
+                if (touch.x >= backBtnX && touch.x <= backBtnX + backBtnW &&
+                    touch.y >= backBtnY && touch.y <= backBtnY + backBtnH) {
+                    startScreenStep = 1;
+                    return false;
+                }
+                
+                // Check if Start button was touched
+                if (touch.x >= startBtnX && touch.x <= startBtnX + startBtnW &&
+                    touch.y >= startBtnY && touch.y <= startBtnY + startBtnH) {
+                    // Reset game state and start playing
+                    resetGame();
+      gameState = 'playing';
+      window.gameState = 'playing';
+                    currentLevelNumber = 1;
+                    if (window.currentLevelNumber !== undefined) {
+                        window.currentLevelNumber = 1;
+                    }
+      return false;
+    }
+
+                // Check if email input was touched
+    let emailBoxX = width/2 - 200;
+                let emailBoxY = height/4 + 280 + 60;
+    let emailBoxWidth = 400;
+                let emailBoxHeight = 40;
+    
+                if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+                    touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+      isEmailInputActive = true;
+                    // Show keyboard on mobile devices
+                    if (isMobileDevice()) {
+                        const tempInput = createEmailInput(playerEmail);
+                        tempInput.style.top = '50%';
+                        tempInput.style.left = '50%';
+                        tempInput.style.transform = 'translate(-50%, -50%)';
+                        tempInput.style.width = '300px';
+                        tempInput.style.height = '40px';
+                        tempInput.style.zIndex = '9999';
+                        tempInput.style.pointerEvents = 'auto';
+                        tempInput.focus();
+                    }
+        return false;
+                }
+            }
+        }
+    }
+
+    // Handle game over state
+    if (gameState === 'gameOver' && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Play Again button dimensions
+        let playAgainX = width/2 - (150 * window.gameScale);
+        let playAgainY = height/6 + 80;
+        let playAgainW = 300 * window.gameScale;
+        let playAgainH = 60 * window.gameScale;
+        
+        // Check if Play Again button was touched
+        if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
+            touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
+            startGame();
+        return false;
+      }
+      
+        // Email input box touch handling
+    let emailBoxX = width/2 - 200;
+        let emailBoxY = playAgainY + 500;
+    let emailBoxWidth = 400;
+        let emailBoxHeight = 50;
+    
+        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+      isEmailInputActive = true;
+            // Show keyboard on mobile devices
+            if (isMobileDevice()) {
+                const tempInput = createEmailInput(playerEmail);
+                tempInput.style.top = '50%';
+                tempInput.style.left = '50%';
+                tempInput.style.transform = 'translate(-50%, -50%)';
+                tempInput.style.width = '300px';
+                tempInput.style.height = '40px';
+                tempInput.style.zIndex = '9999';
+                tempInput.style.pointerEvents = 'auto';
+                tempInput.focus();
+            }
+      return false;
+        }
+    }
+    
+    // Handle decision state
+    if (showingDecision && currentDecision && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Box dimensions and position - match with drawDecisionUI
+        let boxWidth = isMobileDevice() ? width * 0.95 : 700;
+        let boxHeight = isMobileDevice() ? height * 0.7 : 400;
+        let boxX = width/2 - boxWidth/2;
+        let boxY = isMobileDevice() ? height * 0.15 : height/2 - boxHeight/2;
+        
+        // Options
+        let optionSpacing = isMobileDevice() ? 60 : 55;
+        let optionStartY = boxY + 160;
+        let buttonWidth = isMobileDevice() ? boxWidth * 0.9 : boxWidth * 0.8;
+        let buttonX = width/2 - buttonWidth/2;
+        
+        // Check each option button
+    for (let i = 0; i < currentDecision.options.length; i++) {
+            let y = optionStartY + i * optionSpacing;
+      
+            if (touch.x >= buttonX && touch.x <= buttonX + buttonWidth && 
+                touch.y >= y && touch.y <= y + 40) {
+        makeDecision(i);
+      return false;
+            }
+        }
+    }
+    
+    return false;  // Prevent default touch behavior
+}
+
+// Modified function to create a more browser-friendly email input
+function createEmailInput(value) {
+    // Remove any existing input elements
+    const existingInputs = document.querySelectorAll('.game-email-input');
+    existingInputs.forEach(input => input.remove());
+    
+    // Create the input element
+    const input = document.createElement('input');
+    input.setAttribute('type', 'email');
+    input.setAttribute('inputmode', 'email');
+    input.setAttribute('autocapitalize', 'none');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('spellcheck', 'false');
+    input.setAttribute('autocomplete', 'email');
+    input.setAttribute('placeholder', 'Enter your email');
+    input.setAttribute('enterkeyhint', 'done');
+    input.classList.add('game-email-input');
+    input.value = value || '';
+    
+    // Position the input where the email box is drawn
+    const emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
+    const emailBoxY = height * 0.55;
+    
+    // Apply styles for better mobile UX
+    input.style.position = 'absolute';
+    input.style.left = emailBoxX + 'px';
+    input.style.top = emailBoxY + 'px';
+    input.style.width = (isMobileDevice() ? 300 : 400) + 'px';
+    input.style.height = (isMobileDevice() ? 54 : 44) + 'px';
+    input.style.fontSize = (isMobileDevice() ? 18 : 16) + 'px';
+    input.style.padding = '12px 16px';
+    input.style.boxSizing = 'border-box';
+    input.style.border = '2px solid #3498db';
+    input.style.borderRadius = '12px';
+    input.style.backgroundColor = '#ffffff';
+    input.style.color = '#333333';
+    input.style.WebkitAppearance = 'none';
+    input.style.appearance = 'none';
+    input.style.webkitTapHighlightColor = 'transparent';
+    input.style.touchAction = 'manipulation';
+    input.style.webkitUserSelect = 'text';
+    input.style.userSelect = 'text';
+    input.style.zIndex = '9999';
+    input.style.transform = 'translate(-50%, 0)';
+    
+    // Add input event listener
+    input.addEventListener('input', (e) => {
+        e.stopPropagation();
+        playerEmail = e.target.value;
+    });
+    
+    // Add keydown event listener
+    input.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (validateEmail(input.value)) {
+                playerEmail = input.value;
+                input.remove();
+                isEmailInputActive = false;
+                submitScoreToLeaderboard();
+            }
+        }
+    });
+    
+    // Add blur event listener to handle clicking outside
+    input.addEventListener('blur', () => {
+        if (validateEmail(input.value)) {
+            playerEmail = input.value;
+            input.remove();
+            isEmailInputActive = false;
+            submitScoreToLeaderboard();
+        } else {
+            input.remove();
+            isEmailInputActive = false;
+        }
+    });
+    
+    document.body.appendChild(input);
+    
+    // Focus and show keyboard
+    if (isMobileDevice()) {
+        setTimeout(() => {
+            input.focus();
+            input.click();
+        }, 100);
+    } else {
+        input.focus();
+    }
+    
+    return input;
+}
+
+// Function to draw the share popup modal
+function drawSharePopup() {
+  // Semi-transparent background overlay
+  fill(0, 0, 0, 150);
+  rect(0, 0, width, height);
+  
+  // Popup container
+  const popupWidth = 450;
+  const popupHeight = 350;
+  const popupX = width/2 - popupWidth/2;
+  const popupY = height/2 - popupHeight/2;
+  
+  // Popup background
+  fill(255);
+  stroke(highlightTextColor);
+  strokeWeight(3);
+  rect(popupX, popupY, popupWidth, popupHeight, 15);
+  
+  // Popup header
+  fill(highlightTextColor);
+  noStroke();
+  rect(popupX, popupY, popupWidth, 50, 15, 15, 0, 0);
+  
+  // Title
+  fill(255);
+  textAlign(CENTER);
+  textSize(bodyFontSize + 2);
+  textStyle(BOLD);
+  text("Share Your Score", width/2, popupY + 32);
+  
+  // Close button
+  const closeX = popupX + popupWidth - 30;
+  const closeY = popupY + 25;
+  const closeButtonSize = 30;
+  const isCloseHovering = mouseX >= closeX - closeButtonSize/2 && mouseX <= closeX + closeButtonSize/2 &&
+                          mouseY >= closeY - closeButtonSize/2 && mouseY <= closeY + closeButtonSize/2;
+  
+  stroke(255);
+  strokeWeight(isCloseHovering ? 3 : 2);
+  line(closeX - 10, closeY - 10, closeX + 10, closeY + 10);
+  line(closeX + 10, closeY - 10, closeX - 10, closeY + 10);
+  
+  if (isCloseHovering) {
+    cursor(HAND);
+  }
+  
+  // Score preview
+  noStroke();
+  fill(primaryTextColor);
+    textSize(smallFontSize);
+  textStyle(NORMAL);
+  textAlign(CENTER);
+  
+  const achievement = getAchievement(score);
+  let previewText = `Score: ${score} • Achievement: ${achievement.title}\n` +
+                   `Level ${currentLevelNumber} with ${Math.round(satisfaction)}% satisfaction!`;
+  
+  // Draw a preview of the score text that will be shared
+  fill('#f5f7f8');
+  rect(popupX + 25, popupY + 70, popupWidth - 50, 60, 10);
+  
+  fill(primaryTextColor);
+  text(previewText, width/2, popupY + 100);
+  
+  // Share options
+  textAlign(CENTER);
+  textStyle(BOLD);
+  fill(primaryTextColor);
+  text("Choose a platform:", width/2, popupY + 160);
+  
+  // Platform buttons - smaller circular buttons with just icons
+  const buttonSpacing = 70;
+  const buttonY = popupY + 210;
+  const buttonSize = 60;
+  
+  // Twitter button
+  drawCircularShareButton("🐦", "#1DA1F2", width/2 - buttonSpacing * 1.5, buttonY, buttonSize);
+  
+  // Facebook button
+  drawCircularShareButton("📘", "#4267B2", width/2 - buttonSpacing * 0.5, buttonY, buttonSize);
+  
+  // LinkedIn button
+  drawCircularShareButton("📊", "#0077B5", width/2 + buttonSpacing * 0.5, buttonY, buttonSize);
+  
+  // Copy button
+  drawCircularShareButton("📋", "#333333", width/2 + buttonSpacing * 1.5, buttonY, buttonSize);
+  
+  // Platform labels
+  fill(primaryTextColor);
+  textSize(smallFontSize - 2);
+  textStyle(NORMAL);
+  text("Twitter", width/2 - buttonSpacing * 1.5, buttonY + buttonSize/2 + 25);
+  text("Facebook", width/2 - buttonSpacing * 0.5, buttonY + buttonSize/2 + 25);
+  text("LinkedIn", width/2 + buttonSpacing * 0.5, buttonY + buttonSize/2 + 25);
+  text("Copy", width/2 + buttonSpacing * 1.5, buttonY + buttonSize/2 + 25);
+  
+  // Or click anywhere outside to close (hint text)
+  text("or click outside to close", width/2, popupY + popupHeight - 15);
+}
+
+// Function to draw circular share buttons
+function drawCircularShareButton(icon, color, x, y, size) {
+    // Check if mouse is hovering over the button
+    let isHovering = dist(mouseX, mouseY, x, y) <= size/2;
+    
+    // Draw button background
+    push();
+    noStroke();
+    fill(isHovering ? colorShift(color) : color);
+    circle(x, y, size);
+    
+    // Draw icon
+    fill('#FFFFFF');
+    textAlign(CENTER, CENTER);
+    textFont('Fredoka One');
+    textSize(size * 0.5);
+    text(icon, x, y);
+    pop();
+    
+    // Change cursor on hover
+    if (isHovering) {
+        cursor(HAND);
+    }
+}
+
+// Helper function to slightly shift a color for hover effect
+function colorShift(hexColor) {
+  // Simple implementation - darken by 15%
+  let r = parseInt(hexColor.substr(1, 2), 16);
+  let g = parseInt(hexColor.substr(3, 2), 16);
+  let b = parseInt(hexColor.substr(5, 2), 16);
+  
+  r = Math.max(0, Math.floor(r * 0.85));
+  g = Math.max(0, Math.floor(g * 0.85));
+  b = Math.max(0, Math.floor(b * 0.85));
+  
+  return '#' + 
+    (r < 16 ? '0' : '') + r.toString(16) +
+    (g < 16 ? '0' : '') + g.toString(16) +
+    (b < 16 ? '0' : '') + b.toString(16);
+}
+
+// Add new function to draw privacy policy popup
+// Function to draw the privacy policy popup
+// Add new function to draw privacy policy popup
+// Function to draw the privacy policy popup
+function drawPrivacyPolicyPopup() {
+    if (!showPrivacyPolicy) return;
+    
+    // Create semi-transparent overlay
+    push();
+    fill(0, 0, 0, 200);
+    noStroke();
+    rect(0, 0, width, height);
+    pop();
+    
+    // Calculate popup dimensions based on device type
+    const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+    const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+    const popupX = (width - popupWidth) / 2;
+    const popupY = (height - popupHeight) / 2;
+    
+    // Draw popup background with shadow
+    push();
+    fill(255);
+    stroke(0);
+    strokeWeight(2);
+    rect(popupX, popupY, popupWidth, popupHeight, 20);
+    pop();
+    
+    // Draw close button in left corner
+    const closeButtonSize = isMobileDevice() ? 44 : 30;
+    const closeButtonX = popupX + 10;
+    const closeButtonY = popupY + 10;
+    
+    // Draw close button background
+    push();
+    fill('#FF1493');
+    noStroke();
+    rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
+    pop();
+    
+    // Draw close button text
+    push();
+    fill(255);
+    textSize(isMobileDevice() ? 24 : 20);
+    textAlign(CENTER, CENTER);
+    text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
+    pop();
+    
+    // Draw title
+    push();
+    fill(0);
+    textSize(isMobileDevice() ? 24 : 20);
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    text("Privacy Policy", popupX + popupWidth/2, popupY + 40);
+    pop();
+    
+    // Draw content
+    push();
+    textSize(isMobileDevice() ? 16 : 14);
+    textStyle(NORMAL);
+    textAlign(LEFT, TOP);
+    const margin = isMobileDevice() ? 20 : 30;
+    const contentWidth = popupWidth - (margin * 2);
+    const contentX = popupX + margin;
+    const contentY = popupY + 80;
+    
+    // Privacy policy text
+    const policyText = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
+    
+    // Draw text with word wrapping
+    text(policyText, contentX, contentY, contentWidth);
+    pop();
+    
+    // Draw accept button
+    const buttonWidth = isMobileDevice() ? 200 : 150;
+    const buttonHeight = isMobileDevice() ? 60 : 50;
+    const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+    const buttonY = popupY + popupHeight - buttonHeight - 30;
+    
+    // Button background
+    push();
+    fill('#FF1493');
+    noStroke();
+    rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
+    pop();
+    
+    // Button text
+    push();
+    fill(255);
+    textSize(isMobileDevice() ? 20 : 18);
+    textAlign(CENTER, CENTER);
+    text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
+    pop();
+}
+
+function mousePressed() {
+    if (showPrivacyPolicy) {
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Check if close button was clicked
+        if (mouseX > closeButtonX && mouseX < closeButtonX + closeButtonSize &&
+            mouseY > closeButtonY && mouseY < closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+        }
+    }
+    // ... rest of the mousePressed function ...
+}
+
+// ... existing code ...
+
+function drawEffectNotifications() {
+    for (let i = effectNotifications.length - 1; i >= 0; i--) {
+        let notification = effectNotifications[i];
+        
+        // Update position
+        notification.y -= NOTIFICATION_RISE_SPEED;
+        notification.duration--;
+        
+        // Draw notification
+        push();
+        textAlign(CENTER);
+        textSize(20);
+        
+        // Fade out near the end
+        let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
+        
+        if (notification.value > 0) {
+            fill(50, 205, 50, alpha); // Green for positive
+            text("+" + notification.value + " " + notification.type, notification.x, notification.y);
+        } else {
+            fill(255, 50, 50, alpha); // Red for negative
+            text(notification.value + " " + notification.type, notification.x, notification.y);
+        }
+        pop();
+        
+        // Remove expired notifications
+        if (notification.duration <= 0) {
+            effectNotifications.splice(i, 1);
+        }
+    }
+}
+
+// ... existing code ...
+
+function drawFogEffect() {
+    push();
+    // Create multiple layers of fog with different opacities and movement
+    for (let i = 0; i < 3; i++) {
+        let fogOpacity = map(i, 0, 2, 40, 20); // Increased base opacity
+        let yOffset = sin(frameCount * 0.02 + i) * 10;
+        
+        // Main fog layer
+        noStroke();
+        fill(147, 112, 219, fogOpacity); // Purple fog with varying opacity
+        rect(0, yOffset, width, height);
+        
+        // Add some darker patches for depth
+        fill(75, 0, 130, fogOpacity * 0.5); // Darker purple patches
+        for (let j = 0; j < 5; j++) {
+            let x = ((frameCount * (i + 1) + j * 200) % width) - 100;
+            let y = (height * j / 5) + yOffset;
+            ellipse(x, y, 200, 100);
+        }
+    }
+    
+    // Add lightning flash effect occasionally
+    if (frameCount % 60 < 2) { // Flash every ~1 second
+        noStroke();
+        fill(255, 255, 255, 30);
+        rect(0, 0, width, height);
+    }
+    
+    // Add rain effect
+    stroke(147, 112, 219, 100);
+    strokeWeight(2);
+    for (let i = 0; i < 50; i++) {
+        let x = ((frameCount * 5 + i * 20) % width);
+        let y = ((frameCount * 15 + i * 30) % height);
+        line(x, y, x + 5, y + 15);
+    }
+    pop();
 }
