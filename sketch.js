@@ -1999,7 +1999,7 @@ function drawStars() {
 }
 
 function drawStar(x, y, size) {
-    push();
+  push();
     fill(255);
     noStroke();
     beginShape();
@@ -2014,7 +2014,7 @@ function drawStar(x, y, size) {
         vertex(px, py);
     }
     endShape(CLOSE);
-    pop();
+  pop();
 }
 
 function drawMoon() {
@@ -2615,30 +2615,65 @@ function touchStarted() {
         const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
         const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
         
+        // Debug log for touch position
+        console.log('Touch position:', touch.x, touch.y);
+        console.log('Privacy link area:', width/2 - clickAreaWidth/2, width/2 + clickAreaWidth/2, 
+                   privacyLinkY - clickAreaHeight/2, privacyLinkY + clickAreaHeight/2);
+        
         if (touch.x >= width/2 - clickAreaWidth/2 && 
             touch.x <= width/2 + clickAreaWidth/2 && 
             touch.y >= privacyLinkY - clickAreaHeight/2 && 
             touch.y <= privacyLinkY + clickAreaHeight/2) {
+            console.log('Privacy policy link clicked');
             showPrivacyPolicy = true;
             return false;
         }
     }
     
-    // Handle email input touch
-    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+    // Handle privacy policy popup
+    if (showPrivacyPolicy && touches.length > 0) {
         let touch = touches[0];
         
-        // Email input box dimensions
-        let emailBoxX = width/2 - 200;
-        let emailBoxY = height/4 + 280 + 60;
-        let emailBoxWidth = 400;
-        let emailBoxHeight = 50;
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
         
-        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Debug log for close button area
+        console.log('Close button area:', closeButtonX, closeButtonY, closeButtonSize);
+        
+        // Check if close button is clicked
+        if (touch.x >= closeButtonX && 
+            touch.x <= closeButtonX + closeButtonSize && 
+            touch.y >= closeButtonY && 
+            touch.y <= closeButtonY + closeButtonSize) {
+            console.log('Close button clicked');
+            showPrivacyPolicy = false;
+            return false;
+        }
+    }
+    
+    // Handle email input box touch
+    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+        let touch = touches[0];
+        const emailBoxX = width/2 - 200;
+        const emailBoxY = height/8 + 200; // Adjust this value based on your layout
+        const emailBoxWidth = 400;
+        const emailBoxHeight = 50;
+        
+        if (touch.x >= emailBoxX && 
+            touch.x <= emailBoxX + emailBoxWidth && 
+            touch.y >= emailBoxY && 
+            touch.y <= emailBoxY + emailBoxHeight) {
             isEmailInputActive = true;
             
-            // Create a simple input element
+            // Create a hidden input element for mobile keyboard
             const input = document.createElement('input');
             input.type = 'email';
             input.value = playerEmail || '';
@@ -2674,8 +2709,7 @@ function touchStarted() {
         }
     }
     
-    // Rest of the touch handling code...
-    // ... existing code ...
+    return true;
 }
 
 // Trigger a random decision
@@ -2995,6 +3029,101 @@ function drawGameOverScreen() {
             input.click();
         }
     }
+
+    // Privacy Policy Checkbox
+    let privacyY = emailBoxY + emailBoxHeight + 20;
+    let checkboxSize = 20;
+    let privacyX = width/2 - 250; // Position checkbox to the left of text
+    
+    let isCheckboxHovering = mouseX >= privacyX && 
+                            mouseX <= privacyX + checkboxSize && 
+                            mouseY >= privacyY - checkboxSize/2 && 
+                            mouseY <= privacyY + checkboxSize/2;
+    
+    push();
+    strokeWeight(2);
+    stroke('#4B0082');
+    fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
+    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
+    
+    if (isCheckboxHovering) {
+        cursor(HAND);
+        if (mouseIsPressed) {
+            privacyPolicyAccepted = !privacyPolicyAccepted;
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+    
+    fill('#FFFFFF');
+    textSize(16);
+    textAlign(LEFT, CENTER);
+    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
+    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
+    pop();
+
+    // Submit button (centered below the form)
+    let submitBtnX = width/2;
+    let submitBtnY = privacyY + 100; // Moved further down
+    let submitBtnWidth = 200;
+    let submitBtnHeight = 60;
+    let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
+                             mouseX <= submitBtnX + submitBtnWidth/2 && 
+                             mouseY >= submitBtnY - submitBtnHeight/2 && 
+                             mouseY <= submitBtnY + submitBtnHeight/2;
+    
+    push();
+    strokeWeight(4);
+    stroke('#4B0082');
+    fill(isSubmitBtnHovering ? '#32CD32' : '#FF69B4');
+    rect(submitBtnX - submitBtnWidth/2, submitBtnY - submitBtnHeight/2, submitBtnWidth, submitBtnHeight, 15);
+    
+    textFont('Fredoka One');
+    fill('#FFFFFF');
+    textSize(30);
+    textAlign(CENTER, CENTER);
+    text("SUBMIT", submitBtnX, submitBtnY);
+    pop();
+
+    if (isSubmitBtnHovering) {
+        cursor(HAND);
+        if (mouseIsPressed && privacyPolicyAccepted) {
+            submitScoreToLeaderboard();
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+
+    // Privacy Policy link - positioned at the bottom of the screen
+    let gameOverPrivacyLinkY = height * 0.9;
+    let isGameOverPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
+                                       mouseY >= gameOverPrivacyLinkY - 15 && mouseY <= gameOverPrivacyLinkY + 15;
+    
+    push();
+    textFont('Fredoka One');
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
+    textStyle(NORMAL);
+    text("Privacy Policy", width/2, gameOverPrivacyLinkY);
+    pop();
+    
+    if (isGameOverPrivacyLinkHovering) {
+        cursor(HAND);
+        if (mouseIsPressed) {
+            showPrivacyPolicy = true;
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+    
+    // Draw privacy policy popup if active
+    if (showPrivacyPolicy) {
+        drawPrivacyPolicyPopup();
+    }
 }
 
 function drawWinScreen() {
@@ -3003,7 +3132,7 @@ function drawWinScreen() {
     
     // Draw ground with grid effect
     fill('#FFD1DC');
-  noStroke();
+    noStroke();
     rect(0, height * 0.7, width, height * 0.3);
     
     // Draw grid lines on ground
@@ -3023,99 +3152,205 @@ function drawWinScreen() {
     // Draw stars
     drawStars();
     
-    // Draw title
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(60);
+    // Top Section: Game Info
+    let topY = height/8;
+    
+    // Win Title (centered)
+    push();
     textFont('Fredoka One');
-    text('YOU WON!', width/2, height * 0.2);
-    
-    // Draw score in a bubble container
-    fill(255, 200);
-    noStroke();
-    ellipse(width * 0.15, height * 0.3, 200, 100);
-    fill(0);
-    textSize(30);
+    fill('#4B0082');
+    textStyle(BOLD);
+    textSize(64);
     textAlign(CENTER, CENTER);
-    text('Score: ' + score, width * 0.15, height * 0.3);
-    
-    // Draw play again button
-    fill(255);
-    stroke(0);
-    strokeWeight(4);
-    rect(width * 0.85, height * 0.3, 200, 60, 15);
-    fill(0);
-    textSize(30);
-    textAlign(CENTER, CENTER);
-    text('PLAY AGAIN', width * 0.85 + 100, height * 0.3 + 30);
-    
-    // Draw social share buttons
-    const socialY = height * 0.4;
-    const socialSpacing = 60;
-    
-    // Twitter
-    fill(255);
-    ellipse(width * 0.4, socialY, 50, 50);
-    fill(0);
-    textSize(30);
-    text('🐦', width * 0.4, socialY);
-    
-    // Facebook
-    fill(255);
-    ellipse(width * 0.5, socialY, 50, 50);
-    fill(0);
-    text('📘', width * 0.5, socialY);
-    
-    // WhatsApp
-    fill(255);
-    ellipse(width * 0.6, socialY, 50, 50);
-    fill(0);
-    text('💬', width * 0.6, socialY);
-    
-    // Draw leaderboard section
-    fill(255);
+    text("YOU WIN!", width/2 + 4, topY + 4);
+    fill('#FFFFFF');
+    text("YOU WIN!", width/2, topY);
+    pop();
+
+    // Score and Achievement (left side, with proper spacing)
+    push();
+    textFont('Fredoka One');
+    fill('#FFFFFF');
     textSize(24);
-    textAlign(CENTER, CENTER);
-    text('JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES', width/2, height * 0.5);
+    textAlign(LEFT, CENTER);
+    let scoreX = width * 0.1;
+    text("YOUR SCORE: " + score, scoreX, topY);
     
+    let achievement = getAchievement(score);
+    textSize(20);
+    text("🏆 " + achievement.title, scoreX, topY + 30);
+    pop();
+
+    // Play Again button (right side, smaller)
+    let playAgainX = width * 0.85;
+    let playAgainWidth = 200;
+    let playAgainHeight = 60;
+    let isPlayAgainHovering = mouseX >= playAgainX - playAgainWidth/2 && 
+                             mouseX <= playAgainX + playAgainWidth/2 && 
+                             mouseY >= topY - playAgainHeight/2 && 
+                             mouseY <= topY + playAgainHeight/2;
+    
+    push();
+    strokeWeight(4);
+    stroke('#4B0082');
+    fill(isPlayAgainHovering ? '#32CD32' : '#FF69B4');
+    rect(playAgainX - playAgainWidth/2, topY - playAgainHeight/2, playAgainWidth, playAgainHeight, 15);
+    
+    textFont('Fredoka One');
+    fill('#FFFFFF');
+    textSize(30);
+    textAlign(CENTER, CENTER);
+    text("PLAY AGAIN", playAgainX, topY);
+    pop();
+
+    if (isPlayAgainHovering) {
+        cursor(HAND);
+        if (mouseIsPressed) {
+            resetGame();
+            startGame();
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+
+    // Leaderboard Section (centered below the top section)
+    let leaderboardY = topY + 150;
+    push();
+    textFont('Fredoka One');
+    fill('#FFFFFF');
+    textSize(32);
+    textAlign(CENTER, CENTER);
+    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
+    pop();
+
+    // Email Submission Form
+    let emailBoxX = width/2 - 200;
+    let emailBoxY = leaderboardY + 50;
+    let emailBoxWidth = 400;
+    let emailBoxHeight = 50;
+
     // Draw email input box
-    fill(255);
-    stroke(0);
+    push();
     strokeWeight(2);
-    rect(width/2 - 150, height * 0.55, 300, 50, 10);
-    fill(0);
+    stroke('#4B0082');
+    fill('#FFFFFF');
+    rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
+    
+    // Draw email input text
+    fill('#000000');
     textSize(20);
     textAlign(LEFT, CENTER);
-    text(emailInput, width/2 - 140, height * 0.55 + 25);
-    
-    // Draw privacy policy checkbox
-    fill(255);
-    stroke(0);
-    strokeWeight(2);
-    rect(width/2 - 150, height * 0.62, 20, 20);
-    if (privacyAccepted) {
-        fill(0);
-        textSize(20);
-        text('✓', width/2 - 145, height * 0.62 + 15);
+    let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
+    text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
+    pop();
+
+    // Check if email box is clicked
+    if (mouseIsPressed && 
+        mouseX >= emailBoxX && 
+        mouseX <= emailBoxX + emailBoxWidth && 
+        mouseY >= emailBoxY && 
+        mouseY <= emailBoxY + emailBoxHeight) {
+        isEmailInputActive = true;
+        mouseIsPressed = false;
+        
+        // Create a hidden input element for mobile keyboard
+        const input = document.createElement('input');
+        input.type = 'email';
+        input.value = playerEmail || '';
+        input.style.position = 'fixed';
+        input.style.top = '0';
+        input.style.left = '0';
+        input.style.width = '1px';
+        input.style.height = '1px';
+        input.style.opacity = '0';
+        input.style.pointerEvents = 'none';
+        input.style.zIndex = '-1';
+        
+        // Add event listeners
+        input.addEventListener('input', (e) => {
+            playerEmail = e.target.value;
+        });
+        
+        input.addEventListener('blur', () => {
+            input.remove();
+            isEmailInputActive = false;
+        });
+        
+        // Add to document and focus
+        document.body.appendChild(input);
+        
+        // Force keyboard to show on mobile
+        if (isMobileDevice()) {
+            input.focus();
+            input.click();
+        }
     }
-    fill(0);
+
+    // Privacy Policy Checkbox
+    let privacyY = emailBoxY + emailBoxHeight + 20;
+    let checkboxSize = 20;
+    let privacyX = width/2 - 250; // Position checkbox to the left of text
+    
+    let isCheckboxHovering = mouseX >= privacyX && 
+                            mouseX <= privacyX + checkboxSize && 
+                            mouseY >= privacyY - checkboxSize/2 && 
+                            mouseY <= privacyY + checkboxSize/2;
+    
+    push();
+    strokeWeight(2);
+    stroke('#4B0082');
+    fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
+    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
+    
+    if (isCheckboxHovering) {
+        cursor(HAND);
+        if (mouseIsPressed) {
+            privacyPolicyAccepted = !privacyPolicyAccepted;
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+    
+    fill('#FFFFFF');
     textSize(16);
     textAlign(LEFT, CENTER);
-    text('I accept the privacy policy', width/2 - 120, height * 0.62 + 10);
+    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
+    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
+    pop();
+
+    // Submit button (centered below the form)
+    let submitBtnX = width/2;
+    let submitBtnY = privacyY + 100; // Moved further down
+    let submitBtnWidth = 200;
+    let submitBtnHeight = 60;
+    let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
+                             mouseX <= submitBtnX + submitBtnWidth/2 && 
+                             mouseY >= submitBtnY - submitBtnHeight/2 && 
+                             mouseY <= submitBtnY + submitBtnHeight/2;
     
-    // Draw submit button
-    fill(255);
-    stroke(0);
+    push();
     strokeWeight(4);
-    rect(width/2 - 100, height * 0.7, 200, 60, 15);
-    fill(0);
+    stroke('#4B0082');
+    fill(isSubmitBtnHovering ? '#32CD32' : '#FF69B4');
+    rect(submitBtnX - submitBtnWidth/2, submitBtnY - submitBtnHeight/2, submitBtnWidth, submitBtnHeight, 15);
+    
+    textFont('Fredoka One');
+    fill('#FFFFFF');
     textSize(30);
     textAlign(CENTER, CENTER);
-    text('SUBMIT', width/2, height * 0.7 + 30);
+    text("SUBMIT", submitBtnX, submitBtnY);
+    pop();
 
-    // Draw privacy policy popup if active
-    if (showPrivacyPolicy) {
-        drawPrivacyPolicyPopup();
+    if (isSubmitBtnHovering) {
+        cursor(HAND);
+        if (mouseIsPressed && privacyPolicyAccepted) {
+            submitScoreToLeaderboard();
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
     }
 
     // Privacy Policy link - positioned at the bottom of the screen
@@ -3134,6 +3369,17 @@ function drawWinScreen() {
     
     if (isWinPrivacyLinkHovering) {
         cursor(HAND);
+        if (mouseIsPressed) {
+            showPrivacyPolicy = true;
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
+    
+    // Draw privacy policy popup if active
+    if (showPrivacyPolicy) {
+        drawPrivacyPolicyPopup();
     }
 }
 
@@ -3175,7 +3421,7 @@ function drawLeaderboardScreen() {
     // Back button in upper left corner
     let backBtnX = 50;
     let backBtnY = 50;
-    let isBackHovering = mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
+  let isBackHovering = mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
                         mouseY >= backBtnY - 20 && mouseY <= backBtnY + 20;
   
     // Draw back button with same style as start game button
@@ -3186,13 +3432,13 @@ function drawLeaderboardScreen() {
     fill(isBackHovering ? '#FF1493' : '#FF69B4');
     textStyle(BOLD);
     textSize(30);
-    text("BACK", backBtnX, backBtnY);
+  text("BACK", backBtnX, backBtnY);
     pop();
     
     // Leaderboard Title with shadow effect - moved higher up and adjusted spacing
     push();
     textFont('Fredoka One');
-    noStroke();
+  noStroke();
     fill('#4B0082');
     textStyle(BOLD);
     textSize(64);
@@ -3213,7 +3459,7 @@ function drawLeaderboardScreen() {
     fill('#4B0082');
     textSize(16);  // Reduced header text size
     textStyle(BOLD);
-    textAlign(CENTER);
+  textAlign(CENTER);
     
     // Header positions - adjusted for compact layout
     let rankX = tableX + 30;
@@ -3232,13 +3478,13 @@ function drawLeaderboardScreen() {
         
         // Draw row background
         fill(i % 2 === 0 ? '#FFFFFF' : '#FFD1DC');
-        noStroke();
+  noStroke();
         rect(tableX, y, tableWidth, rowHeight);
         
         // Draw rank
         fill('#4B0082');
         textSize(14);  // Reduced text size
-        textStyle(NORMAL);
+    textStyle(NORMAL);
         textAlign(CENTER);
         text(i + 1, rankX, y + rowHeight/2 + 4);
         
@@ -3780,7 +4026,7 @@ function updateMishaps() {
 
 // Mouse click handler
 function mouseClicked() {
-    if (gameState === 'start') {
+  if (gameState === 'start') {
         // Check if play button is clicked
         const playButtonX = width/2;
         const playButtonY = height/2;
@@ -3792,8 +4038,8 @@ function mouseClicked() {
             mouseY > playButtonY - playButtonHeight/2 && 
             mouseY < playButtonY + playButtonHeight/2) {
             startGame();
-        }
-    } else if (gameState === 'gameOver' || gameState === 'win') {
+    }
+  } else if (gameState === 'gameOver' || gameState === 'win') {
         // Check if leaderboard button is clicked
         const leaderboardButtonX = width/2;
         const leaderboardButtonY = height/2 + 100;
@@ -3808,7 +4054,7 @@ function mouseClicked() {
         }
         
         // Check if back button is clicked in leaderboard screen
-        if (showLeaderboard) {
+    if (showLeaderboard) {
             const backButtonX = 50;
             const backButtonY = 50;
             const backButtonSize = 40;
@@ -3817,7 +4063,7 @@ function mouseClicked() {
                 mouseX < backButtonX + backButtonSize/2 && 
                 mouseY > backButtonY - backButtonSize/2 && 
                 mouseY < backButtonY + backButtonSize/2) {
-                showLeaderboard = false;
+        showLeaderboard = false;
                 return;
             }
         }
@@ -3903,7 +4149,7 @@ function touchStarted() {
                     form.remove();
                     isEmailInputActive = false;
                 }
-                return false;
+        return false;
             }
         }
     }
@@ -3928,7 +4174,7 @@ function touchStarted() {
             touch.y <= privacyLinkY + clickAreaHeight/2) {
             console.log('Privacy policy link clicked');
             showPrivacyPolicy = true;
-            return false;
+        return false;
         }
     }
 
@@ -3948,8 +4194,7 @@ function touchStarted() {
         const closeButtonY = popupY + 10;
         
         // Debug log for close button area
-        console.log('Close button area:', closeButtonX, closeButtonX + closeButtonSize, 
-                   closeButtonY, closeButtonY + closeButtonSize);
+        console.log('Close button area:', closeButtonX, closeButtonY, closeButtonSize);
         
         // Check close button
         if (touch.x >= closeButtonX && 
@@ -3958,9 +4203,9 @@ function touchStarted() {
             touch.y <= closeButtonY + closeButtonSize) {
             console.log('Close button clicked');
             showPrivacyPolicy = false;
-            return false;
-        }
-        
+      return false;
+    }
+  
         // Accept button dimensions
         const buttonWidth = isMobileDevice() ? 200 : 150;
         const buttonHeight = isMobileDevice() ? 60 : 50;
@@ -3975,9 +4220,9 @@ function touchStarted() {
             console.log('Accept button clicked');
             showPrivacyPolicy = false;
             privacyPolicyAccepted = true;
-            return false;
-        }
-        
+      return false;
+    }
+
         return false; // Prevent other touch events when popup is open
     }
     
@@ -4079,7 +4324,7 @@ function touchStarted() {
                         tempInput.style.pointerEvents = 'auto';
                         tempInput.focus();
                     }
-        return false;
+      return false;
                 }
             }
         }
@@ -4099,8 +4344,8 @@ function touchStarted() {
         if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
             touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
             startGame();
-        return false;
-      }
+      return false;
+    }
       
         // Email input box touch handling
     let emailBoxX = width/2 - 200;
@@ -4160,11 +4405,7 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    // Remove any existing input elements
-    const existingInputs = document.querySelectorAll('.game-email-input');
-    existingInputs.forEach(input => input.remove());
-    
-    // Create a simple input element
+    // Create a hidden input element for mobile keyboard
     const input = document.createElement('input');
     input.type = 'email';
     input.value = value || '';
@@ -4435,7 +4676,7 @@ function drawPrivacyPolicyPopup() {
     textAlign(CENTER, CENTER);
     text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
     pop();
-}
+  }
 
 function mousePressed() {
     if (showPrivacyPolicy) {
@@ -4462,35 +4703,35 @@ function mousePressed() {
 // ... existing code ...
 
 function drawEffectNotifications() {
-    for (let i = effectNotifications.length - 1; i >= 0; i--) {
-        let notification = effectNotifications[i];
-        
-        // Update position
-        notification.y -= NOTIFICATION_RISE_SPEED;
-        notification.duration--;
-        
-        // Draw notification
-        push();
-        textAlign(CENTER);
-        textSize(20);
-        
-        // Fade out near the end
-        let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
-        
-        if (notification.value > 0) {
-            fill(50, 205, 50, alpha); // Green for positive
-            text("+" + notification.value + " " + notification.type, notification.x, notification.y);
-        } else {
-            fill(255, 50, 50, alpha); // Red for negative
-            text(notification.value + " " + notification.type, notification.x, notification.y);
-        }
-        pop();
-        
-        // Remove expired notifications
-        if (notification.duration <= 0) {
-            effectNotifications.splice(i, 1);
-        }
+  for (let i = effectNotifications.length - 1; i >= 0; i--) {
+    let notification = effectNotifications[i];
+    
+    // Update position
+    notification.y -= NOTIFICATION_RISE_SPEED;
+    notification.duration--;
+    
+    // Draw notification
+    push();
+    textAlign(CENTER);
+    textSize(20);
+    
+    // Fade out near the end
+    let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
+    
+    if (notification.value > 0) {
+      fill(50, 205, 50, alpha); // Green for positive
+      text("+" + notification.value + " " + notification.type, notification.x, notification.y);
+    } else {
+      fill(255, 50, 50, alpha); // Red for negative
+      text(notification.value + " " + notification.type, notification.x, notification.y);
     }
+    pop();
+    
+    // Remove expired notifications
+    if (notification.duration <= 0) {
+      effectNotifications.splice(i, 1);
+    }
+  }
 }
 
 // ... existing code ...
