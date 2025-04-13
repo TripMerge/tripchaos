@@ -66,6 +66,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            visibility: visible;
+            opacity: 1;
         }
         
         #canvas-container {
@@ -76,6 +78,8 @@
             justify-content: center;
             align-items: center;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            visibility: visible;
+            opacity: 1;
         }
         
         canvas {
@@ -90,6 +94,8 @@
             aspect-ratio: 16/9;
             object-fit: contain;
             display: block;
+            visibility: visible;
+            opacity: 1;
         }
         
         #game-controls {
@@ -603,6 +609,18 @@
                 }
             }
         }
+
+        /* Add loading state styles */
+        #game-container.loading {
+            visibility: hidden;
+            opacity: 0;
+        }
+
+        #game-container.loaded {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -633,6 +651,28 @@
 
     <!-- Game script -->
     <script>
+        // Set initial loading state
+        document.getElementById('game-container').classList.add('loading');
+        
+        // Wait for window load and p5.js initialization
+        window.addEventListener('load', function() {
+            // Wait until sketch.js has fully loaded and initialized
+            setTimeout(function() {
+                const gameContainer = document.getElementById('game-container');
+                gameContainer.classList.remove('loading');
+                gameContainer.classList.add('loaded');
+                
+                if (typeof player !== 'undefined') {
+                    // Make sure player object is accessible globally
+                    window.player = player;
+                    window.gameState = gameState;
+                    window.showingDecision = showingDecision;
+                    
+                    console.log("Game controls initialized");
+                }
+            }, 100);
+        });
+
         // Mobile control state
         let controlState = {
             left: false,
@@ -688,21 +728,6 @@
 
         // Start the player movement loop
         requestAnimationFrame(updatePlayerMovement);
-
-        // Also make the window player object directly accessible to ensure we can reference it
-        window.addEventListener('load', function() {
-            // Wait until sketch.js has fully loaded and initialized
-            setTimeout(function() {
-                if (typeof player !== 'undefined') {
-                    // Make sure player object is accessible globally
-                    window.player = player;
-                    window.gameState = gameState;
-                    window.showingDecision = showingDecision;
-                    
-                    console.log("Game controls initialized");
-                }
-            }, 1000);
-        });
 
         // Prevent default touch behavior to avoid scrolling
         document.addEventListener('touchmove', (e) => {
