@@ -537,9 +537,9 @@
 
         #email-input-container {
             position: fixed;
-            top: 50%;
+            top: 20%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, 0);
             z-index: 1000;
             display: none;
             width: 100%;
@@ -591,9 +591,16 @@
                 max-width: 90%;
                 padding: 15px;
                 position: fixed;
-                top: 50%;
+                top: 20%;
                 left: 50%;
-                transform: translate(-50%, -50%);
+                transform: translate(-50%, 0);
+            }
+            
+            /* Adjust position when keyboard is visible */
+            @media (max-height: 500px) {
+                #email-input-container {
+                    top: 10%;
+                }
             }
         }
     </style>
