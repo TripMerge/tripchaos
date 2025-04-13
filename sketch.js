@@ -4345,15 +4345,15 @@ function createEmailInput(value) {
     
     // Apply styles for better mobile UX
     input.style.width = '100%';
-    input.style.height = isMobileDevice() ? '54px' : '44px';
-    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    input.style.height = isMobileDevice() ? '44px' : '44px';
+    input.style.fontSize = isMobileDevice() ? '16px' : '16px';
+    input.style.padding = isMobileDevice() ? '12px 16px' : '12px 16px';
     input.style.boxSizing = 'border-box';
     input.style.border = '2px solid #3498db';
     input.style.borderRadius = '12px';
     input.style.backgroundColor = '#ffffff';
-    input.style.color = '#000000'; // Changed to black
-    input.style.marginBottom = '20px';
+    input.style.color = '#000000';
+    input.style.marginBottom = '15px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
     input.style.webkitTapHighlightColor = 'transparent';
@@ -4363,9 +4363,9 @@ function createEmailInput(value) {
     submitButton.type = 'submit';
     submitButton.textContent = 'Submit';
     submitButton.style.width = '100%';
-    submitButton.style.height = isMobileDevice() ? '54px' : '44px';
-    submitButton.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    submitButton.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    submitButton.style.height = isMobileDevice() ? '44px' : '44px';
+    submitButton.style.fontSize = isMobileDevice() ? '16px' : '16px';
+    submitButton.style.padding = isMobileDevice() ? '12px 16px' : '12px 16px';
     submitButton.style.backgroundColor = '#3498db';
     submitButton.style.color = 'white';
     submitButton.style.border = 'none';
@@ -4428,8 +4428,10 @@ function createEmailInput(value) {
     form.appendChild(container);
     document.body.appendChild(form);
     
-    // Focus the input
-    input.focus();
+    // Focus the input and show keyboard
+    setTimeout(() => {
+        input.focus();
+    }, 100);
     
     return input;
 }
