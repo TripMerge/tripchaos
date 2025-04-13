@@ -2625,22 +2625,78 @@ function touchStarted() {
     }
     
     // Handle email input touch
-    if (gameState === 'gameOver' && isEmailInputActive) {
-        const input = document.querySelector('.game-email-input');
-        if (input) {
-            // Get the input's position and dimensions
-            const rect = input.getBoundingClientRect();
+    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Email input box dimensions
+        let emailBoxX = width/2 - 200;
+        let emailBoxY = height/4 + 280 + 60;
+        let emailBoxWidth = 400;
+        let emailBoxHeight = 50;
+        
+        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+            isEmailInputActive = true;
             
-            // Check if touch is within the input area
-            if (touches[0].x >= rect.left && 
-                touches[0].x <= rect.right && 
-                touches[0].y >= rect.top && 
-                touches[0].y <= rect.bottom) {
-                // Focus the input and show keyboard
-                input.focus();
-                input.click();
-                return false;
+            // Create and focus the email input
+            const input = document.createElement('input');
+            input.type = 'email';
+            input.value = playerEmail || '';
+            input.style.position = 'fixed';
+            input.style.top = '50%';
+            input.style.left = '50%';
+            input.style.transform = 'translate(-50%, -50%)';
+            input.style.width = '300px';
+            input.style.height = '40px';
+            input.style.zIndex = '9999';
+            input.style.fontSize = '16px';
+            input.style.padding = '10px';
+            input.style.border = '2px solid #3498db';
+            input.style.borderRadius = '8px';
+            input.style.backgroundColor = '#ffffff';
+            input.style.color = '#333333';
+            input.style.webkitAppearance = 'none';
+            input.style.appearance = 'none';
+            input.style.webkitTapHighlightColor = 'transparent';
+            input.style.touchAction = 'manipulation';
+            input.style.webkitUserSelect = 'text';
+            input.style.userSelect = 'text';
+            
+            // Add event listeners
+            input.addEventListener('input', (e) => {
+                playerEmail = e.target.value;
+            });
+            
+            input.addEventListener('blur', () => {
+                input.remove();
+                isEmailInputActive = false;
+            });
+            
+            // Add to document and focus
+            document.body.appendChild(input);
+            input.focus();
+            
+            // Force keyboard to show on mobile
+            if (isMobileDevice()) {
+                // Create a temporary input to force keyboard
+                const tempInput = document.createElement('input');
+                tempInput.style.position = 'fixed';
+                tempInput.style.opacity = '0';
+                tempInput.style.pointerEvents = 'none';
+                document.body.appendChild(tempInput);
+                
+                // Focus temporary input first
+                tempInput.focus();
+                
+                // Then focus the actual input
+                setTimeout(() => {
+                    tempInput.remove();
+                    input.focus();
+                    input.click();
+                }, 100);
             }
+            
+            return false;
         }
     }
     
@@ -3950,8 +4006,10 @@ function touchStarted() {
             const rect = closeBtn.getBoundingClientRect();
             
             // Check if the touch is within the close button's area
-            if (touches[0].x >= rect.left && touches[0].x <= rect.right &&
-                touches[0].y >= rect.top && touches[0].y <= rect.bottom) {
+            if (touches[0].x >= rect.left && 
+                touches[0].x <= rect.right && 
+                touches[0].y >= rect.top && 
+                touches[0].y <= rect.bottom) {
                 // Remove the email input form
                 const form = closeBtn.closest('form');
                 if (form) {
