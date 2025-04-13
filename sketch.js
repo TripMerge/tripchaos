@@ -3060,7 +3060,15 @@ function showMobileEmailForm() {
 
     // Show the form
     form.style.display = 'flex';
-    form.classList.add('active');
+    form.style.zIndex = '1000';
+    form.style.position = 'fixed';
+    form.style.top = '0';
+    form.style.left = '0';
+    form.style.width = '100%';
+    form.style.height = '100%';
+    form.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    form.style.justifyContent = 'center';
+    form.style.alignItems = 'center';
     
     // Set initial values
     emailInput.value = playerEmail || '';
@@ -3083,7 +3091,6 @@ function showMobileEmailForm() {
             playerEmail = emailInput.value;
             privacyPolicyAccepted = true;
             form.style.display = 'none';
-            form.classList.remove('active');
             submitScoreToLeaderboard();
         }
     };
@@ -3093,7 +3100,6 @@ function showMobileEmailForm() {
         e.preventDefault();
         showPrivacyPolicy = true;
         form.style.display = 'none';
-        form.classList.remove('active');
     };
 
     // Handle privacy checkbox changes
@@ -3105,7 +3111,6 @@ function showMobileEmailForm() {
     form.addEventListener('click', (e) => {
         if (e.target === form) {
             form.style.display = 'none';
-            form.classList.remove('active');
         }
     });
 
@@ -3116,7 +3121,6 @@ function showMobileEmailForm() {
             playerEmail = emailInput.value;
             privacyPolicyAccepted = true;
             form.style.display = 'none';
-            form.classList.remove('active');
             submitScoreToLeaderboard();
         }
     });
