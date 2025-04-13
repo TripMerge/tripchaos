@@ -4320,83 +4320,53 @@ function touchStarted() {
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
     // Remove any existing input
-    const existingForm = document.querySelector('.mobile-email-form');
-    if (existingForm) {
-        existingForm.remove();
+    const existingInput = document.querySelector('.game-email-input');
+    if (existingInput) {
+        existingInput.remove();
     }
-
-    // Create form container
-    const form = document.createElement('div');
-    form.className = 'mobile-email-form';
 
     // Create input element
     const input = document.createElement('input');
     input.type = 'email';
     input.value = value || '';
-    input.className = 'mobile-email-input';
+    input.className = 'game-email-input';
     input.placeholder = 'Enter your email';
     input.autocomplete = 'email';
     input.inputmode = 'email';
     input.autocapitalize = 'none';
     input.autocorrect = 'off';
-    input.spellcheck = 'false';
+    input.spellcheck = false;
     
-    // Add input to form
-    form.appendChild(input);
-    
-    // Add form to document
-    document.body.appendChild(form);
+    // Add event listeners
+    input.addEventListener('blur', () => {
+        if (input.value) {
+            playerEmail = input.value;
+            if (validateEmail(playerEmail)) {
+                submitScoreToLeaderboard();
+            }
+        }
+        input.remove();
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            playerEmail = input.value;
+            if (validateEmail(playerEmail)) {
+                submitScoreToLeaderboard();
+            }
+            input.remove();
+        }
+    });
+
+    // Add to document
+    document.body.appendChild(input);
     
     // Focus and show keyboard
     setTimeout(() => {
         input.focus();
-        // Force keyboard to appear on iOS
-        if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-            input.click();
-            input.focus();
-            // Additional iOS fix
-            input.setAttribute('autofocus', '');
-        }
+        input.click();
     }, 100);
-    
-    // Handle input completion
-    input.addEventListener('blur', () => {
-        const email = input.value.trim();
-        if (email && validateEmail(email)) {
-            playerEmail = email;
-            isEmailInputActive = false;
-            form.remove();
-            submitScoreToLeaderboard();
-        } else {
-            form.remove();
-            isEmailInputActive = false;
-        }
-    });
-    
-    // Handle enter key
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            const email = input.value.trim();
-            if (email && validateEmail(email)) {
-                playerEmail = email;
-                isEmailInputActive = false;
-                form.remove();
-                submitScoreToLeaderboard();
-            }
-        } else if (e.key === 'Escape') {
-            form.remove();
-            isEmailInputActive = false;
-        }
-    });
 
-    // Handle form click to close
-    form.addEventListener('click', (e) => {
-        if (e.target === form) {
-            form.remove();
-            isEmailInputActive = false;
-        }
-    });
-    
     return input;
 }
 
