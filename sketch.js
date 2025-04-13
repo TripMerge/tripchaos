@@ -758,6 +758,10 @@ function draw() {
 
 // Draw the start screen with improved layout
 function drawStartScreen() {
+    // Reset email input state when returning to start screen
+    isEmailInputActive = false;
+    playerEmail = '';
+    
     // Background
     background('#FF69B4');
     
