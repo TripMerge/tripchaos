@@ -491,29 +491,41 @@ let decisions = [
 
 // Setup function
 function setup() {
-    // Create canvas with fixed dimensions
-    let canvas = createCanvas(1000, 600);
-    canvas.parent('game-container');
+    // Create canvas with proper scaling for mobile
+    let canvasWidth = isMobileDevice() ? window.innerWidth : 1920;
+    let canvasHeight = isMobileDevice() ? window.innerHeight : 1080;
     
-    // Set initial scale
-    window.gameScale = 1;
+    // Create canvas with proper dimensions
+    let canvas = createCanvas(canvasWidth, canvasHeight);
+    canvas.parent('canvas-container');
     
-    // Initialize level length
-    levelLength = 3000;
+    // Set up game scale for mobile
+    if (isMobileDevice()) {
+        window.gameScale = min(canvasWidth / 1000, canvasHeight / 600);
+    } else {
+        window.gameScale = 1;
+    }
     
-    // Set initial game state
+    // Set up game state
     gameState = 'start';
-    window.gameState = 'start';
-  
-  // Initialize game objects and settings
-  resetGame();
-  
-  // Add window resize handler
-  window.addEventListener('resize', windowResized);
+    currentLevelNumber = 1;
+    score = 0;
+    budget = 100;
+    satisfaction = 100;
+    timeLeft = 100;
+    playerEmail = '';
+    privacyPolicyAccepted = false;
+    showPrivacyPolicy = false;
+    isEmailInputActive = false;
     
-    // Debug log
-    console.log('Canvas created:', canvas);
-    console.log('Game state:', gameState);
+    // Initialize game elements
+    initializeGameElements();
+    
+    // Set up game controls
+    setupGameControls();
+    
+    // Set up game loop
+    frameRate(60);
 }
 
 // Handle window resize events
@@ -699,60 +711,37 @@ function generateLevel() {
   
 // Main draw function
 function draw() {
-    // Reset cursor to default at the start of each frame
-    cursor(ARROW);
-
-    // Draw appropriate screen based on game state
-    if (gameState === 'start') {
-        drawStartScreen();
-    } else if (gameState === 'playing') {
-        if (!showingDecision) {
-            updateGame();
-        }
-        drawPlayingScreen();
-    } else if (gameState === 'gameOver') {
-        drawGameOverScreen();
-    } else if (gameState === 'win') {
-        drawWinScreen();
+    // Clear the background
+    background(0);
+    
+    // Handle different game states
+    switch(gameState) {
+        case 'start':
+            drawStartScreen();
+            break;
+        case 'playing':
+            // Apply proper scaling for mobile
+            if (isMobileDevice()) {
+                push();
+                scale(window.gameScale);
+                translate((width/window.gameScale - 1000)/2, (height/window.gameScale - 600)/2);
+                drawGame();
+                pop();
+            } else {
+                drawGame();
+            }
+            break;
+        case 'gameOver':
+            drawGameOverScreen();
+            break;
+        case 'win':
+            drawWinScreen();
+            break;
     }
-
-    // Draw leaderboard if active
-    if (showLeaderboard) {
-        drawLeaderboardScreen();
-    }
-
-    // Draw privacy policy popup if active (this should be drawn last to appear on top)
+    
+    // Draw privacy policy popup if needed
     if (showPrivacyPolicy) {
-        // Draw semi-transparent overlay to darken the background
-        push();
-        fill(0, 0, 0, 200);
-        noStroke();
-        rect(0, 0, width, height);
-        pop();
-        
-        // Draw the popup
         drawPrivacyPolicyPopup();
-    }
-
-    // Only show hover effects when privacy policy is not open
-    if (!showPrivacyPolicy && (gameState === 'gameOver' || gameState === 'win')) {
-        let restartButtonX = width/2;
-        let restartButtonY = height/2 + 100;
-        let buttonWidth = 200;
-        let buttonHeight = 60;
-        
-        if (mouseX > restartButtonX - buttonWidth/2 && 
-            mouseX < restartButtonX + buttonWidth/2 && 
-            mouseY > restartButtonY - buttonHeight/2 && 
-            mouseY < restartButtonY + buttonHeight/2) {
-            cursor(HAND);
-        }
-
-        let privacyLinkY = height * 0.9;
-        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-            mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15) {
-            cursor(HAND);
-        }
     }
 }
 
