@@ -2965,7 +2965,7 @@ function drawGameOverScreen() {
 
     // Privacy Policy Checkbox
     let privacyY = emailBoxY + emailBoxHeight + 20;
-    let checkboxSize = 20;
+    let checkboxSize = isMobileDevice() ? 30 : 20;
     let privacyX = width/2 - 250; // Position checkbox to the left of text
     
     let isCheckboxHovering = mouseX >= privacyX && 
@@ -2990,7 +2990,7 @@ function drawGameOverScreen() {
     }
     
     fill('#FFFFFF');
-    textSize(16);
+    textSize(isMobileDevice() ? 20 : 16);
     textAlign(LEFT, CENTER);
     text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
     text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
@@ -3029,7 +3029,6 @@ function drawGameOverScreen() {
         cursor(ARROW);
     }
 
-    
     // Draw privacy policy popup if active
     if (showPrivacyPolicy) {
         drawPrivacyPolicyPopup();
@@ -3042,7 +3041,7 @@ function drawGameOverScreen() {
     
     push();
     textFont('Fredoka One');
-    textSize(16);
+    textSize(isMobileDevice() ? 20 : 16);
     textAlign(CENTER, CENTER);
     fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
     textStyle(NORMAL);
@@ -3146,19 +3145,37 @@ function drawWinScreen() {
     text(emailInput, width/2 - 140, height * 0.55 + 25);
     
     // Draw privacy policy checkbox
-    fill(255);
-    stroke(0);
+    let checkboxSize = isMobileDevice() ? 30 : 20;
+    let privacyX = width/2 - 150;
+    let privacyY = height * 0.62;
+    
+    let isCheckboxHovering = mouseX >= privacyX && 
+                            mouseX <= privacyX + checkboxSize && 
+                            mouseY >= privacyY - checkboxSize/2 && 
+                            mouseY <= privacyY + checkboxSize/2;
+    
+    push();
     strokeWeight(2);
-    rect(width/2 - 150, height * 0.62, 20, 20);
-    if (privacyAccepted) {
-        fill(0);
-        textSize(20);
-        text('✓', width/2 - 145, height * 0.62 + 15);
+    stroke('#4B0082');
+    fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
+    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
+    
+    if (isCheckboxHovering) {
+        cursor(HAND);
+        if (mouseIsPressed) {
+            privacyPolicyAccepted = !privacyPolicyAccepted;
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
     }
-    fill(0);
-    textSize(16);
+    
+    fill('#FFFFFF');
+    textSize(isMobileDevice() ? 20 : 16);
     textAlign(LEFT, CENTER);
-    text('I accept the privacy policy', width/2 - 120, height * 0.62 + 10);
+    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
+    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
+    pop();
     
     // Draw submit button
     fill(255);
@@ -3182,7 +3199,7 @@ function drawWinScreen() {
     
     push();
     textFont('Fredoka One');
-    textSize(16);
+    textSize(isMobileDevice() ? 20 : 16);
     textAlign(CENTER, CENTER);
     fill(isWinPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
     textStyle(NORMAL);
