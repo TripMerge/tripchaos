@@ -2967,7 +2967,7 @@ function drawGameOverScreen() {
         if (isMobileDevice()) {
             // Create a temporary input to force keyboard
             const tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
+            tempInput.style.position = 'fixed';
             tempInput.style.opacity = '0';
             tempInput.style.height = '0';
             tempInput.style.width = '0';
@@ -4251,178 +4251,36 @@ function createEmailInput(value) {
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
     
-    // Create a form element
-    const form = document.createElement('form');
-    form.style.position = 'fixed';
-    form.style.top = '50%';
-    form.style.left = '50%';
-    form.style.transform = 'translate(-50%, -50%)';
-    form.style.zIndex = '9999';
-    form.style.width = isMobileDevice() ? '90%' : '400px';
-    form.style.maxWidth = '500px';
-    
-    // Create container for input and button
-    const container = document.createElement('div');
-    container.style.width = '100%';
-    container.style.backgroundColor = 'white';
-    container.style.padding = '20px';
-    container.style.borderRadius = '12px';
-    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-    container.style.position = 'relative';
-    
-    // Create the actual input element
+    // Create a simple input element
     const input = document.createElement('input');
-    input.setAttribute('type', 'email');
-    input.setAttribute('inputmode', 'email');
-    input.setAttribute('autocapitalize', 'none');
-    input.setAttribute('autocorrect', 'off');
-    input.setAttribute('spellcheck', 'false');
-    input.setAttribute('autocomplete', 'email');
-    input.setAttribute('placeholder', 'Enter your email');
-    input.setAttribute('enterkeyhint', 'done');
-    input.classList.add('game-email-input');
+    input.type = 'email';
     input.value = value || '';
+    input.style.position = 'fixed';
+    input.style.top = '0';
+    input.style.left = '0';
+    input.style.width = '1px';
+    input.style.height = '1px';
+    input.style.opacity = '0';
+    input.style.pointerEvents = 'none';
+    input.style.zIndex = '-1';
     
-    // Apply styles for better mobile UX
-    input.style.width = '100%';
-    input.style.height = isMobileDevice() ? '54px' : '44px';
-    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
-    input.style.boxSizing = 'border-box';
-    input.style.border = '2px solid #3498db';
-    input.style.borderRadius = '12px';
-    input.style.backgroundColor = '#ffffff';
-    input.style.color = '#333333';
-    input.style.marginBottom = '20px';
-    input.style.WebkitAppearance = 'none';
-    input.style.appearance = 'none';
-    input.style.webkitTapHighlightColor = 'transparent';
-    input.style.touchAction = 'manipulation';
-    input.style.webkitUserSelect = 'text';
-    input.style.userSelect = 'text';
-    
-    // Add a submit button
-    const submitBtn = document.createElement('button');
-    submitBtn.textContent = 'Submit';
-    submitBtn.style.width = '100%';
-    submitBtn.style.height = isMobileDevice() ? '54px' : '44px';
-    submitBtn.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    submitBtn.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
-    submitBtn.style.backgroundColor = '#3498db';
-    submitBtn.style.color = 'white';
-    submitBtn.style.border = 'none';
-    submitBtn.style.borderRadius = '12px';
-    submitBtn.style.cursor = 'pointer';
-    submitBtn.type = 'submit';
-    
-    // Create close button
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕';
-    closeBtn.style.position = 'absolute';
-    closeBtn.style.top = '-44px';
-    closeBtn.style.left = '0';
-    closeBtn.style.background = '#FF1493';
-    closeBtn.style.border = 'none';
-    closeBtn.style.color = 'white';
-    closeBtn.style.width = '44px';
-    closeBtn.style.height = '44px';
-    closeBtn.style.borderRadius = '22px';
-    closeBtn.style.fontSize = '20px';
-    closeBtn.style.cursor = 'pointer';
-    closeBtn.style.zIndex = '10000';
-    closeBtn.style.pointerEvents = 'auto';
-    closeBtn.style.webkitTapHighlightColor = 'transparent';
-    closeBtn.style.touchAction = 'manipulation';
-    closeBtn.style.display = 'flex';
-    closeBtn.style.alignItems = 'center';
-    closeBtn.style.justifyContent = 'center';
-    closeBtn.type = 'button';
-    closeBtn.classList.add('email-close-btn');
-    
-    // Event handlers
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        playerEmail = input.value;
-        form.remove();
-        isEmailInputActive = false;
-        return false;
-    };
-    
-    const handleClose = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.remove();
-        isEmailInputActive = false;
-        return false;
-    };
-    
-    // Add event listeners for both click and touch events
-    form.onsubmit = handleSubmit;
-    submitBtn.onclick = handleSubmit;
-    submitBtn.ontouchstart = handleSubmit;
-    
-    closeBtn.onclick = handleClose;
-    closeBtn.ontouchstart = handleClose;
-    
-    // Add input event listener to ensure keyboard input is captured
+    // Add event listeners
     input.addEventListener('input', (e) => {
-        e.stopPropagation();
         playerEmail = e.target.value;
-        input.value = playerEmail; // Keep input value in sync
     });
     
-    // Add keydown event listener to prevent event bubbling
-    input.addEventListener('keydown', (e) => {
-        e.stopPropagation();
+    input.addEventListener('blur', () => {
+        input.remove();
+        isEmailInputActive = false;
     });
     
-    // Add focus event listener to ensure keyboard shows
-    input.addEventListener('focus', () => {
-        input.focus();
-    });
-    
-    // Add touch event listener for mobile
-    input.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        input.focus();
-    });
-    
-    // Add elements to form
-    container.appendChild(input);
-    container.appendChild(submitBtn);
-    container.appendChild(closeBtn);
-    form.appendChild(container);
-    document.body.appendChild(form);
+    // Add to document and focus
+    document.body.appendChild(input);
     
     // Force keyboard to show on mobile
     if (isMobileDevice()) {
-        // Create a temporary input to force keyboard
-        const tempInput = document.createElement('input');
-        tempInput.style.position = 'fixed';
-        tempInput.style.opacity = '0';
-        tempInput.style.pointerEvents = 'none';
-        document.body.appendChild(tempInput);
-        
-        // Focus temporary input first
-        tempInput.focus();
-        
-        // Then focus the actual input
-        setTimeout(() => {
-            tempInput.remove();
-            input.focus();
-            input.click();
-            
-            // Force keyboard to show
-            const event = new Event('touchstart', {
-                bubbles: true,
-                cancelable: true
-            });
-            input.dispatchEvent(event);
-        }, 100);
-    } else {
-        // For desktop, just focus normally
         input.focus();
+        input.click();
     }
     
     return input;
