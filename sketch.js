@@ -2835,39 +2835,51 @@ function drawGameOverScreen() {
     }
     pop();
 
+    // Calculate game viewport offset for mobile
+    let gameWidth = 1000 * window.gameScale;
+    let gameHeight = 600 * window.gameScale;
+    let offsetX = (width - gameWidth) / 2;
+    let offsetY = (height - gameHeight) / 2;
+
+    // Apply translation for mobile devices
+    if (isMobileDevice()) {
+        push();
+        translate(offsetX, offsetY);
+    }
+
     // Top Section: Game Info
-    let topY = height/8;
+    let topY = isMobileDevice() ? 50 : height/8;
     
     // Game Over Title (centered)
     push();
     textFont('Fredoka One');
     fill('#4B0082');
     textStyle(BOLD);
-    textSize(isMobileDevice() ? 48 : 64);
+    textSize(isMobileDevice() ? 48 * window.gameScale : 64);
     textAlign(CENTER, CENTER);
-    text("GAME OVER", width/2 + 4, topY + 4);
+    text("GAME OVER", gameWidth/2 + 4, topY + 4);
     fill('#FFFFFF');
-    text("GAME OVER", width/2, topY);
+    text("GAME OVER", gameWidth/2, topY);
     pop();
 
     // Score and Achievement (left side, with proper spacing)
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 20 : 24);
+    textSize(isMobileDevice() ? 20 * window.gameScale : 24);
     textAlign(LEFT, CENTER);
-    let scoreX = width * 0.1;
+    let scoreX = isMobileDevice() ? 20 : gameWidth * 0.1;
     text("YOUR SCORE: " + score, scoreX, topY);
     
     let achievement = getAchievement(score);
-    textSize(isMobileDevice() ? 16 : 20);
+    textSize(isMobileDevice() ? 16 * window.gameScale : 20);
     text("🏆 " + achievement.title, scoreX, topY + 30);
     pop();
 
     // Play Again button (right side, smaller)
-    let playAgainX = width * 0.85;
-    let playAgainWidth = isMobileDevice() ? 150 : 200;
-    let playAgainHeight = isMobileDevice() ? 50 : 60;
+    let playAgainX = isMobileDevice() ? gameWidth - 100 : gameWidth * 0.85;
+    let playAgainWidth = isMobileDevice() ? 150 * window.gameScale : 200;
+    let playAgainHeight = isMobileDevice() ? 50 * window.gameScale : 60;
     let isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
                              mouseX <= playAgainX + playAgainWidth/2 && 
                              mouseY >= topY - playAgainHeight/2 && 
@@ -2886,7 +2898,7 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 : 30);
+    textSize(isMobileDevice() ? 24 * window.gameScale : 30);
     textAlign(CENTER, CENTER);
     text("PLAY AGAIN", playAgainX, topY);
     pop();
@@ -2903,20 +2915,20 @@ function drawGameOverScreen() {
     }
 
     // Leaderboard Section (centered below the top section)
-    let leaderboardY = topY + 150;
+    let leaderboardY = topY + (isMobileDevice() ? 100 : 150);
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 : 32);
+    textSize(isMobileDevice() ? 24 * window.gameScale : 32);
     textAlign(CENTER, CENTER);
-    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
+    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", gameWidth/2, leaderboardY);
     pop();
 
     // Email Submission Form - Show on both desktop and mobile
-    let emailBoxX = width/2 - 200;
+    let emailBoxX = gameWidth/2 - (isMobileDevice() ? 150 : 200);
     let emailBoxY = leaderboardY + 50;
-    let emailBoxWidth = 400;
-    let emailBoxHeight = 50;
+    let emailBoxWidth = isMobileDevice() ? 300 : 400;
+    let emailBoxHeight = isMobileDevice() ? 40 : 50;
 
     // Draw email input box
     push();
@@ -2927,7 +2939,7 @@ function drawGameOverScreen() {
     
     // Draw email input text
     fill('#000000');
-    textSize(20);
+    textSize(isMobileDevice() ? 16 * window.gameScale : 20);
     textAlign(LEFT, CENTER);
     let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
     text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
@@ -2950,9 +2962,9 @@ function drawGameOverScreen() {
     }
 
     // Privacy Policy Checkbox - Adjusted positioning
-    let privacyY = leaderboardY + (isMobileDevice() ? 30 : 120); // Increased vertical spacing on desktop
-    let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - (isMobileDevice() ? 150 : 250);
+    let privacyY = leaderboardY + (isMobileDevice() ? 30 : 120);
+    let checkboxSize = isMobileDevice() ? 30 * window.gameScale : 20;
+    let privacyX = gameWidth/2 - (isMobileDevice() ? 150 : 250);
     
     let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
                             (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
@@ -2976,17 +2988,17 @@ function drawGameOverScreen() {
     }
     
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 16 : 16);
+    textSize(isMobileDevice() ? 16 * window.gameScale : 16);
     textAlign(LEFT, CENTER);
     text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
     text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
     pop();
 
     // Submit button (centered below the form)
-    let submitBtnX = width/2;
+    let submitBtnX = gameWidth/2;
     let submitBtnY = privacyY + (isMobileDevice() ? 50 : 100);
-    let submitBtnWidth = isMobileDevice() ? 150 : 200;
-    let submitBtnHeight = isMobileDevice() ? 50 : 60;
+    let submitBtnWidth = isMobileDevice() ? 150 * window.gameScale : 200;
+    let submitBtnHeight = isMobileDevice() ? 50 * window.gameScale : 60;
     let isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 || (touches.length > 0 && touches[0].x >= submitBtnX - submitBtnWidth/2)) && 
                              (mouseX <= submitBtnX + submitBtnWidth/2 || (touches.length > 0 && touches[0].x <= submitBtnX + submitBtnWidth/2)) && 
                              (mouseY >= submitBtnY - submitBtnHeight/2 || (touches.length > 0 && touches[0].y >= submitBtnY - submitBtnHeight/2)) && 
@@ -3000,7 +3012,7 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 : 30);
+    textSize(isMobileDevice() ? 24 * window.gameScale : 30);
     textAlign(CENTER, CENTER);
     text("SUBMIT", submitBtnX, submitBtnY);
     pop();
@@ -3021,20 +3033,24 @@ function drawGameOverScreen() {
     }
 
     // Privacy Policy link - positioned at the bottom of the screen
-    let gameOverPrivacyLinkY = height * 0.9;
-    let isGameOverPrivacyLinkHovering = (mouseX >= width/2 - 100 || (touches.length > 0 && touches[0].x >= width/2 - 100)) && 
-                                       (mouseX <= width/2 + 100 || (touches.length > 0 && touches[0].x <= width/2 + 100)) && 
+    let gameOverPrivacyLinkY = isMobileDevice() ? gameHeight - 50 : height * 0.9;
+    let isGameOverPrivacyLinkHovering = (mouseX >= gameWidth/2 - 100 || (touches.length > 0 && touches[0].x >= gameWidth/2 - 100)) && 
+                                       (mouseX <= gameWidth/2 + 100 || (touches.length > 0 && touches[0].x <= gameWidth/2 + 100)) && 
                                        (mouseY >= gameOverPrivacyLinkY - 15 || (touches.length > 0 && touches[0].y >= gameOverPrivacyLinkY - 15)) && 
                                        (mouseY <= gameOverPrivacyLinkY + 15 || (touches.length > 0 && touches[0].y <= gameOverPrivacyLinkY + 15));
     
     push();
     textFont('Fredoka One');
-    textSize(isMobileDevice() ? 16 : 16);
+    textSize(isMobileDevice() ? 16 * window.gameScale : 16);
     textAlign(CENTER, CENTER);
-    fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
     textStyle(NORMAL);
-    text("Privacy Policy", width/2, gameOverPrivacyLinkY);
+    text("Privacy Policy", gameWidth/2, gameOverPrivacyLinkY);
     pop();
+
+    // End mobile translation
+    if (isMobileDevice()) {
+        pop();
+    }
 }
 
 function drawWinScreen() {
