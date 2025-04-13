@@ -4598,8 +4598,8 @@ function colorShift(hexColor) {
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
     // Calculate popup dimensions based on screen size
-    let popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
-    let popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+    let popupWidth = isMobileDevice() ? width * 0.9 : width * 0.8;
+    let popupHeight = isMobileDevice() ? height * 0.85 : height * 0.8;
     let popupX = (width - popupWidth) / 2;
     let popupY = (height - popupHeight) / 2;
     
@@ -4619,9 +4619,9 @@ function drawPrivacyPolicyPopup() {
     pop();
     
     // Draw close button
-    let closeBtnSize = isMobileDevice() ? 44 : 30;
-    let closeBtnX = popupX + 10;
-    let closeBtnY = popupY + 10;
+    let closeBtnSize = isMobileDevice() ? 40 : 30;
+    let closeBtnX = popupX + 15;
+    let closeBtnY = popupY + 15;
     let isCloseBtnHovering = mouseX >= closeBtnX && 
                             mouseX <= closeBtnX + closeBtnSize && 
                             mouseY >= closeBtnY && 
@@ -4655,7 +4655,7 @@ function drawPrivacyPolicyPopup() {
     textFont('Fredoka One');
     fill('#4B0082');
     textStyle(BOLD);
-    textSize(isMobileDevice() ? 32 : 48);
+    textSize(isMobileDevice() ? 28 : 48);
     textAlign(CENTER, CENTER);
     text("Privacy Policy", popupX + popupWidth/2, popupY + 50);
     pop();
@@ -4664,13 +4664,13 @@ function drawPrivacyPolicyPopup() {
     push();
     textFont('Inter');
     fill('#000000');
-    textSize(isMobileDevice() ? 14 : 16);
+    textSize(isMobileDevice() ? 16 : 18);
     textAlign(LEFT, TOP);
     
-    let contentX = popupX + 30;
-    let contentY = popupY + 100;
-    let contentWidth = popupWidth - 60;
-    let lineHeight = isMobileDevice() ? 20 : 24;
+    let contentX = popupX + (isMobileDevice() ? 20 : 30);
+    let contentY = popupY + (isMobileDevice() ? 90 : 100);
+    let contentWidth = popupWidth - (isMobileDevice() ? 40 : 60);
+    let lineHeight = isMobileDevice() ? 22 : 26;
     
     // Privacy policy text
     let privacyText = [
@@ -4704,7 +4704,7 @@ function drawPrivacyPolicyPopup() {
     for (let line of privacyText) {
         if (line.startsWith("-")) {
             // Indent bullet points
-            text("• " + line.substring(1), contentX + 20, y);
+            text("• " + line.substring(1), contentX + (isMobileDevice() ? 15 : 20), y);
         } else {
             text(line, contentX, y);
         }
