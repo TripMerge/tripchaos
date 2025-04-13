@@ -4314,7 +4314,8 @@ function createEmailInput(value) {
     
     // Position the form at the bottom on mobile
     if (isMobileDevice()) {
-        form.style.bottom = '20px';
+        form.style.bottom = '0';
+        form.style.paddingBottom = 'env(safe-area-inset-bottom, 20px)';
     } else {
         form.style.top = '50%';
         form.style.transform = 'translate(-50%, -50%)';
@@ -4325,8 +4326,8 @@ function createEmailInput(value) {
     container.style.width = '100%';
     container.style.backgroundColor = 'white';
     container.style.padding = '20px';
-    container.style.borderRadius = '12px';
-    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    container.style.borderRadius = '12px 12px 0 0';
+    container.style.boxShadow = '0 -4px 12px rgba(0,0,0,0.2)';
     container.style.position = 'relative';
     
     // Create the actual input element
@@ -4351,7 +4352,7 @@ function createEmailInput(value) {
     input.style.border = '2px solid #3498db';
     input.style.borderRadius = '12px';
     input.style.backgroundColor = '#ffffff';
-    input.style.color = '#000000'; // Changed to black
+    input.style.color = '#000000';
     input.style.marginBottom = '20px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
@@ -4427,8 +4428,27 @@ function createEmailInput(value) {
     form.appendChild(container);
     document.body.appendChild(form);
     
-    // Focus the input
-    input.focus();
+    // Force keyboard to show on mobile
+    if (isMobileDevice()) {
+        // Create a temporary input to force keyboard
+        const tempInput = document.createElement('input');
+        tempInput.style.position = 'absolute';
+        tempInput.style.opacity = '0';
+        tempInput.style.height = '0';
+        tempInput.style.width = '0';
+        document.body.appendChild(tempInput);
+        
+        // Focus the temporary input first
+        tempInput.focus();
+        
+        // Focus the actual input after a short delay
+        setTimeout(() => {
+            input.focus();
+            tempInput.remove();
+        }, 100);
+    } else {
+        input.focus();
+    }
     
     return input;
 }
