@@ -730,36 +730,7 @@ function draw() {
 
     // Draw privacy policy popup if active (this should be drawn last to appear on top)
     if (showPrivacyPolicy) {
-        // Draw semi-transparent overlay to darken the background
-        push();
-        fill(0, 0, 0, 200);
-        noStroke();
-        rect(0, 0, width, height);
-        pop();
-        
-        // Draw the popup
         drawPrivacyPolicyPopup();
-    }
-
-    // Only show hover effects when privacy policy is not open
-    if (!showPrivacyPolicy && (gameState === 'gameOver' || gameState === 'win')) {
-        let restartButtonX = width/2;
-        let restartButtonY = height/2 + 100;
-        let buttonWidth = 200;
-        let buttonHeight = 60;
-        
-        if (mouseX > restartButtonX - buttonWidth/2 && 
-            mouseX < restartButtonX + buttonWidth/2 && 
-            mouseY > restartButtonY - buttonHeight/2 && 
-            mouseY < restartButtonY + buttonHeight/2) {
-            cursor(HAND);
-        }
-
-        let privacyLinkY = height * 0.9;
-        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-            mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15) {
-            cursor(HAND);
-        }
     }
 }
 
@@ -4604,9 +4575,14 @@ function colorShift(hexColor) {
 // Add new function to draw privacy policy popup
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
-    // Calculate popup dimensions based on screen size
-    let popupWidth = isMobileDevice() ? width * 0.9 : width * 0.8;
-    let popupHeight = isMobileDevice() ? height * 0.85 : height * 0.8;
+    // Apply scale based on device type
+    let scale = isMobileDevice() ? window.gameScale : 1;
+    
+    // Calculate popup dimensions based on screen size and scale
+    let baseWidth = isMobileDevice() ? 900 : 800;
+    let baseHeight = isMobileDevice() ? 550 : 500;
+    let popupWidth = baseWidth * scale;
+    let popupHeight = baseHeight * scale;
     let popupX = (width - popupWidth) / 2;
     let popupY = (height - popupHeight) / 2;
     
@@ -4621,14 +4597,14 @@ function drawPrivacyPolicyPopup() {
     push();
     fill('#FFFFFF');
     stroke('#4B0082');
-    strokeWeight(4);
-    rect(popupX, popupY, popupWidth, popupHeight, 20);
+    strokeWeight(4 * scale);
+    rect(popupX, popupY, popupWidth, popupHeight, 20 * scale);
     pop();
     
     // Draw close button
-    let closeBtnSize = isMobileDevice() ? 40 : 30;
-    let closeBtnX = popupX + 15;
-    let closeBtnY = popupY + 15;
+    let closeBtnSize = 40 * scale;
+    let closeBtnX = popupX + 15 * scale;
+    let closeBtnY = popupY + 15 * scale;
     let isCloseBtnHovering = mouseX >= closeBtnX && 
                             mouseX <= closeBtnX + closeBtnSize && 
                             mouseY >= closeBtnY && 
@@ -4636,15 +4612,17 @@ function drawPrivacyPolicyPopup() {
     
     push();
     stroke('#4B0082');
-    strokeWeight(2);
+    strokeWeight(2 * scale);
     fill(isCloseBtnHovering ? '#FF69B4' : '#FFFFFF');
-    rect(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, 5);
+    rect(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, 5 * scale);
     
     // Draw X in close button
     stroke('#4B0082');
-    strokeWeight(2);
-    line(closeBtnX + 10, closeBtnY + 10, closeBtnX + closeBtnSize - 10, closeBtnY + closeBtnSize - 10);
-    line(closeBtnX + closeBtnSize - 10, closeBtnY + 10, closeBtnX + 10, closeBtnY + closeBtnSize - 10);
+    strokeWeight(2 * scale);
+    line(closeBtnX + 10 * scale, closeBtnY + 10 * scale, 
+         closeBtnX + closeBtnSize - 10 * scale, closeBtnY + closeBtnSize - 10 * scale);
+    line(closeBtnX + closeBtnSize - 10 * scale, closeBtnY + 10 * scale, 
+         closeBtnX + 10 * scale, closeBtnY + closeBtnSize - 10 * scale);
     pop();
     
     if (isCloseBtnHovering) {
@@ -4662,22 +4640,22 @@ function drawPrivacyPolicyPopup() {
     textFont('Fredoka One');
     fill('#4B0082');
     textStyle(BOLD);
-    textSize(isMobileDevice() ? 28 : 48);
+    textSize(36 * scale);
     textAlign(CENTER, CENTER);
-    text("Privacy Policy", popupX + popupWidth/2, popupY + 50);
+    text("Privacy Policy", popupX + popupWidth/2, popupY + 50 * scale);
     pop();
     
     // Draw content
     push();
     textFont('Inter');
     fill('#000000');
-    textSize(isMobileDevice() ? 16 : 18);
+    textSize(16 * scale);
     textAlign(LEFT, TOP);
     
-    let contentX = popupX + (isMobileDevice() ? 20 : 30);
-    let contentY = popupY + (isMobileDevice() ? 90 : 100);
-    let contentWidth = popupWidth - (isMobileDevice() ? 40 : 60);
-    let lineHeight = isMobileDevice() ? 22 : 26;
+    let contentX = popupX + 30 * scale;
+    let contentY = popupY + 100 * scale;
+    let contentWidth = popupWidth - 60 * scale;
+    let lineHeight = 24 * scale;
     
     // Privacy policy text
     let privacyText = [
@@ -4711,7 +4689,7 @@ function drawPrivacyPolicyPopup() {
     for (let line of privacyText) {
         if (line.startsWith("-")) {
             // Indent bullet points
-            text("• " + line.substring(1), contentX + (isMobileDevice() ? 15 : 20), y);
+            text("• " + line.substring(1), contentX + 20 * scale, y);
         } else {
             text(line, contentX, y);
         }
