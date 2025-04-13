@@ -497,9 +497,20 @@ function setup() {
     
     // Set initial scale based on device type
     if (isMobileDevice()) {
-        let scale = min(windowWidth / 1000, windowHeight / 600);
+        // Calculate scale based on available space
+        let containerWidth = windowWidth;
+        let containerHeight = windowHeight;
+        let scale = min(containerWidth / 1000, containerHeight / 600);
+        
+        // Apply scale
         resizeCanvas(1000 * scale, 600 * scale);
         window.gameScale = scale;
+        
+        // Force canvas to update its position
+        canvas.style('position', 'absolute');
+        canvas.style('left', '50%');
+        canvas.style('top', '50%');
+        canvas.style('transform', 'translate(-50%, -50%)');
     } else {
         window.gameScale = 1;
     }
@@ -529,17 +540,22 @@ function setup() {
 // Handle window resize events
 function windowResized() {
     if (isMobileDevice()) {
-        // For mobile devices, use the full available space
-        let scale = min(windowWidth / 1000, windowHeight / 600);
+        // Calculate scale based on available space
+        let containerWidth = windowWidth;
+        let containerHeight = windowHeight;
+        let scale = min(containerWidth / 1000, containerHeight / 600);
+        
+        // Apply scale
         resizeCanvas(1000 * scale, 600 * scale);
         window.gameScale = scale;
         
         // Force canvas to update its position
         let canvas = document.querySelector('canvas');
         if (canvas) {
-            canvas.style.transform = 'translate(-50%, -50%)';
+            canvas.style.position = 'absolute';
             canvas.style.left = '50%';
             canvas.style.top = '50%';
+            canvas.style.transform = 'translate(-50%, -50%)';
         }
     } else {
         // Desktop keeps fixed size
