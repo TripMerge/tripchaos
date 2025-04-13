@@ -2624,14 +2624,17 @@ function touchStarted() {
         }
 
         // Handle privacy policy checkbox touch
-        let checkboxSize = isMobileDevice() ? 30 : 20;
-        let privacyX = width/2 - 250;
-        let privacyY = height * 0.62;
+        let checkboxSize = isMobileDevice() ? 40 : 20;  // Increased size for mobile
+        let privacyX = width/2 - (isMobileDevice() ? 200 : 250);  // Adjusted position for mobile
+        let privacyY = height * (isMobileDevice() ? 0.65 : 0.62);  // Adjusted position for mobile
         
-        if (touch.x >= privacyX && 
-            touch.x <= privacyX + checkboxSize && 
-            touch.y >= privacyY - checkboxSize/2 && 
-            touch.y <= privacyY + checkboxSize/2) {
+        // Make the touch area larger for mobile
+        const touchAreaSize = isMobileDevice() ? 60 : checkboxSize;
+        
+        if (touch.x >= privacyX - (touchAreaSize - checkboxSize)/2 && 
+            touch.x <= privacyX + checkboxSize + (touchAreaSize - checkboxSize)/2 && 
+            touch.y >= privacyY - touchAreaSize/2 && 
+            touch.y <= privacyY + touchAreaSize/2) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
             return false;
         }
@@ -2977,42 +2980,40 @@ function drawGameOverScreen() {
     }
 
     // Privacy Policy Checkbox
-    let privacyY = emailBoxY + emailBoxHeight + 20;
-    let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - 250; // Position checkbox to the left of text
-    
-    let isCheckboxHovering = mouseX >= privacyX && 
-                            mouseX <= privacyX + checkboxSize && 
-                            mouseY >= privacyY - checkboxSize/2 && 
-                            mouseY <= privacyY + checkboxSize/2;
+    let gameOverCheckboxSize = isMobileDevice() ? 50 : 20;  // Even larger size for mobile
+    let gameOverPrivacyX = width/2 - (isMobileDevice() ? 250 : 150);  // Adjusted position for mobile
+    let gameOverCheckboxY = height * (isMobileDevice() ? 0.65 : 0.62);  // Adjusted position for mobile
     
     push();
-    strokeWeight(2);
+    strokeWeight(isMobileDevice() ? 4 : 2);  // Thicker border on mobile
     stroke('#4B0082');
     fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
-    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
+    rect(gameOverPrivacyX, gameOverCheckboxY - gameOverCheckboxSize/2, gameOverCheckboxSize, gameOverCheckboxSize, 8);
     
-    if (isCheckboxHovering) {
-        cursor(HAND);
-        if (mouseIsPressed) {
-            privacyPolicyAccepted = !privacyPolicyAccepted;
-            mouseIsPressed = false;
-        }
-    } else {
-        cursor(ARROW);
+    // Add checkmark if accepted
+    if (privacyPolicyAccepted) {
+        stroke('#FFFFFF');
+        strokeWeight(isMobileDevice() ? 4 : 2);
+        const padding = gameOverCheckboxSize * 0.2;
+        line(gameOverPrivacyX + padding, gameOverCheckboxY, 
+             gameOverPrivacyX + gameOverCheckboxSize/2, gameOverCheckboxY + gameOverCheckboxSize/2 - padding);
+        line(gameOverPrivacyX + gameOverCheckboxSize/2, gameOverCheckboxY + gameOverCheckboxSize/2 - padding,
+             gameOverPrivacyX + gameOverCheckboxSize - padding, gameOverCheckboxY - gameOverCheckboxSize/2 + padding);
     }
     
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 20 : 16);
+    textSize(isMobileDevice() ? 28 : 16);  // Even larger text size for mobile
     textAlign(LEFT, CENTER);
-    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
-    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
+    text("I accept the privacy policy and would like to register for the public leaderboard", 
+         gameOverPrivacyX + gameOverCheckboxSize + 20, gameOverCheckboxY);
+    text("and get news about TripMerge launch and updates", 
+         gameOverPrivacyX + gameOverCheckboxSize + 20, gameOverCheckboxY + (isMobileDevice() ? 35 : 20));
     pop();
 
     // Submit button (centered below the form)
-  let submitBtnX = width/2;
-    let submitBtnY = privacyY + 100; // Moved further down
-  let submitBtnWidth = 200;
+    let submitBtnX = width/2;
+    let submitBtnY = gameOverCheckboxY + 100; // Moved further down
+    let submitBtnWidth = 200;
     let submitBtnHeight = 60;
     let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
                              mouseX <= submitBtnX + submitBtnWidth/2 && 
@@ -3158,22 +3159,24 @@ function drawWinScreen() {
     text(emailInput, width/2 - 140, height * 0.55 + 25);
     
     // Draw privacy policy checkbox
-    let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - 150;
-    let privacyY = height * 0.62;
+    let winCheckboxSize = isMobileDevice() ? 50 : 20;  // Even larger size for mobile
+    let winPrivacyX = width/2 - (isMobileDevice() ? 250 : 150);  // Adjusted position for mobile
+    let winCheckboxSize = isMobileDevice() ? 40 : 20;
+    let winPrivacyX = width/2 - (isMobileDevice() ? 200 : 150);
+    let winPrivacyY = height * (isMobileDevice() ? 0.65 : 0.62);  // Adjusted position for mobile
     
-    let isCheckboxHovering = mouseX >= privacyX && 
-                            mouseX <= privacyX + checkboxSize && 
-                            mouseY >= privacyY - checkboxSize/2 && 
-                            mouseY <= privacyY + checkboxSize/2;
+    let isWinCheckboxHovering = mouseX >= winPrivacyX && 
+                               mouseX <= winPrivacyX + winCheckboxSize && 
+                               mouseY >= winPrivacyY - winCheckboxSize/2 && 
+                               mouseY <= winPrivacyY + winCheckboxSize/2;
     
     push();
     strokeWeight(2);
     stroke('#4B0082');
     fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
-    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
+    rect(winPrivacyX, winPrivacyY - winCheckboxSize/2, winCheckboxSize, winCheckboxSize, 5);
     
-    if (isCheckboxHovering) {
+    if (isWinCheckboxHovering) {
         cursor(HAND);
         if (mouseIsPressed) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
@@ -3184,10 +3187,10 @@ function drawWinScreen() {
     }
     
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 20 : 16);
+    textSize(isMobileDevice() ? 24 : 16);
     textAlign(LEFT, CENTER);
-    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
-    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
+    text("I accept the privacy policy and would like to register for the public leaderboard", winPrivacyX + winCheckboxSize + 10, winPrivacyY);
+    text("and get news about TripMerge launch and updates", winPrivacyX + winCheckboxSize + 10, winPrivacyY + (isMobileDevice() ? 30 : 20));
     pop();
     
     // Draw submit button
@@ -4258,15 +4261,11 @@ function createEmailInput(value) {
     form.style.zIndex = '9999';
     form.style.width = isMobileDevice() ? '90%' : '400px';
     form.style.maxWidth = '500px';
-    
-    // Create container for input and button
-    const container = document.createElement('div');
-    container.style.width = '100%';
-    container.style.backgroundColor = 'white';
-    container.style.padding = '20px';
-    container.style.borderRadius = '12px';
-    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-    container.style.position = 'relative';
+    form.style.backgroundColor = 'white';
+    form.style.padding = '20px';
+    form.style.borderRadius = '12px';
+    form.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    form.style.position = 'relative';
     
     // Create the actual input element
     const input = document.createElement('input');
@@ -4387,10 +4386,9 @@ function createEmailInput(value) {
     });
     
     // Add elements to form
-    container.appendChild(input);
-    container.appendChild(submitBtn);
-    container.appendChild(closeBtn);
-    form.appendChild(container);
+    form.appendChild(input);
+    form.appendChild(submitBtn);
+    form.appendChild(closeBtn);
     document.body.appendChild(form);
     
     // Force keyboard to show on mobile
@@ -4403,6 +4401,20 @@ function createEmailInput(value) {
             input.focus();
             input.click();
         }, 100);
+        
+        // Add a touch event listener to the form to prevent it from closing
+        form.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+        });
+        
+        // Prevent the form from being removed when the keyboard is shown
+        form.addEventListener('blur', (e) => {
+            if (e.target === input) {
+                setTimeout(() => {
+                    input.focus();
+                }, 100);
+            }
+        });
     } else {
         // For desktop, just focus normally
         input.focus();
