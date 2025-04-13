@@ -4299,11 +4299,6 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    // Don't create input on mobile devices
-    if (isMobileDevice()) {
-        return null;
-    }
-
     // Remove any existing input
     const existingInput = document.querySelector('.game-email-input');
     if (existingInput) {
@@ -4319,23 +4314,8 @@ function createEmailInput(value) {
     input.autocomplete = 'email';
     input.inputmode = 'email';
     input.autocapitalize = 'none';
-    
-    // Style the input
-    input.style.position = 'fixed';
-    input.style.top = '50%';
-    input.style.left = '50%';
-    input.style.transform = 'translate(-50%, -50%)';
-    input.style.width = '300px';
-    input.style.height = '44px';
-    input.style.padding = '10px 15px';
-    input.style.fontSize = '16px';
-    input.style.border = '2px solid #3498db';
-    input.style.borderRadius = '8px';
-    input.style.backgroundColor = 'white';
-    input.style.color = 'black';
-    input.style.zIndex = '9999';
-    input.style.WebkitAppearance = 'none';
-    input.style.appearance = 'none';
+    input.autocorrect = 'off';
+    input.spellcheck = 'false';
     
     // Add to document
     document.body.appendChild(input);
