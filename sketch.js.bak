@@ -1999,7 +1999,7 @@ function drawStars() {
 }
 
 function drawStar(x, y, size) {
-  push();
+    push();
     fill(255);
     noStroke();
     beginShape();
@@ -2014,7 +2014,7 @@ function drawStar(x, y, size) {
         vertex(px, py);
     }
     endShape(CLOSE);
-  pop();
+    pop();
 }
 
 function drawMoon() {
@@ -2606,6 +2606,31 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
+    // Check if email form is active - prevent game from handling touches on form
+    if (isEmailInputActive) {
+        // Check if we're touching an email form element
+        const emailForm = document.querySelector('form');
+        const emailInput = document.querySelector('.game-email-input');
+        
+        if (emailForm && emailInput) {
+            // Get form coordinates for detection
+            const formRect = emailForm.getBoundingClientRect();
+            
+            // If touch is within the form, let the form handle it
+            if (touches[0].clientX >= formRect.left && 
+                touches[0].clientX <= formRect.right && 
+                touches[0].clientY >= formRect.top && 
+                touches[0].clientY <= formRect.bottom) {
+                return false; // Prevent any further handling
+            }
+            
+            // If we're touching outside the form, close it
+            emailForm.remove();
+            isEmailInputActive = false;
+            return false;
+        }
+    }
+    
     // Handle privacy policy link click first
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
@@ -2623,28 +2648,75 @@ function touchStarted() {
             return false;
         }
     }
+
+    // Handle privacy policy popup
+    if (showPrivacyPolicy && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Check close button
+        if (touch.x >= closeButtonX && 
+            touch.x <= closeButtonX + closeButtonSize && 
+            touch.y >= closeButtonY && 
+            touch.y <= closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // Accept button dimensions
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        // Check accept button
+        if (touch.x >= buttonX && 
+            touch.x <= buttonX + buttonWidth && 
+            touch.y >= buttonY && 
+            touch.y <= buttonY + buttonHeight) {
+            showPrivacyPolicy = false;
+            privacyPolicyAccepted = true;
+            return false;
+        }
+        
+        return false; // Prevent other touch events when popup is open
+    }
     
-    // Handle email input touch
-    if (gameState === 'gameOver' && isEmailInputActive) {
-        const input = document.querySelector('.game-email-input');
-        if (input) {
-            // Get the input's position and dimensions
-            const rect = input.getBoundingClientRect();
-            
-            // Check if touch is within the input area
-            if (touches[0].x >= rect.left && 
-                touches[0].x <= rect.right && 
-                touches[0].y >= rect.top && 
-                touches[0].y <= rect.bottom) {
-                // Focus the input and show keyboard
-                input.focus();
-                input.click();
+    // Rest of the function remains the same...
+    // ... existing code ...
+    
+    // Check if email input was touched
+    if (gameState === 'gameOver') {
+        const emailBoxX = width/2 - 150;
+        const emailBoxY = height/2 + 30;
+        const emailBoxWidth = 300;
+        const emailBoxHeight = 50;
+        
+        if (touches.length > 0) {
+            let touch = touches[0];
+            if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+                touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+                
+                // Skip email input popup on mobile devices
+                if (!isMobileDevice()) {
+                    isEmailInputActive = true;
+                    createEmailInput(playerEmail);
+                }
                 return false;
             }
         }
     }
     
-    // Rest of the touch handling code...
     // ... existing code ...
 }
 
@@ -2795,263 +2867,111 @@ function drawMeter(label, value, x, y) {
   pop();
 }
 
+// Add the missing calculateTotalScore function before drawGameOverScreen
+function calculateTotalScore() {
+    // Calculate total score based on current game metrics
+    return score + Math.floor(budget * 0.5) + Math.floor(satisfaction * 0.5);
+}
+
 // Draw game over screen with improved readability
 function drawGameOverScreen() {
-  if (showLeaderboard) {
-    drawLeaderboardScreen();
-    return;
-  }
-
-    // Draw solid pink background
-    background('#FF69B4');
+    // Calculate the total score
+    let totalScore = calculateTotalScore();
+    
+    // Draw background
+    background(40);
     
     // Draw stars
-    for (let i = 0; i < 20; i++) {
-        drawStar(random(width), random(height * 0.4), random(5, 15));
-    }
-
-    // Draw palm trees at the bottom
-    drawPalmTree(width * 0.2, height * 0.85, 0.8);
-    drawPalmTree(width * 0.8, height * 0.85, 0.8);
-
-    // Ground with grid effect
-    push();
-    fill('#4B0082');  // Deep purple ground
-  noStroke();
-    rect(0, height * 0.85, width, height * 0.15);
+    drawStars();
     
-    // Grid lines
-    stroke('#FF1493');  // Deep pink lines
-    strokeWeight(1);
-    for(let x = 0; x < width; x += 50) {
-        line(x, height * 0.85, x, height);
-    }
-    for(let y = height * 0.85; y < height; y += 25) {
-        line(0, y, width, y);
-    }
-    pop();
-
-    // Top Section: Game Info
-    let topY = height/8;
+    // Draw game over message
+    fill(255);
+    textSize(titleFontSize);
+    textStyle(BOLD);
+    textAlign(CENTER);
+    text("GAME OVER", width/2, height/5);
     
-    // Game Over Title (centered)
-    push();
-    textFont('Fredoka One');
-    fill('#4B0082');
-  textStyle(BOLD);
-    textSize(64);
-    textAlign(CENTER, CENTER);
-    text("GAME OVER", width/2 + 4, topY + 4);
-    fill('#FFFFFF');
-    text("GAME OVER", width/2, topY);
-    pop();
-
-    // Score and Achievement (left side, with proper spacing)
-    push();
-    textFont('Fredoka One');
-    fill('#FFFFFF');
-    textSize(24);
-    textAlign(LEFT, CENTER);
-    let scoreX = width * 0.1;
-    text("YOUR SCORE: " + score, scoreX, topY);
-    
-  let achievement = getAchievement(score);
-    textSize(20);
-    text("🏆 " + achievement.title, scoreX, topY + 30);
-    pop();
-
-    // Play Again button (right side, smaller)
-    let playAgainX = width * 0.85;
-    let playAgainWidth = 200;
-    let playAgainHeight = 60;
-    let isPlayAgainHovering = mouseX >= playAgainX - playAgainWidth/2 && 
-                             mouseX <= playAgainX + playAgainWidth/2 && 
-                             mouseY >= topY - playAgainHeight/2 && 
-                             mouseY <= topY + playAgainHeight/2;
-    
-    push();
-    strokeWeight(4);
-    stroke('#4B0082');
-    fill(isPlayAgainHovering ? '#32CD32' : '#FF69B4');
-    rect(playAgainX - playAgainWidth/2, topY - playAgainHeight/2, playAgainWidth, playAgainHeight, 15);
-    
-    textFont('Fredoka One');
-    fill('#FFFFFF');
-    textSize(30);
-    textAlign(CENTER, CENTER);
-    text("PLAY AGAIN", playAgainX, topY);
-    pop();
-
-    if (isPlayAgainHovering) {
-        cursor(HAND);
-        if (mouseIsPressed) {
-            resetGame();
-            startGame();
-            mouseIsPressed = false;
-        }
-    } else {
-        cursor(ARROW);
-    }
-
-    // Leaderboard Section (centered below the top section)
-    let leaderboardY = topY + 150;
-    push();
-    textFont('Fredoka One');
-    fill('#FFFFFF');
-    textSize(32);
-    textAlign(CENTER, CENTER);
-    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
-    pop();
-
-    // Email Submission Form
-    let emailBoxX = width/2 - 200;
-    let emailBoxY = leaderboardY + 50;
-    let emailBoxWidth = 400;
-    let emailBoxHeight = 50;
-
-    // Draw email input box
-    push();
-    strokeWeight(2);
-    stroke('#4B0082');
-    fill('#FFFFFF');
-    rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
-    
-    // Draw email input text
-    fill('#000000');
-    textSize(20);
-    textAlign(LEFT, CENTER);
-    let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
-    text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
-    pop();
-
-    // Check if email box is clicked
-    if (mouseIsPressed && 
-        mouseX >= emailBoxX && 
-        mouseX <= emailBoxX + emailBoxWidth && 
-        mouseY >= emailBoxY && 
-        mouseY <= emailBoxY + emailBoxHeight) {
-        isEmailInputActive = true;
-        mouseIsPressed = false;
-        
-        // Show keyboard on mobile devices
-        if (isMobileDevice()) {
-            // Create a temporary input to force keyboard
-            const tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
-            tempInput.style.opacity = '0';
-            tempInput.style.height = '0';
-            tempInput.style.width = '0';
-            document.body.appendChild(tempInput);
-            
-            // Focus the temporary input first
-            tempInput.focus();
-            
-            // Create the email input
-            const emailInput = createEmailInput(playerEmail);
-            
-            // Focus the email input after a delay
-            setTimeout(() => {
-                emailInput.focus();
-                tempInput.remove();
-            }, 100);
-            
-            // Force keyboard to show after a longer delay
-            setTimeout(() => {
-                emailInput.focus();
-                emailInput.click();
-            }, 300);
-        }
-    }
-
-    // Privacy Policy Checkbox
-    let privacyY = emailBoxY + emailBoxHeight + 20;
-    let checkboxSize = 20;
-    let privacyX = width/2 - 250; // Position checkbox to the left of text
-    
-    let isCheckboxHovering = mouseX >= privacyX && 
-                            mouseX <= privacyX + checkboxSize && 
-                            mouseY >= privacyY - checkboxSize/2 && 
-                            mouseY <= privacyY + checkboxSize/2;
-    
-    push();
-    strokeWeight(2);
-    stroke('#4B0082');
-    fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
-    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
-    
-    if (isCheckboxHovering) {
-        cursor(HAND);
-        if (mouseIsPressed) {
-            privacyPolicyAccepted = !privacyPolicyAccepted;
-            mouseIsPressed = false;
-        }
-    } else {
-        cursor(ARROW);
-    }
-    
-    fill('#FFFFFF');
-    textSize(16);
-    textAlign(LEFT, CENTER);
-    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
-    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
-    pop();
-
-    // Submit button (centered below the form)
-  let submitBtnX = width/2;
-    let submitBtnY = privacyY + 100; // Moved further down
-  let submitBtnWidth = 200;
-    let submitBtnHeight = 60;
-    let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
-                             mouseX <= submitBtnX + submitBtnWidth/2 && 
-                             mouseY >= submitBtnY - submitBtnHeight/2 && 
-                             mouseY <= submitBtnY + submitBtnHeight/2;
-    
-    push();
-    strokeWeight(4);
-    stroke('#4B0082');
-    fill(isSubmitBtnHovering ? '#32CD32' : '#FF69B4');
-    rect(submitBtnX - submitBtnWidth/2, submitBtnY - submitBtnHeight/2, submitBtnWidth, submitBtnHeight, 15);
-    
-    textFont('Fredoka One');
-    fill('#FFFFFF');
-    textSize(30);
-    textAlign(CENTER, CENTER);
-    text("SUBMIT", submitBtnX, submitBtnY);
-    pop();
-
-    if (isSubmitBtnHovering) {
-    cursor(HAND);
-        if (mouseIsPressed && privacyPolicyAccepted) {
-            submitScoreToLeaderboard();
-            mouseIsPressed = false;
-        }
-    } else {
-        cursor(ARROW);
-    }
-
-    
-    // Draw privacy policy popup if active
-    if (showPrivacyPolicy) {
-        drawPrivacyPolicyPopup();
-    }
-
-    // Privacy Policy link - positioned at the bottom of the screen
-    let gameOverPrivacyLinkY = height * 0.9;
-    let isGameOverPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                                       mouseY >= gameOverPrivacyLinkY - 15 && mouseY <= gameOverPrivacyLinkY + 15;
-    
-    push();
-    textFont('Fredoka One');
-    textSize(16);
-    textAlign(CENTER, CENTER);
-    fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
+    // Draw score
+    fill(255);
+    textSize(subtitleFontSize);
     textStyle(NORMAL);
-    text("Privacy Policy", width/2, gameOverPrivacyLinkY);
-    pop();
+    text("Your Score: " + totalScore, width/2, height/5 + 60);
     
-    if (isGameOverPrivacyLinkHovering) {
-    cursor(HAND);
+    // Draw achievement
+    textSize(bodyFontSize + 2);
+    let achievement = getAchievement(totalScore);
+    fill(achievement.color);
+    text(achievement.title, width/2, height/5 + 110);
+    
+    // Draw share message - different for desktop and mobile
+    fill(255);
+    textSize(bodyFontSize);
+    if (isMobileDevice()) {
+        text("Thank you for playing!", width/2, height/2 - 20);
+    } else {
+        text("Share your score or enter your email to join our leaderboard", width/2, height/2 - 20);
     }
+    
+    // Draw share buttons
+    let buttonSize = 60;
+    let spacing = 20;
+    let startX = width/2 - (buttonSize * 2 + spacing * 1.5);
+    let buttonY = height/2 + 30;
+    
+    // Twitter button
+    drawCircularShareButton("𝕏", "#000", startX, buttonY, buttonSize);
+    
+    // Facebook button
+    drawCircularShareButton("f", "#3b5998", startX + buttonSize + spacing, buttonY, buttonSize);
+    
+    // Instagram button
+    drawCircularShareButton("Ig", "#e1306c", startX + (buttonSize + spacing) * 2, buttonY, buttonSize);
+    
+    // WhatsApp button
+    drawCircularShareButton("W", "#25d366", startX + (buttonSize + spacing) * 3, buttonY, buttonSize);
+    
+    // Only show email input on desktop
+    if (!isMobileDevice()) {
+        // Draw email input box
+        fill(255);
+        stroke(200);
+        rect(width/2 - 150, height/2 + 120, 300, 50, 12);
+        
+        // Draw placeholder text if no email entered
+        if (!playerEmail) {
+            fill(150);
+            textAlign(LEFT);
+            textSize(bodyFontSize);
+            text("  Enter your email", width/2 - 140, height/2 + 150);
+        } else {
+            // Show the email that was entered
+            fill(0);
+            textAlign(LEFT);
+            textSize(bodyFontSize);
+            text("  " + playerEmail, width/2 - 140, height/2 + 150);
+        }
+        
+        // Draw submit button
+        fill(primaryButtonColor);
+        noStroke();
+        rect(width/2 - 150, height/2 + 180, 300, 50, 12);
+        fill(255);
+        textAlign(CENTER);
+        text("Submit Score", width/2, height/2 + 210);
+    }
+    
+    // Draw restart button
+    fill(secondaryButtonColor);
+    noStroke();
+    rect(width/2 - 100, height/2 + 250, 200, 50, 12);
+    fill(255);
+    textAlign(CENTER);
+    text("Play Again", width/2, height/2 + 280);
+    
+    // Draw privacy policy link
+    textSize(smallFontSize);
+    fill(150);
+    text("Privacy Policy", width/2, height * 0.9);
 }
 
 function drawWinScreen() {
@@ -3215,7 +3135,7 @@ function drawLeaderboardScreen() {
     // Ground with grid effect
     push();
     fill('#4B0082');  // Deep purple ground
-  noStroke();
+    noStroke();
     rect(0, height * 0.85, width, height * 0.15);
     
     // Grid lines
@@ -3232,24 +3152,24 @@ function drawLeaderboardScreen() {
     // Back button in upper left corner
     let backBtnX = 50;
     let backBtnY = 50;
-  let isBackHovering = mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
+    let isBackHovering = mouseX >= backBtnX - 50 && mouseX <= backBtnX + 50 && 
                         mouseY >= backBtnY - 20 && mouseY <= backBtnY + 20;
   
     // Draw back button with same style as start game button
     push();
     textFont('Fredoka One');
     stroke('#4B0082');
-  strokeWeight(3);
+    strokeWeight(3);
     fill(isBackHovering ? '#FF1493' : '#FF69B4');
     textStyle(BOLD);
     textSize(30);
-  text("BACK", backBtnX, backBtnY);
+    text("BACK", backBtnX, backBtnY);
     pop();
     
     // Leaderboard Title with shadow effect - moved higher up and adjusted spacing
     push();
     textFont('Fredoka One');
-  noStroke();
+    noStroke();
     fill('#4B0082');
     textStyle(BOLD);
     textSize(64);
@@ -3270,7 +3190,7 @@ function drawLeaderboardScreen() {
     fill('#4B0082');
     textSize(16);  // Reduced header text size
     textStyle(BOLD);
-  textAlign(CENTER);
+    textAlign(CENTER);
     
     // Header positions - adjusted for compact layout
     let rankX = tableX + 30;
@@ -3289,13 +3209,13 @@ function drawLeaderboardScreen() {
         
         // Draw row background
         fill(i % 2 === 0 ? '#FFFFFF' : '#FFD1DC');
-  noStroke();
+        noStroke();
         rect(tableX, y, tableWidth, rowHeight);
         
         // Draw rank
         fill('#4B0082');
         textSize(14);  // Reduced text size
-    textStyle(NORMAL);
+        textStyle(NORMAL);
         textAlign(CENTER);
         text(i + 1, rankX, y + rowHeight/2 + 4);
         
@@ -3837,7 +3757,7 @@ function updateMishaps() {
 
 // Mouse click handler
 function mouseClicked() {
-  if (gameState === 'start') {
+    if (gameState === 'start') {
         // Check if play button is clicked
         const playButtonX = width/2;
         const playButtonY = height/2;
@@ -3849,8 +3769,8 @@ function mouseClicked() {
             mouseY > playButtonY - playButtonHeight/2 && 
             mouseY < playButtonY + playButtonHeight/2) {
             startGame();
-    }
-  } else if (gameState === 'gameOver' || gameState === 'win') {
+        }
+    } else if (gameState === 'gameOver' || gameState === 'win') {
         // Check if leaderboard button is clicked
         const leaderboardButtonX = width/2;
         const leaderboardButtonY = height/2 + 100;
@@ -3865,7 +3785,7 @@ function mouseClicked() {
         }
         
         // Check if back button is clicked in leaderboard screen
-    if (showLeaderboard) {
+        if (showLeaderboard) {
             const backButtonX = 50;
             const backButtonY = 50;
             const backButtonSize = 40;
@@ -3874,7 +3794,7 @@ function mouseClicked() {
                 mouseX < backButtonX + backButtonSize/2 && 
                 mouseY > backButtonY - backButtonSize/2 && 
                 mouseY < backButtonY + backButtonSize/2) {
-        showLeaderboard = false;
+                showLeaderboard = false;
                 return;
             }
         }
@@ -3940,7 +3860,7 @@ function keyTyped() {
 }
 
 // Add touch support for mobile
-function touchStarted() {
+// DISABLED function touchStarted() {
     // Check if we're in the game over state and showing the email input
     if (gameState === 'gameOver' && isEmailInputActive) {
         // Get the close button element
@@ -3950,15 +3870,17 @@ function touchStarted() {
             const rect = closeBtn.getBoundingClientRect();
             
             // Check if the touch is within the close button's area
-            if (touches[0].x >= rect.left && touches[0].x <= rect.right &&
-                touches[0].y >= rect.top && touches[0].y <= rect.bottom) {
+            if (touches[0].x >= rect.left && 
+                touches[0].x <= rect.right && 
+                touches[0].y >= rect.top && 
+                touches[0].y <= rect.bottom) {
                 // Remove the email input form
                 const form = closeBtn.closest('form');
                 if (form) {
                     form.remove();
                     isEmailInputActive = false;
                 }
-        return false;
+                return false;
             }
         }
     }
@@ -3983,7 +3905,7 @@ function touchStarted() {
             touch.y <= privacyLinkY + clickAreaHeight/2) {
             console.log('Privacy policy link clicked');
             showPrivacyPolicy = true;
-        return false;
+            return false;
         }
     }
 
@@ -4013,9 +3935,9 @@ function touchStarted() {
             touch.y <= closeButtonY + closeButtonSize) {
             console.log('Close button clicked');
             showPrivacyPolicy = false;
-      return false;
-    }
-  
+            return false;
+        }
+        
         // Accept button dimensions
         const buttonWidth = isMobileDevice() ? 200 : 150;
         const buttonHeight = isMobileDevice() ? 60 : 50;
@@ -4030,9 +3952,9 @@ function touchStarted() {
             console.log('Accept button clicked');
             showPrivacyPolicy = false;
             privacyPolicyAccepted = true;
-      return false;
-    }
-
+            return false;
+        }
+        
         return false; // Prevent other touch events when popup is open
     }
     
@@ -4114,16 +4036,16 @@ function touchStarted() {
     }
 
                 // Check if email input was touched
-    let emailBoxX = width/2 - 200;
+                let emailBoxX = width/2 - 200;
                 let emailBoxY = height/4 + 280 + 60;
-    let emailBoxWidth = 400;
+                let emailBoxWidth = 400;
                 let emailBoxHeight = 40;
     
                 if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
                     touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-      isEmailInputActive = true;
-                    // Show keyboard on mobile devices
-                    if (isMobileDevice()) {
+                    // Only activate email input on desktop
+                    if (!isMobileDevice()) {
+                        isEmailInputActive = true;
                         const tempInput = createEmailInput(playerEmail);
                         tempInput.style.top = '50%';
                         tempInput.style.left = '50%';
@@ -4134,7 +4056,7 @@ function touchStarted() {
                         tempInput.style.pointerEvents = 'auto';
                         tempInput.focus();
                     }
-      return false;
+                    return false;
                 }
             }
         }
@@ -4154,20 +4076,21 @@ function touchStarted() {
         if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
             touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
             startGame();
-      return false;
-    }
+        return false;
+      }
       
         // Email input box touch handling
-    let emailBoxX = width/2 - 200;
+        let emailBoxX = width/2 - 200;
         let emailBoxY = playAgainY + 500;
-    let emailBoxWidth = 400;
+        let emailBoxWidth = 400;
         let emailBoxHeight = 50;
     
         if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
             touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-      isEmailInputActive = true;
-            // Show keyboard on mobile devices
-            if (isMobileDevice()) {
+            // Only activate email input on desktop
+            if (!isMobileDevice()) {
+                isEmailInputActive = true;
+                // Show keyboard on mobile devices
                 const tempInput = createEmailInput(playerEmail);
                 tempInput.style.top = '50%';
                 tempInput.style.left = '50%';
@@ -4215,14 +4138,24 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    // Return early for mobile devices
+    // Don't create email input on mobile devices
     if (isMobileDevice()) {
         return null;
     }
     
     // Remove any existing input elements
-    const existingInputs = document.querySelectorAll('.game-email-input');
+    const existingInputs = document.querySelectorAll('form');
     existingInputs.forEach(input => input.remove());
+    
+    // Create an overlay to prevent touch events from reaching the canvas
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    overlay.style.zIndex = '9998';
     
     // Create a form element
     const form = document.createElement('form');
@@ -4231,7 +4164,7 @@ function createEmailInput(value) {
     form.style.left = '50%';
     form.style.transform = 'translate(-50%, -50%)';
     form.style.zIndex = '9999';
-    form.style.width = '400px';
+    form.style.width = isMobileDevice() ? '90%' : '400px';
     form.style.maxWidth = '500px';
     
     // Create container for input and button
@@ -4256,11 +4189,11 @@ function createEmailInput(value) {
     input.classList.add('game-email-input');
     input.value = value || '';
     
-    // Apply styles for better desktop UX
+    // Apply styles for better mobile UX
     input.style.width = '100%';
-    input.style.height = '44px';
-    input.style.fontSize = '16px';
-    input.style.padding = '12px 16px';
+    input.style.height = isMobileDevice() ? '54px' : '44px';
+    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
     input.style.boxSizing = 'border-box';
     input.style.border = '2px solid #3498db';
     input.style.borderRadius = '12px';
@@ -4274,9 +4207,9 @@ function createEmailInput(value) {
     const submitBtn = document.createElement('button');
     submitBtn.textContent = 'Submit';
     submitBtn.style.width = '100%';
-    submitBtn.style.height = '44px';
-    submitBtn.style.fontSize = '16px';
-    submitBtn.style.padding = '12px 16px';
+    submitBtn.style.height = isMobileDevice() ? '54px' : '44px';
+    submitBtn.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    submitBtn.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
     submitBtn.style.backgroundColor = '#3498db';
     submitBtn.style.color = 'white';
     submitBtn.style.border = 'none';
@@ -4288,8 +4221,8 @@ function createEmailInput(value) {
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕';
     closeBtn.style.position = 'absolute';
-    closeBtn.style.top = '-44px';
-    closeBtn.style.left = '0';
+    closeBtn.style.top = '10px';
+    closeBtn.style.right = '10px';
     closeBtn.style.background = '#FF1493';
     closeBtn.style.border = 'none';
     closeBtn.style.color = 'white';
@@ -4299,15 +4232,14 @@ function createEmailInput(value) {
     closeBtn.style.fontSize = '20px';
     closeBtn.style.cursor = 'pointer';
     closeBtn.style.zIndex = '10000';
-    closeBtn.style.pointerEvents = 'auto';
     closeBtn.type = 'button';
-    closeBtn.classList.add('email-close-btn');
     
-    // Event handlers
+    // Event handlers with stop propagation to prevent canvas from receiving events
     const handleSubmit = (e) => {
         e.preventDefault();
         e.stopPropagation();
         playerEmail = input.value;
+        overlay.remove();
         form.remove();
         isEmailInputActive = false;
         return false;
@@ -4316,23 +4248,46 @@ function createEmailInput(value) {
     const handleClose = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        overlay.remove();
         form.remove();
         isEmailInputActive = false;
         return false;
     };
     
-    // Add event listeners
-    form.onsubmit = handleSubmit;
-    submitBtn.onclick = handleSubmit;
-    closeBtn.onclick = handleClose;
+    // Prevent overlay from closing when clicking on the form
+    form.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
     
-    // Add input event listener
+    // Close the form when clicking on the overlay
+    overlay.addEventListener('click', handleClose);
+    
+    // Add event listeners for both click and touch events with stop propagation
+    form.addEventListener('submit', handleSubmit);
+    submitBtn.addEventListener('click', handleSubmit);
+    submitBtn.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        handleSubmit(e);
+    });
+    
+    closeBtn.addEventListener('click', handleClose);
+    closeBtn.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        handleClose(e);
+    });
+    
+    // Prevent touch events on input from closing the form
+    input.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+    });
+    
+    // Add input event listener to ensure keyboard input is captured
     input.addEventListener('input', (e) => {
         e.stopPropagation();
         playerEmail = e.target.value;
     });
     
-    // Add keydown event listener
+    // Add keydown event listener to prevent event bubbling
     input.addEventListener('keydown', (e) => {
         e.stopPropagation();
     });
@@ -4342,10 +4297,22 @@ function createEmailInput(value) {
     container.appendChild(submitBtn);
     container.appendChild(closeBtn);
     form.appendChild(container);
+    
+    // Add overlay first, then form
+    document.body.appendChild(overlay);
     document.body.appendChild(form);
     
-    // Focus the input
-    input.focus();
+    // Force keyboard to show on mobile with a delay
+    setTimeout(() => {
+        input.focus();
+        // For iOS devices, we need this workaround
+        if (isMobileDevice()) {
+            input.blur();
+            input.focus();
+            // Click the input to ensure the keyboard appears
+            input.click();
+        }
+    }, 300);
     
     return input;
 }
@@ -4586,7 +4553,7 @@ function drawPrivacyPolicyPopup() {
     textAlign(CENTER, CENTER);
     text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
     pop();
-  }
+}
 
 function mousePressed() {
     if (showPrivacyPolicy) {
@@ -4613,35 +4580,35 @@ function mousePressed() {
 // ... existing code ...
 
 function drawEffectNotifications() {
-  for (let i = effectNotifications.length - 1; i >= 0; i--) {
-    let notification = effectNotifications[i];
-    
-    // Update position
-    notification.y -= NOTIFICATION_RISE_SPEED;
-    notification.duration--;
-    
-    // Draw notification
-    push();
-    textAlign(CENTER);
-    textSize(20);
-    
-    // Fade out near the end
-    let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
-    
-    if (notification.value > 0) {
-      fill(50, 205, 50, alpha); // Green for positive
-      text("+" + notification.value + " " + notification.type, notification.x, notification.y);
-    } else {
-      fill(255, 50, 50, alpha); // Red for negative
-      text(notification.value + " " + notification.type, notification.x, notification.y);
+    for (let i = effectNotifications.length - 1; i >= 0; i--) {
+        let notification = effectNotifications[i];
+        
+        // Update position
+        notification.y -= NOTIFICATION_RISE_SPEED;
+        notification.duration--;
+        
+        // Draw notification
+        push();
+        textAlign(CENTER);
+        textSize(20);
+        
+        // Fade out near the end
+        let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
+        
+        if (notification.value > 0) {
+            fill(50, 205, 50, alpha); // Green for positive
+            text("+" + notification.value + " " + notification.type, notification.x, notification.y);
+        } else {
+            fill(255, 50, 50, alpha); // Red for negative
+            text(notification.value + " " + notification.type, notification.x, notification.y);
+        }
+        pop();
+        
+        // Remove expired notifications
+        if (notification.duration <= 0) {
+            effectNotifications.splice(i, 1);
+        }
     }
-    pop();
-    
-    // Remove expired notifications
-    if (notification.duration <= 0) {
-      effectNotifications.splice(i, 1);
-    }
-  }
 }
 
 // ... existing code ...
