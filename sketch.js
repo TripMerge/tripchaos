@@ -491,78 +491,36 @@ let decisions = [
 
 // Setup function
 function setup() {
-    // Wait for fonts to load
-    document.fonts.ready.then(() => {
-        // Create canvas with fixed dimensions
-        let canvas = createCanvas(1000, 600);
-        canvas.parent('game-container');
-        
-        // Set initial scale based on device type and screen size
-        if (isMobileDevice()) {
-            // Calculate available space considering safe areas
-            let availableWidth = windowWidth - (window.visualViewport ? 0 : 40); // Account for mobile browsers' UI
-            let availableHeight = windowHeight - (window.visualViewport ? 0 : 80);
-            
-            // Calculate scale maintaining aspect ratio
-            let scale = min(availableWidth / 1000, availableHeight / 600);
-            
-            // Apply scale
-            resizeCanvas(1000 * scale, 600 * scale);
-            window.gameScale = scale;
-            
-            // Force immediate scale update
-            canvas.style('width', `${1000 * scale}px`);
-            canvas.style('height', `${600 * scale}px`);
-        } else {
-            window.gameScale = 1;
-        }
-        
-        // Initialize level length
-        levelLength = 3000;
-        
-        // Set initial game state
-        gameState = 'start';
-        window.gameState = 'start';
-        
-        // Initialize game objects and settings
-        resetGame();
-        
-        // Add window resize handler
-        window.addEventListener('resize', () => {
-            // Use requestAnimationFrame to ensure smooth resize
-            requestAnimationFrame(windowResized);
-        });
-        
-        // Force initial resize
-        windowResized();
-    });
+    // Create canvas with fixed dimensions
+    let canvas = createCanvas(1000, 600);
+    canvas.parent('game-container');
+    
+    // Set initial scale
+    window.gameScale = 1;
+    
+    // Initialize level length
+    levelLength = 3000;
+    
+    // Set initial game state
+    gameState = 'start';
+    window.gameState = 'start';
+  
+  // Initialize game objects and settings
+  resetGame();
+  
+  // Add window resize handler
+  window.addEventListener('resize', windowResized);
+    
+    // Debug log
+    console.log('Canvas created:', canvas);
+    console.log('Game state:', gameState);
 }
 
-// Update window resize handler
+// Handle window resize events
 function windowResized() {
-    if (isMobileDevice()) {
-        // Calculate available space considering safe areas
-        let availableWidth = windowWidth - (window.visualViewport ? 0 : 40);
-        let availableHeight = windowHeight - (window.visualViewport ? 0 : 80);
-        
-        // Calculate scale maintaining aspect ratio
-        let scale = min(availableWidth / 1000, availableHeight / 600);
-        
-        // Apply scale
-        resizeCanvas(1000 * scale, 600 * scale);
-        window.gameScale = scale;
-        
-        // Force immediate scale update
-        let canvas = document.querySelector('canvas');
-        if (canvas) {
-            canvas.style.width = `${1000 * scale}px`;
-            canvas.style.height = `${600 * scale}px`;
-        }
-    } else {
-        // Desktop keeps fixed size
-        resizeCanvas(1000, 600);
-        window.gameScale = 1;
-    }
+  // Desktop keeps fixed size, no resize needed
+  resizeCanvas(1000, 600);
+  window.gameScale = 1;
 }
 
 // Update mobile detection to be more reliable
@@ -4639,20 +4597,13 @@ function colorShift(hexColor) {
 // Add new function to draw privacy policy popup
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
-    // Calculate popup dimensions based on screen size
-    let popupWidth = width * 0.8;
-    let popupHeight = height * 0.8;
-    let popupX = (width - popupWidth) / 2;
-    let popupY = (height - popupHeight) / 2;
+    // Calculate popup dimensions - use consistent size for both mobile and desktop
+    const popupWidth = width * 0.8;
+    const popupHeight = height * 0.8;
+    const popupX = (width - popupWidth) / 2;
+    const popupY = (height - popupHeight) / 2;
     
-    // Draw semi-transparent overlay
-    push();
-    fill(0, 0, 0, 200);
-    noStroke();
-    rect(0, 0, width, height);
-    pop();
-    
-    // Draw popup background
+    // Draw popup background with consistent styling
     push();
     fill('#FFFFFF');
     stroke('#4B0082');
@@ -4660,26 +4611,27 @@ function drawPrivacyPolicyPopup() {
     rect(popupX, popupY, popupWidth, popupHeight, 20);
     pop();
     
-    // Draw close button
-    let closeBtnSize = 30;
-    let closeBtnX = popupX + 15;
-    let closeBtnY = popupY + 15;
-    let isCloseBtnHovering = mouseX >= closeBtnX && 
-                            mouseX <= closeBtnX + closeBtnSize && 
-                            mouseY >= closeBtnY && 
-                            mouseY <= closeBtnY + closeBtnSize;
+    // Draw close button with consistent styling
+    const closeButtonSize = 30;
+    const closeButtonX = popupX + popupWidth - closeButtonSize - 10;
+    const closeButtonY = popupY + 10;
+    
+    let isCloseBtnHovering = mouseX >= closeButtonX && 
+                            mouseX <= closeButtonX + closeButtonSize && 
+                            mouseY >= closeButtonY && 
+                            mouseY <= closeButtonY + closeButtonSize;
     
     push();
-    stroke('#4B0082');
     strokeWeight(2);
+    stroke('#4B0082');
     fill(isCloseBtnHovering ? '#FF69B4' : '#FFFFFF');
-    rect(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, 5);
+    rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 5);
     
-    // Draw X in close button
+    // Draw X icon
     stroke('#4B0082');
     strokeWeight(2);
-    line(closeBtnX + 10, closeBtnY + 10, closeBtnX + closeBtnSize - 10, closeBtnY + closeBtnSize - 10);
-    line(closeBtnX + closeBtnSize - 10, closeBtnY + 10, closeBtnX + 10, closeBtnY + closeBtnSize - 10);
+    line(closeButtonX + 10, closeButtonY + 10, closeButtonX + closeButtonSize - 10, closeButtonY + closeButtonSize - 10);
+    line(closeButtonX + closeButtonSize - 10, closeButtonY + 10, closeButtonX + 10, closeButtonY + closeButtonSize - 10);
     pop();
     
     if (isCloseBtnHovering) {
@@ -4692,17 +4644,17 @@ function drawPrivacyPolicyPopup() {
         cursor(ARROW);
     }
     
-    // Draw title
+    // Draw title with consistent styling
     push();
     textFont('Fredoka One');
     fill('#4B0082');
     textStyle(BOLD);
-    textSize(36);
+    textSize(32);
     textAlign(CENTER, CENTER);
     text("Privacy Policy", popupX + popupWidth/2, popupY + 50);
     pop();
     
-    // Draw content
+    // Draw content with consistent styling
     push();
     textFont('Inter');
     fill('#000000');
