@@ -2912,36 +2912,40 @@ function drawGameOverScreen() {
     text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
     pop();
 
-    // Email Submission Form - Only show on desktop
-    if (!isMobileDevice()) {
-        let emailBoxX = width/2 - 200;
-        let emailBoxY = leaderboardY + 50;
-        let emailBoxWidth = 400;
-        let emailBoxHeight = 50;
+    // Email Submission Form - Show on both desktop and mobile
+    let emailBoxX = width/2 - 200;
+    let emailBoxY = leaderboardY + 50;
+    let emailBoxWidth = 400;
+    let emailBoxHeight = 50;
 
-        // Draw email input box
-        push();
-        strokeWeight(2);
-        stroke('#4B0082');
-        fill('#FFFFFF');
-        rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
+    // Draw email input box
+    push();
+    strokeWeight(2);
+    stroke('#4B0082');
+    fill('#FFFFFF');
+    rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
+    
+    // Draw email input text
+    fill('#000000');
+    textSize(20);
+    textAlign(LEFT, CENTER);
+    let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
+    text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
+    pop();
+
+    // Check if email box is clicked
+    if ((mouseIsPressed || touches.length > 0) && 
+        (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
+        (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
+        (mouseY >= emailBoxY || (touches.length > 0 && touches[0].y >= emailBoxY)) && 
+        (mouseY <= emailBoxY + emailBoxHeight || (touches.length > 0 && touches[0].y <= emailBoxY + emailBoxHeight))) {
+        isEmailInputActive = true;
+        mouseIsPressed = false;
         
-        // Draw email input text
-        fill('#000000');
-        textSize(20);
-        textAlign(LEFT, CENTER);
-        let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
-        text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
-        pop();
-
-        // Check if email box is clicked
-        if ((mouseIsPressed || touches.length > 0) && 
-            (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
-            (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
-            (mouseY >= emailBoxY || (touches.length > 0 && touches[0].y >= emailBoxY)) && 
-            (mouseY <= emailBoxY + emailBoxHeight || (touches.length > 0 && touches[0].y <= emailBoxY + emailBoxHeight))) {
-            isEmailInputActive = true;
-            mouseIsPressed = false;
+        // On mobile, create and show the email input
+        if (isMobileDevice()) {
+            const input = createEmailInput(playerEmail);
+            input.focus();
         }
     }
 
@@ -4334,6 +4338,8 @@ function createEmailInput(value) {
         if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
             input.click();
             input.focus();
+            // Additional iOS fix
+            input.setAttribute('autofocus', '');
         }
     }, 100);
     
@@ -4343,10 +4349,10 @@ function createEmailInput(value) {
         if (email && validateEmail(email)) {
             playerEmail = email;
             isEmailInputActive = false;
-            container.remove();
+            form.remove();
             submitScoreToLeaderboard();
         } else {
-            container.remove();
+            form.remove();
             isEmailInputActive = false;
         }
     });
@@ -4358,19 +4364,19 @@ function createEmailInput(value) {
             if (email && validateEmail(email)) {
                 playerEmail = email;
                 isEmailInputActive = false;
-                container.remove();
+                form.remove();
                 submitScoreToLeaderboard();
             }
         } else if (e.key === 'Escape') {
-            container.remove();
+            form.remove();
             isEmailInputActive = false;
         }
     });
 
-    // Handle container click to close
-    container.addEventListener('click', (e) => {
-        if (e.target === container) {
-            container.remove();
+    // Handle form click to close
+    form.addEventListener('click', (e) => {
+        if (e.target === form) {
+            form.remove();
             isEmailInputActive = false;
         }
     });
