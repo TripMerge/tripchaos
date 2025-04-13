@@ -4299,26 +4299,7 @@ function createEmailInput(value) {
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
     
-    // Create a form element
-    const form = document.createElement('form');
-    form.style.position = 'fixed';
-    form.style.top = '50%';
-    form.style.left = '50%';
-    form.style.transform = 'translate(-50%, -50%)';
-    form.style.zIndex = '9999';
-    form.style.width = isMobileDevice() ? '90%' : '400px';
-    form.style.maxWidth = '500px';
-    
-    // Create container for input and button
-    const container = document.createElement('div');
-    container.style.width = '100%';
-    container.style.backgroundColor = 'white';
-    container.style.padding = '20px';
-    container.style.borderRadius = '12px';
-    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-    container.style.position = 'relative';
-    
-    // Create the actual input element
+    // Create a temporary input element
     const input = document.createElement('input');
     input.setAttribute('type', 'email');
     input.setAttribute('inputmode', 'email');
@@ -4327,154 +4308,40 @@ function createEmailInput(value) {
     input.setAttribute('spellcheck', 'false');
     input.setAttribute('autocomplete', 'email');
     input.setAttribute('placeholder', 'Enter your email');
-    input.setAttribute('enterkeyhint', 'done');
     input.classList.add('game-email-input');
     input.value = value || '';
     
-    // Apply styles for better mobile UX
-    input.style.width = '100%';
-    input.style.height = isMobileDevice() ? '54px' : '44px';
-    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
-    input.style.boxSizing = 'border-box';
-    input.style.border = '2px solid #3498db';
-    input.style.borderRadius = '12px';
-    input.style.backgroundColor = '#ffffff';
-    input.style.color = '#333333';
-    input.style.marginBottom = '20px';
-    input.style.WebkitAppearance = 'none';
-    input.style.appearance = 'none';
-    input.style.webkitTapHighlightColor = 'transparent';
-    input.style.touchAction = 'manipulation';
-    input.style.webkitUserSelect = 'text';
-    input.style.userSelect = 'text';
-    input.style.fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    // Position it off-screen but still functional
+    input.style.position = 'fixed';
+    input.style.top = '-1000px';
+    input.style.left = '0';
+    input.style.opacity = '0';
+    input.style.pointerEvents = 'none';
     
-    // Add a submit button
-    const submitBtn = document.createElement('button');
-    submitBtn.textContent = 'Submit';
-    submitBtn.style.width = '100%';
-    submitBtn.style.height = isMobileDevice() ? '54px' : '44px';
-    submitBtn.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    submitBtn.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
-    submitBtn.style.backgroundColor = '#3498db';
-    submitBtn.style.color = 'white';
-    submitBtn.style.border = 'none';
-    submitBtn.style.borderRadius = '12px';
-    submitBtn.style.cursor = 'pointer';
-    submitBtn.style.fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    submitBtn.style.fontWeight = '500';
-    submitBtn.type = 'submit';
+    // Add to document
+    document.body.appendChild(input);
     
-    // Create close button
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕';
-    closeBtn.style.position = 'absolute';
-    closeBtn.style.top = '-44px';
-    closeBtn.style.left = '0';
-    closeBtn.style.background = '#FF1493';
-    closeBtn.style.border = 'none';
-    closeBtn.style.color = 'white';
-    closeBtn.style.width = '44px';
-    closeBtn.style.height = '44px';
-    closeBtn.style.borderRadius = '22px';
-    closeBtn.style.fontSize = '20px';
-    closeBtn.style.cursor = 'pointer';
-    closeBtn.style.zIndex = '10000';
-    closeBtn.style.pointerEvents = 'auto';
-    closeBtn.style.webkitTapHighlightColor = 'transparent';
-    closeBtn.style.touchAction = 'manipulation';
-    closeBtn.style.display = 'flex';
-    closeBtn.style.alignItems = 'center';
-    closeBtn.style.justifyContent = 'center';
-    closeBtn.type = 'button';
-    closeBtn.classList.add('email-close-btn');
-    
-    // Event handlers
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        playerEmail = input.value;
-        form.remove();
-        isEmailInputActive = false;
-        return false;
-    };
-    
-    const handleClose = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.remove();
-        isEmailInputActive = false;
-        return false;
-    };
-    
-    // Add event listeners for both click and touch events
-    form.onsubmit = handleSubmit;
-    submitBtn.onclick = handleSubmit;
-    submitBtn.ontouchstart = handleSubmit;
-    
-    closeBtn.onclick = handleClose;
-    closeBtn.ontouchstart = handleClose;
-    
-    // Add input event listener to ensure keyboard input is captured
-    input.addEventListener('input', (e) => {
-        e.stopPropagation();
+    // Listen for input and update the game's email field
+    input.addEventListener('input', function(e) {
         playerEmail = e.target.value;
-        input.value = playerEmail; // Keep input value in sync
+        emailInputCursor = playerEmail.length;
+        console.log("Email updated:", playerEmail);
     });
     
-    // Add keydown event listener to prevent event bubbling
-    input.addEventListener('keydown', (e) => {
-        e.stopPropagation();
-    });
-    
-    // Add focus event listener to ensure keyboard shows
-    input.addEventListener('focus', () => {
-        input.focus();
-    });
-    
-    // Add touch event listener for mobile
-    input.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        input.focus();
-    });
-    
-    // Add elements to form
-    container.appendChild(input);
-    container.appendChild(submitBtn);
-    container.appendChild(closeBtn);
-    form.appendChild(container);
-    document.body.appendChild(form);
-    
-    // Force keyboard to show on mobile
-    if (isMobileDevice()) {
-        // Focus the input immediately
-        input.focus();
-        
-        // Force keyboard to show after a short delay
-        setTimeout(() => {
-            input.focus();
-            input.click();
+    // Handle blur event
+    input.addEventListener('blur', function() {
+        setTimeout(function() {
+            input.style.pointerEvents = 'none';
+            input.style.top = '-1000px';
         }, 100);
-        
-        // Listen for input and update the game's email field
-        input.addEventListener('input', function(e) {
-            playerEmail = e.target.value;
-            emailInputCursor = playerEmail.length;
-            console.log("Email updated:", playerEmail);
-        });
-        
-        // Clean up when done
-        input.addEventListener('blur', function() {
-            setTimeout(function() {
-                input.style.pointerEvents = 'none';
-                input.style.top = '-1000px'; // Move off-screen
-            }, 100);
-        });
-    } else {
-        // For desktop, just focus normally
+    });
+    
+    // Focus the input
+    setTimeout(() => {
+        input.style.pointerEvents = 'auto';
         input.focus();
-    }
+        input.click();
+    }, 100);
     
     return input;
 }
@@ -4812,4 +4679,64 @@ function drawFogEffect() {
         line(x, y, x + 5, y + 15);
     }
     pop();
+}
+
+// Add this function to handle email submission
+function submitEmailToLeaderboard() {
+    console.log("==== EMAIL SUBMISSION DEBUG ====");
+    console.log("1. Email:", playerEmail);
+    console.log("2. Score:", score);
+    console.log("3. Level:", currentLevelNumber - 1);
+    console.log("4. Satisfaction:", satisfaction);
+    console.log("5. Budget:", budget);
+    console.log("6. Window.leaderboard available:", window.leaderboard ? "Yes" : "No");
+    console.log("7. Supabase client available:", typeof supabase !== 'undefined' ? "Yes" : "No");
+    console.log("8. Privacy checkbox checked:", privacyPolicyAccepted ? "Yes" : "No");
+    
+    // Check if the privacy checkbox is checked
+    if (!privacyPolicyAccepted) {
+        leaderboardMessage = "Please accept the privacy policy first";
+        console.log("Submission blocked: Privacy policy not accepted");
+        return;
+    }
+    
+    if (!playerEmail || playerEmail.trim() === "") {
+        leaderboardMessage = "Please enter a valid email address";
+        return;
+    }
+    
+    // Email validation
+    if (!validateEmail(playerEmail)) {
+        leaderboardMessage = "Please enter a valid email address";
+        return;
+    }
+    
+    submittingScore = true;
+    leaderboardMessage = "Submitting your score...";
+    
+    const achievement = getAchievement(score);
+    
+    // Submit score using the global leaderboard function
+    window.leaderboard.submitScore(
+        playerEmail,
+        score,
+        currentLevelNumber - 1,
+        satisfaction,
+        budget,
+        achievement.title
+    )
+    .then(result => {
+        submittingScore = false;
+        if (result && result.success) {
+            scoreSubmitted = true;
+            leaderboardMessage = "Score submitted successfully!";
+            showLeaderboard = true;
+        } else {
+            fallbackToLocalStorage();
+        }
+    })
+    .catch(error => {
+        console.error("Error submitting score:", error);
+        fallbackToLocalStorage();
+    });
 }
