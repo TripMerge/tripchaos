@@ -455,6 +455,37 @@
                 padding: 14px 18px;
                 border-width: 3px;
             }
+
+            /* Mobile keyboard handling */
+            .game-email-input {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: 90% !important;
+                max-width: 500px !important;
+                height: 54px !important;
+                font-size: 18px !important;
+                padding: 14px 20px !important;
+                margin-bottom: 0 !important;
+                border-radius: 12px 12px 0 0 !important;
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.2) !important;
+                z-index: 9999 !important;
+                background-color: white !important;
+                color: black !important;
+            }
+
+            /* Ensure input is visible when keyboard is shown */
+            @supports (-webkit-touch-callout: none) {
+                .game-email-input {
+                    bottom: env(keyboard-inset-height, 0px) !important;
+                }
+            }
+
+            /* Prevent content from being hidden under keyboard */
+            #game-container {
+                padding-bottom: env(keyboard-inset-height, 0px) !important;
+            }
         }
         
         /* Safari-specific adjustments */
