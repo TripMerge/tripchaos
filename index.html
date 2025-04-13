@@ -12,7 +12,10 @@
     <title>TripChaos: Group Travel Adventures by TripMerge</title>
     
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌴</text></svg>">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
     
     <!-- Load p5.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
@@ -446,70 +449,46 @@
         }
 
         /* Mobile input field adjustments */
-        @media screen and (max-width: 926px) {
+        @media (max-width: 767px) {
             .input-field {
-                font-size: 16px !important;
-                padding: 14px 18px !important;
-                border-width: 2px !important;
-                border-radius: 12px !important;
-                -webkit-appearance: none !important;
-                appearance: none !important;
-                background-color: #ffffff !important;
-                box-shadow: none !important;
-                touch-action: manipulation !important;
-                -webkit-tap-highlight-color: transparent !important;
-            }
-            
-            .game-email-input {
-                min-height: 54px !important;
-                padding: 14px 20px !important;
-                font-size: 18px !important;
-                line-height: 1.5 !important;
-                border-radius: 12px !important;
-                -webkit-appearance: none !important;
-                appearance: none !important;
-                background-color: #ffffff !important;
-                box-shadow: none !important;
-                touch-action: manipulation !important;
-                -webkit-tap-highlight-color: transparent !important;
-            }
-            
-            button {
-                min-height: 54px !important;
-                padding: 14px 24px !important;
-                font-size: 18px !important;
-                line-height: 1.5 !important;
-                border-radius: 12px !important;
-                -webkit-appearance: none !important;
-                appearance: none !important;
-                touch-action: manipulation !important;
-                -webkit-tap-highlight-color: transparent !important;
+                font-size: 16px;
+                padding: 14px 18px;
+                border-width: 3px;
             }
         }
         
-        /* iOS-specific input adjustments */
+        /* Safari-specific adjustments */
         @supports (-webkit-touch-callout: none) {
-            .input-field,
-            .game-email-input {
-                font-size: 16px !important;
-                padding: 14px 18px !important;
-                -webkit-appearance: none !important;
-                appearance: none !important;
-                background-color: #ffffff !important;
-                box-shadow: none !important;
-                touch-action: manipulation !important;
-                -webkit-tap-highlight-color: transparent !important;
+            body {
+                height: -webkit-fill-available; /* Better height handling for Safari */
             }
             
-            button {
-                min-height: 54px !important;
-                padding: 14px 24px !important;
-                font-size: 18px !important;
-                line-height: 1.5 !important;
-                -webkit-appearance: none !important;
-                appearance: none !important;
-                touch-action: manipulation !important;
-                -webkit-tap-highlight-color: transparent !important;
+            #game-container {
+                height: -webkit-fill-available;
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            #canvas-container {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            /* iOS-specific input adjustments */
+            .input-field {
+                font-size: 16px !important;
+            }
+            
+            /* Notched device adjustments */
+            @media screen and (max-width: 926px) and (orientation: landscape) {
+                canvas {
+                    transform: translate(-50%, calc(-50% - env(safe-area-inset-top, 0px) / 2));
+                    max-height: calc(85vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+                }
+                
+                #game-controls {
+                    bottom: max(20px, env(safe-area-inset-bottom));
+                }
             }
         }
 
@@ -554,66 +533,6 @@
 
         .game-title {
             font-family: 'Fredoka One', cursive;
-        }
-
-        /* Email input styles */
-        .game-email-input {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 44px;
-            padding: 12px 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            font-size: 16px;
-            z-index: 9999;
-            -webkit-appearance: none;
-            appearance: none;
-            outline: none;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-        }
-
-        .game-email-input:focus {
-            border-color: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
-        }
-
-        /* Mobile-specific adjustments */
-        @media screen and (max-width: 926px) {
-            .game-email-input {
-                width: 280px;
-                height: 48px;
-                font-size: 16px;
-                padding: 14px 18px;
-                border-radius: 12px;
-                -webkit-appearance: none;
-                appearance: none;
-                background-color: rgba(0, 0, 0, 0.9);
-                box-shadow: none;
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
-            }
-        }
-
-        /* iOS-specific adjustments */
-        @supports (-webkit-touch-callout: none) {
-            .game-email-input {
-                font-size: 16px;
-                padding: 14px 18px;
-                -webkit-appearance: none;
-                appearance: none;
-                background-color: rgba(0, 0, 0, 0.9);
-                box-shadow: none;
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
-            }
         }
     </style>
 </head>

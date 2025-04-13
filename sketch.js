@@ -4234,15 +4234,15 @@ function touchStarted() {
         if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
             touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
             startGame();
-            return false;
-        }
-        
+        return false;
+      }
+      
         // Email input box touch handling
-        let emailBoxX = width/2 - 200;
+    let emailBoxX = width/2 - 200;
         let emailBoxY = playAgainY + 500;
-        let emailBoxWidth = 400;
+    let emailBoxWidth = 400;
         let emailBoxHeight = 50;
-        
+    
         if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
             touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
       isEmailInputActive = true;
@@ -4299,7 +4299,30 @@ function createEmailInput(value) {
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
     
-    // Create a temporary input element
+    // Create a form element
+    const form = document.createElement('form');
+    form.style.position = 'fixed';
+    form.style.top = '50%';
+    form.style.left = '50%';
+    form.style.transform = 'translate(-50%, -50%)';
+    form.style.zIndex = '9999';
+    form.style.width = isMobileDevice() ? '90%' : '400px';
+    form.style.maxWidth = '500px';
+    form.style.backgroundColor = 'transparent';
+    form.style.padding = '0';
+    form.style.margin = '0';
+    form.style.border = 'none';
+    
+    // Create container for input and button
+    const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.backgroundColor = 'white';
+    container.style.padding = '20px';
+    container.style.borderRadius = '12px';
+    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    container.style.position = 'relative';
+    
+    // Create the actual input element
     const input = document.createElement('input');
     input.setAttribute('type', 'email');
     input.setAttribute('inputmode', 'email');
@@ -4308,41 +4331,97 @@ function createEmailInput(value) {
     input.setAttribute('spellcheck', 'false');
     input.setAttribute('autocomplete', 'email');
     input.setAttribute('placeholder', 'Enter your email');
+    input.setAttribute('enterkeyhint', 'done');
     input.classList.add('game-email-input');
     input.value = value || '';
     
-    // Position it off-screen but still functional
-    input.style.position = 'fixed';
-    input.style.top = '-1000px';
-    input.style.left = '0';
-    input.style.opacity = '0';
-    input.style.pointerEvents = 'none';
+    // Apply styles for better mobile UX
+    input.style.width = '100%';
+    input.style.height = isMobileDevice() ? '54px' : '44px';
+    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    input.style.boxSizing = 'border-box';
+    input.style.border = '2px solid #3498db';
+    input.style.borderRadius = '12px';
+    input.style.backgroundColor = '#ffffff';
+    input.style.color = '#333333';
+    input.style.marginBottom = '20px';
+    input.style.WebkitAppearance = 'none';
+    input.style.appearance = 'none';
+    input.style.webkitTapHighlightColor = 'transparent';
     
-    // Add to document
-    document.body.appendChild(input);
+    // Create submit button
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.textContent = 'Submit';
+    submitButton.style.width = '100%';
+    submitButton.style.height = isMobileDevice() ? '54px' : '44px';
+    submitButton.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    submitButton.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    submitButton.style.backgroundColor = '#3498db';
+    submitButton.style.color = 'white';
+    submitButton.style.border = 'none';
+    submitButton.style.borderRadius = '12px';
+    submitButton.style.cursor = 'pointer';
+    submitButton.style.fontWeight = 'bold';
+    submitButton.style.transition = 'background-color 0.2s';
     
-    // Listen for input and update the game's email field
-    input.addEventListener('input', function(e) {
-        playerEmail = e.target.value;
-        emailInputCursor = playerEmail.length;
-        console.log("Email updated:", playerEmail);
+    // Add hover effect for non-mobile devices
+    if (!isMobileDevice()) {
+        submitButton.addEventListener('mouseover', () => {
+            submitButton.style.backgroundColor = '#2980b9';
+        });
+        submitButton.addEventListener('mouseout', () => {
+            submitButton.style.backgroundColor = '#3498db';
+        });
+    }
+    
+    // Add active state for all devices
+    submitButton.addEventListener('touchstart', () => {
+        submitButton.style.backgroundColor = '#2980b9';
+    });
+    submitButton.addEventListener('touchend', () => {
+        submitButton.style.backgroundColor = '#3498db';
     });
     
-    // Handle blur event
-    input.addEventListener('blur', function() {
-        setTimeout(function() {
-            input.style.pointerEvents = 'none';
-            input.style.top = '-1000px';
+    // Handle form submission
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = input.value.trim();
+        
+        if (email && validateEmail(email)) {
+            playerEmail = email;
             isEmailInputActive = false;
-        }, 100);
+            form.remove();
+            submitScoreToLeaderboard();
+        } else {
+            // Show error message
+            const errorMsg = document.createElement('div');
+            errorMsg.textContent = 'Please enter a valid email address';
+            errorMsg.style.color = '#e74c3c';
+            errorMsg.style.fontSize = '14px';
+            errorMsg.style.marginTop = '10px';
+            errorMsg.style.textAlign = 'center';
+            
+            // Remove any existing error message
+            const existingError = container.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            container.appendChild(errorMsg);
+            errorMsg.classList.add('error-message');
+        }
     });
+    
+    // Add input and button to container
+    container.appendChild(input);
+    container.appendChild(submitButton);
+    form.appendChild(container);
+    document.body.appendChild(form);
     
     // Focus the input
-    setTimeout(() => {
-        input.style.pointerEvents = 'auto';
-        input.focus();
-        input.click();
-    }, 100);
+    input.focus();
     
     return input;
 }
@@ -4680,134 +4759,4 @@ function drawFogEffect() {
         line(x, y, x + 5, y + 15);
     }
     pop();
-}
-
-// Add this function to handle email submission
-function submitEmailToLeaderboard() {
-    console.log("==== EMAIL SUBMISSION DEBUG ====");
-    console.log("1. Email:", playerEmail);
-    console.log("2. Score:", score);
-    console.log("3. Level:", currentLevelNumber - 1);
-    console.log("4. Satisfaction:", satisfaction);
-    console.log("5. Budget:", budget);
-    console.log("6. Window.leaderboard available:", window.leaderboard ? "Yes" : "No");
-    console.log("7. Supabase client available:", typeof supabase !== 'undefined' ? "Yes" : "No");
-    console.log("8. Privacy checkbox checked:", privacyPolicyAccepted ? "Yes" : "No");
-    
-    // Check if the privacy checkbox is checked
-    if (!privacyPolicyAccepted) {
-        leaderboardMessage = "Please accept the privacy policy first";
-        console.log("Submission blocked: Privacy policy not accepted");
-        return;
-    }
-    
-    if (!playerEmail || playerEmail.trim() === "") {
-        leaderboardMessage = "Please enter a valid email address";
-        return;
-    }
-    
-    // Email validation
-    if (!validateEmail(playerEmail)) {
-        leaderboardMessage = "Please enter a valid email address";
-        return;
-    }
-    
-    submittingScore = true;
-    leaderboardMessage = "Submitting your score...";
-    
-    const achievement = getAchievement(score);
-    
-    // Submit score using the global leaderboard function
-    window.leaderboard.submitScore(
-        playerEmail,
-        score,
-        currentLevelNumber - 1,
-        satisfaction,
-        budget,
-        achievement.title
-    )
-    .then(result => {
-        submittingScore = false;
-        if (result && result.success) {
-            scoreSubmitted = true;
-            leaderboardMessage = "Score submitted successfully!";
-            showLeaderboard = true;
-        } else {
-            fallbackToLocalStorage();
-        }
-    })
-    .catch(error => {
-        console.error("Error submitting score:", error);
-        fallbackToLocalStorage();
-    });
-}
-
-// Simplified email input creation
-function createEmailInput(value) {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'email');
-    input.setAttribute('inputmode', 'email');
-    input.setAttribute('autocapitalize', 'none');
-    input.setAttribute('autocorrect', 'off');
-    input.setAttribute('spellcheck', 'false');
-    input.setAttribute('autocomplete', 'email');
-    input.setAttribute('placeholder', 'Enter your email');
-    input.classList.add('game-email-input');
-    input.value = value || '';
-    
-    document.body.appendChild(input);
-    
-    input.addEventListener('input', function(e) {
-        playerEmail = e.target.value;
-        emailInputCursor = playerEmail.length;
-    });
-    
-    input.addEventListener('blur', function() {
-        setTimeout(function() {
-            input.remove();
-            isEmailInputActive = false;
-        }, 100);
-    });
-    
-    setTimeout(() => {
-        input.focus();
-        input.click();
-    }, 100);
-    
-    return input;
-}
-
-// Simplified touch handling
-function touchStarted() {
-    if (gameState === 'gameOver' && touches.length > 0) {
-        let touch = touches[0];
-        let emailBoxX = width/2 - 200;
-        let emailBoxY = playAgainY + 500;
-        let emailBoxWidth = 400;
-        let emailBoxHeight = 50;
-        
-        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
-            isEmailInputActive = true;
-            createEmailInput(playerEmail);
-            return false;
-        }
-    }
-    return false;
-}
-
-// Simplified key handling
-function keyTyped() {
-    if (isEmailInputActive) return false;
-    return true;
-}
-
-function keyPressed() {
-    if (isEmailInputActive) return false;
-    return true;
-}
-
-function mouseClicked() {
-    if (gameState === 'gameOver' && isEmailInputActive) return false;
-    return true;
 }
