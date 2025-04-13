@@ -634,11 +634,20 @@
         }
 
         /* Mobile email input styles */
-        .mobile-email-input {
+        .mobile-email-form {
             position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            z-index: 9999 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+
+        .mobile-email-input {
             width: 90% !important;
             max-width: 300px !important;
             height: 50px !important;
@@ -648,18 +657,11 @@
             border-radius: 10px !important;
             background-color: white !important;
             color: black !important;
-            z-index: 9999 !important;
             -webkit-appearance: none !important;
             appearance: none !important;
             box-sizing: border-box !important;
             margin: 0 !important;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-            -webkit-user-select: text !important;
-            user-select: text !important;
-            -webkit-touch-callout: default !important;
-            -webkit-text-size-adjust: 100% !important;
-            -ms-text-size-adjust: 100% !important;
-            touch-action: manipulation !important;
         }
 
         .mobile-email-input:focus {
@@ -668,26 +670,15 @@
             box-shadow: 0 0 8px rgba(52, 152, 219, 0.5) !important;
         }
 
-        /* Mobile email input container */
-        .mobile-email-container {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background-color: rgba(0, 0, 0, 0.5) !important;
-            z-index: 9998 !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-        }
-
         /* iOS specific fixes */
         @supports (-webkit-touch-callout: none) {
             .mobile-email-input {
                 font-size: 16px !important;
                 height: 44px !important;
                 padding: 12px 15px !important;
+                -webkit-user-select: text !important;
+                user-select: text !important;
+                -webkit-touch-callout: default !important;
             }
         }
 

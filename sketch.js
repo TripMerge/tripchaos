@@ -4300,14 +4300,14 @@ function touchStarted() {
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
     // Remove any existing input
-    const existingInput = document.querySelector('.mobile-email-input');
-    if (existingInput) {
-        existingInput.remove();
+    const existingForm = document.querySelector('.mobile-email-form');
+    if (existingForm) {
+        existingForm.remove();
     }
 
-    // Create container
-    const container = document.createElement('div');
-    container.className = 'mobile-email-container';
+    // Create form container
+    const form = document.createElement('div');
+    form.className = 'mobile-email-form';
 
     // Create input element
     const input = document.createElement('input');
@@ -4321,11 +4321,11 @@ function createEmailInput(value) {
     input.autocorrect = 'off';
     input.spellcheck = 'false';
     
-    // Add input to container
-    container.appendChild(input);
+    // Add input to form
+    form.appendChild(input);
     
-    // Add container to document
-    document.body.appendChild(container);
+    // Add form to document
+    document.body.appendChild(form);
     
     // Focus and show keyboard
     setTimeout(() => {
