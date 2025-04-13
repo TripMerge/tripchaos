@@ -2622,6 +2622,19 @@ function touchStarted() {
             showPrivacyPolicy = true;
             return false;
         }
+
+        // Handle privacy policy checkbox touch
+        let checkboxSize = isMobileDevice() ? 30 : 20;
+        let privacyX = width/2 - 250;
+        let privacyY = height * 0.62;
+        
+        if (touch.x >= privacyX && 
+            touch.x <= privacyX + checkboxSize && 
+            touch.y >= privacyY - checkboxSize/2 && 
+            touch.y <= privacyY + checkboxSize/2) {
+            privacyPolicyAccepted = !privacyPolicyAccepted;
+            return false;
+        }
     }
     
     // Handle email input touch
