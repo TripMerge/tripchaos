@@ -4303,34 +4303,7 @@ function createEmailInput(value) {
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
     
-    // Create a form element
-    const form = document.createElement('form');
-    form.style.position = 'fixed';
-    form.style.top = '50%';
-    form.style.left = '50%';
-    form.style.transform = 'translate(-50%, -50%)';
-    form.style.zIndex = '9999';
-    form.style.width = isMobileDevice() ? '90%' : '400px';
-    form.style.maxWidth = '500px';
-    form.style.backgroundColor = 'transparent';
-    form.style.padding = '0';
-    form.style.margin = '0';
-    form.style.border = 'none';
-    form.style.maxHeight = isMobileDevice() ? '90vh' : 'auto';
-    form.style.overflowY = 'auto';
-    
-    // Create container for input and button
-    const container = document.createElement('div');
-    container.style.width = '100%';
-    container.style.backgroundColor = 'white';
-    container.style.padding = isMobileDevice() ? '15px' : '20px';
-    container.style.borderRadius = '12px';
-    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-    container.style.position = 'relative';
-    container.style.maxHeight = isMobileDevice() ? '90vh' : 'auto';
-    container.style.overflowY = 'auto';
-    
-    // Create the actual input element
+    // Create a simple input element
     const input = document.createElement('input');
     input.setAttribute('type', 'email');
     input.setAttribute('inputmode', 'email');
@@ -4339,99 +4312,57 @@ function createEmailInput(value) {
     input.setAttribute('spellcheck', 'false');
     input.setAttribute('autocomplete', 'email');
     input.setAttribute('placeholder', 'Enter your email');
-    input.setAttribute('enterkeyhint', 'done');
     input.classList.add('game-email-input');
     input.value = value || '';
     
-    // Apply styles for better mobile UX
-    input.style.width = '100%';
-    input.style.height = isMobileDevice() ? '44px' : '44px';
-    input.style.fontSize = isMobileDevice() ? '16px' : '16px';
-    input.style.padding = isMobileDevice() ? '12px 16px' : '12px 16px';
-    input.style.boxSizing = 'border-box';
+    // Basic styling
+    input.style.position = 'fixed';
+    input.style.top = '50%';
+    input.style.left = '50%';
+    input.style.transform = 'translate(-50%, -50%)';
+    input.style.width = isMobileDevice() ? '80%' : '300px';
+    input.style.height = '44px';
+    input.style.padding = '10px 15px';
+    input.style.fontSize = '16px';
     input.style.border = '2px solid #3498db';
-    input.style.borderRadius = '12px';
-    input.style.backgroundColor = '#ffffff';
-    input.style.color = '#000000';
-    input.style.marginBottom = '15px';
+    input.style.borderRadius = '8px';
+    input.style.backgroundColor = 'white';
+    input.style.color = 'black';
+    input.style.zIndex = '9999';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
-    input.style.webkitTapHighlightColor = 'transparent';
     
-    // Create submit button
-    const submitButton = document.createElement('button');
-    submitButton.type = 'submit';
-    submitButton.textContent = 'Submit';
-    submitButton.style.width = '100%';
-    submitButton.style.height = isMobileDevice() ? '44px' : '44px';
-    submitButton.style.fontSize = isMobileDevice() ? '16px' : '16px';
-    submitButton.style.padding = isMobileDevice() ? '12px 16px' : '12px 16px';
-    submitButton.style.backgroundColor = '#3498db';
-    submitButton.style.color = 'white';
-    submitButton.style.border = 'none';
-    submitButton.style.borderRadius = '12px';
-    submitButton.style.cursor = 'pointer';
-    submitButton.style.fontWeight = 'bold';
-    submitButton.style.transition = 'background-color 0.2s';
+    // Add to document
+    document.body.appendChild(input);
     
-    // Add hover effect for non-mobile devices
-    if (!isMobileDevice()) {
-        submitButton.addEventListener('mouseover', () => {
-            submitButton.style.backgroundColor = '#2980b9';
-        });
-        submitButton.addEventListener('mouseout', () => {
-            submitButton.style.backgroundColor = '#3498db';
-        });
-    }
-    
-    // Add active state for all devices
-    submitButton.addEventListener('touchstart', () => {
-        submitButton.style.backgroundColor = '#2980b9';
-    });
-    submitButton.addEventListener('touchend', () => {
-        submitButton.style.backgroundColor = '#3498db';
-    });
-    
-    // Handle form submission
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = input.value.trim();
-        
-        if (email && validateEmail(email)) {
-            playerEmail = email;
-            isEmailInputActive = false;
-            form.remove();
-            submitScoreToLeaderboard();
-        } else {
-            // Show error message
-            const errorMsg = document.createElement('div');
-            errorMsg.textContent = 'Please enter a valid email address';
-            errorMsg.style.color = '#e74c3c';
-            errorMsg.style.fontSize = '14px';
-            errorMsg.style.marginTop = '10px';
-            errorMsg.style.textAlign = 'center';
-            
-            // Remove any existing error message
-            const existingError = container.querySelector('.error-message');
-            if (existingError) {
-                existingError.remove();
-            }
-            
-            container.appendChild(errorMsg);
-            errorMsg.classList.add('error-message');
-        }
-    });
-    
-    // Add input and button to container
-    container.appendChild(input);
-    container.appendChild(submitButton);
-    form.appendChild(container);
-    document.body.appendChild(form);
-    
-    // Focus the input and show keyboard
+    // Focus and show keyboard
     setTimeout(() => {
         input.focus();
     }, 100);
+    
+    // Handle input completion
+    input.addEventListener('blur', () => {
+        const email = input.value.trim();
+        if (email && validateEmail(email)) {
+            playerEmail = email;
+            isEmailInputActive = false;
+            input.remove();
+            submitScoreToLeaderboard();
+        }
+    });
+    
+    // Handle enter key
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const email = input.value.trim();
+            if (email && validateEmail(email)) {
+                playerEmail = email;
+                isEmailInputActive = false;
+                input.remove();
+                submitScoreToLeaderboard();
+            }
+        }
+    });
     
     return input;
 }
