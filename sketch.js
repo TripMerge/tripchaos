@@ -4441,7 +4441,13 @@ function createEmailInput(value) {
     };
     
     // Focus the input to show keyboard
-    input.focus();
+    setTimeout(() => {
+        input.focus();
+        // For iOS, we need to click the input as well
+        if (isMobileDevice()) {
+            input.click();
+        }
+    }, 100);
     
     return input;
 }
