@@ -4299,15 +4299,11 @@ function createEmailInput(value) {
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
     
-    // Get canvas dimensions
-    const canvas = document.querySelector('canvas');
-    const canvasRect = canvas.getBoundingClientRect();
-    
     // Create a form element
     const form = document.createElement('form');
     form.style.position = 'absolute';
-    form.style.top = `${canvasRect.top + (canvasRect.height * 0.1)}px`; // 10% from top of canvas
-    form.style.left = `${canvasRect.left + (canvasRect.width * 0.5)}px`; // Center horizontally
+    form.style.top = '10%';
+    form.style.left = '50%';
     form.style.transform = 'translate(-50%, 0)';
     form.style.zIndex = '9999';
     form.style.width = isMobileDevice() ? '80%' : '400px';
@@ -4423,8 +4419,9 @@ function createEmailInput(value) {
     container.appendChild(submitButton);
     form.appendChild(container);
     
-    // Add form to canvas container instead of body
+    // Add form to canvas container
     const canvasContainer = document.getElementById('canvas-container');
+    canvasContainer.style.position = 'relative'; // Ensure container is positioned
     canvasContainer.appendChild(form);
     
     // Focus the input
