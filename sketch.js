@@ -4575,20 +4575,22 @@ function colorShift(hexColor) {
 // Add new function to draw privacy policy popup
 // Function to draw the privacy policy popup
 function drawPrivacyPolicyPopup() {
-    // Apply scale based on device type
-    let scale = isMobileDevice() ? window.gameScale : 1;
+    // Fixed dimensions for consistency
+    const BASE_WIDTH = 800;
+    const BASE_HEIGHT = 500;
     
-    // Calculate popup dimensions based on screen size and scale
-    let baseWidth = isMobileDevice() ? 900 : 800;
-    let baseHeight = isMobileDevice() ? 550 : 500;
-    let popupWidth = baseWidth * scale;
-    let popupHeight = baseHeight * scale;
+    // Calculate scale based on screen size while maintaining aspect ratio
+    let scale = min(width / BASE_WIDTH, height / BASE_HEIGHT) * 0.8;
+    
+    // Calculate dimensions
+    let popupWidth = BASE_WIDTH * scale;
+    let popupHeight = BASE_HEIGHT * scale;
     let popupX = (width - popupWidth) / 2;
     let popupY = (height - popupHeight) / 2;
     
     // Draw semi-transparent overlay
     push();
-    fill(0, 0, 0, 200);
+    fill(0, 0, 0, 180); // Consistent overlay opacity
     noStroke();
     rect(0, 0, width, height);
     pop();
@@ -4597,12 +4599,12 @@ function drawPrivacyPolicyPopup() {
     push();
     fill('#FFFFFF');
     stroke('#4B0082');
-    strokeWeight(4 * scale);
-    rect(popupX, popupY, popupWidth, popupHeight, 20 * scale);
+    strokeWeight(3 * scale);
+    rect(popupX, popupY, popupWidth, popupHeight, 15 * scale);
     pop();
     
     // Draw close button
-    let closeBtnSize = 40 * scale;
+    let closeBtnSize = 35 * scale;
     let closeBtnX = popupX + 15 * scale;
     let closeBtnY = popupY + 15 * scale;
     let isCloseBtnHovering = mouseX >= closeBtnX && 
@@ -4614,15 +4616,16 @@ function drawPrivacyPolicyPopup() {
     stroke('#4B0082');
     strokeWeight(2 * scale);
     fill(isCloseBtnHovering ? '#FF69B4' : '#FFFFFF');
-    rect(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, 5 * scale);
+    rect(closeBtnX, closeBtnY, closeBtnSize, closeBtnSize, 8 * scale);
     
     // Draw X in close button
     stroke('#4B0082');
     strokeWeight(2 * scale);
-    line(closeBtnX + 10 * scale, closeBtnY + 10 * scale, 
-         closeBtnX + closeBtnSize - 10 * scale, closeBtnY + closeBtnSize - 10 * scale);
-    line(closeBtnX + closeBtnSize - 10 * scale, closeBtnY + 10 * scale, 
-         closeBtnX + 10 * scale, closeBtnY + closeBtnSize - 10 * scale);
+    let padding = 10 * scale;
+    line(closeBtnX + padding, closeBtnY + padding, 
+         closeBtnX + closeBtnSize - padding, closeBtnY + closeBtnSize - padding);
+    line(closeBtnX + closeBtnSize - padding, closeBtnY + padding, 
+         closeBtnX + padding, closeBtnY + closeBtnSize - padding);
     pop();
     
     if (isCloseBtnHovering) {
@@ -4640,9 +4643,9 @@ function drawPrivacyPolicyPopup() {
     textFont('Fredoka One');
     fill('#4B0082');
     textStyle(BOLD);
-    textSize(36 * scale);
+    textSize(32 * scale);
     textAlign(CENTER, CENTER);
-    text("Privacy Policy", popupX + popupWidth/2, popupY + 50 * scale);
+    text("Privacy Policy", popupX + popupWidth/2, popupY + 45 * scale);
     pop();
     
     // Draw content
@@ -4653,11 +4656,11 @@ function drawPrivacyPolicyPopup() {
     textAlign(LEFT, TOP);
     
     let contentX = popupX + 30 * scale;
-    let contentY = popupY + 100 * scale;
+    let contentY = popupY + 90 * scale;
     let contentWidth = popupWidth - 60 * scale;
     let lineHeight = 24 * scale;
     
-    // Privacy policy text
+    // Privacy policy text - consistent across all devices
     let privacyText = [
         "We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you about how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.",
         "",
@@ -4684,13 +4687,21 @@ function drawPrivacyPolicyPopup() {
         "If you have any questions about this privacy policy or our privacy practices, please contact us at support@tripmerge.com"
     ];
     
-    // Draw each line of text
+    // Draw each line of text with consistent styling
     let y = contentY;
     for (let line of privacyText) {
         if (line.startsWith("-")) {
-            // Indent bullet points
-            text("• " + line.substring(1), contentX + 20 * scale, y);
+            // Bullet points with consistent indentation
+            text("•", contentX + 10 * scale, y);
+            text(line.substring(1).trim(), contentX + 25 * scale, y);
+        } else if (line.startsWith("1.") || line.startsWith("2.") || line.startsWith("3.") || line.startsWith("4.")) {
+            // Section headers
+            push();
+            textStyle(BOLD);
+            text(line, contentX, y);
+            pop();
         } else {
+            // Regular text
             text(line, contentX, y);
         }
         y += lineHeight;
