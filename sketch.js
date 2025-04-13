@@ -514,14 +514,6 @@ function setup() {
     // Debug log
     console.log('Canvas created:', canvas);
     console.log('Game state:', gameState);
-
-    // Initialize mobile email form
-    const form = document.getElementById('mobile-email-form');
-    form.addEventListener('click', (e) => {
-        if (e.target === form) {
-            form.classList.remove('active');
-        }
-    });
 }
 
 // Handle window resize events
@@ -2847,7 +2839,7 @@ function drawGameOverScreen() {
     textFont('Fredoka One');
     fill('#4B0082');
     textStyle(BOLD);
-    textSize(64);
+    textSize(isMobileDevice() ? 48 : 64);
     textAlign(CENTER, CENTER);
     text("GAME OVER", width/2 + 4, topY + 4);
     fill('#FFFFFF');
@@ -2858,24 +2850,29 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(24);
+    textSize(isMobileDevice() ? 20 : 24);
     textAlign(LEFT, CENTER);
     let scoreX = width * 0.1;
     text("YOUR SCORE: " + score, scoreX, topY);
     
     let achievement = getAchievement(score);
-    textSize(20);
+    textSize(isMobileDevice() ? 16 : 20);
     text("🏆 " + achievement.title, scoreX, topY + 30);
     pop();
 
     // Play Again button (right side, smaller)
     let playAgainX = width * 0.85;
-    let playAgainWidth = 200;
-    let playAgainHeight = 60;
-    let isPlayAgainHovering = mouseX >= playAgainX - playAgainWidth/2 && 
+    let playAgainWidth = isMobileDevice() ? 150 : 200;
+    let playAgainHeight = isMobileDevice() ? 50 : 60;
+    let isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
                              mouseX <= playAgainX + playAgainWidth/2 && 
                              mouseY >= topY - playAgainHeight/2 && 
-                             mouseY <= topY + playAgainHeight/2;
+                             mouseY <= topY + playAgainHeight/2) ||
+                             (touches.length > 0 && 
+                              touches[0].x >= playAgainX - playAgainWidth/2 && 
+                              touches[0].x <= playAgainX + playAgainWidth/2 && 
+                              touches[0].y >= topY - playAgainHeight/2 && 
+                              touches[0].y <= topY + playAgainHeight/2);
     
     push();
     strokeWeight(4);
@@ -2885,14 +2882,14 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(30);
+    textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
     text("PLAY AGAIN", playAgainX, topY);
     pop();
 
     if (isPlayAgainHovering) {
         cursor(HAND);
-        if (mouseIsPressed) {
+        if (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) {
             resetGame();
             startGame();
             mouseIsPressed = false;
@@ -2906,128 +2903,129 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(32);
+    textSize(isMobileDevice() ? 24 : 32);
     textAlign(CENTER, CENTER);
     text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
     pop();
 
-    if (isMobileDevice()) {
-        // Show mobile email form when clicking the leaderboard section
-        let leaderboardArea = {
-            x: width/2 - 200,
-            y: leaderboardY - 30,
-            width: 400,
-            height: 60
-        };
+    // Email Submission Form
+    let emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
+    let emailBoxY = leaderboardY + 50;
+    let emailBoxWidth = isMobileDevice() ? 300 : 400;
+    let emailBoxHeight = isMobileDevice() ? 40 : 50;
 
-        // Check for touch events
-        if (touches.length > 0) {
-            let touch = touches[0];
-            if (touch.x >= leaderboardArea.x && 
-                touch.x <= leaderboardArea.x + leaderboardArea.width && 
-                touch.y >= leaderboardArea.y && 
-                touch.y <= leaderboardArea.y + leaderboardArea.height) {
-                showMobileEmailForm();
-                return;
-            }
-        }
-    } else {
-        // Desktop email submission form (unchanged)
-        let emailBoxX = width/2 - 200;
-        let emailBoxY = leaderboardY + 50;
-        let emailBoxWidth = 400;
-        let emailBoxHeight = 50;
+    // Draw email input box
+    push();
+    strokeWeight(2);
+    stroke('#4B0082');
+    fill('#FFFFFF');
+    rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
+    
+    // Draw email input text
+    fill('#000000');
+    textSize(isMobileDevice() ? 16 : 20);
+    textAlign(LEFT, CENTER);
+    let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
+    text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
+    pop();
 
-        // Draw email input box
-        push();
-        strokeWeight(2);
-        stroke('#4B0082');
-        fill('#FFFFFF');
-        rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
+    // Check if email box is clicked
+    if ((mouseIsPressed || touches.length > 0) && 
+        (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
+        (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
+        (mouseY >= emailBoxY || (touches.length > 0 && touches[0].y >= emailBoxY)) && 
+        (mouseY <= emailBoxY + emailBoxHeight || (touches.length > 0 && touches[0].y <= emailBoxY + emailBoxHeight))) {
+        isEmailInputActive = true;
+        mouseIsPressed = false;
         
-        // Draw email input text
-        fill('#000000');
-        textSize(20);
-        textAlign(LEFT, CENTER);
-        let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
-        text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
-        pop();
+        // Show keyboard on mobile devices
+        if (isMobileDevice()) {
+            // Create a temporary input to force keyboard
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            tempInput.style.height = '0';
+            tempInput.style.width = '0';
+            document.body.appendChild(tempInput);
+            
+            // Focus the temporary input first
+            tempInput.focus();
+            
+            // Create the email input
+            const emailInput = createEmailInput(playerEmail);
+            
+            // Focus the email input after a delay
+            setTimeout(() => {
+                emailInput.focus();
+                tempInput.remove();
+            }, 100);
+        }
+    }
 
-        // Check if email box is clicked
-        if (mouseIsPressed && 
-            mouseX >= emailBoxX && 
-            mouseX <= emailBoxX + emailBoxWidth && 
-            mouseY >= emailBoxY && 
-            mouseY <= emailBoxY + emailBoxHeight) {
-            isEmailInputActive = true;
+    // Privacy Policy Checkbox
+    let privacyY = emailBoxY + emailBoxHeight + 20;
+    let checkboxSize = isMobileDevice() ? 30 : 20;
+    let privacyX = width/2 - (isMobileDevice() ? 150 : 250); // Position checkbox to the left of text
+    
+    let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
+                            (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
+                            (mouseY >= privacyY - checkboxSize/2 || (touches.length > 0 && touches[0].y >= privacyY - checkboxSize/2)) && 
+                            (mouseY <= privacyY + checkboxSize/2 || (touches.length > 0 && touches[0].y <= privacyY + checkboxSize/2));
+    
+    push();
+    strokeWeight(2);
+    stroke('#4B0082');
+    fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
+    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
+    
+    if (isCheckboxHovering) {
+        cursor(HAND);
+        if (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) {
+            privacyPolicyAccepted = !privacyPolicyAccepted;
             mouseIsPressed = false;
         }
+    } else {
+        cursor(ARROW);
+    }
+    
+    fill('#FFFFFF');
+    textSize(isMobileDevice() ? 16 : 16);
+    textAlign(LEFT, CENTER);
+    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
+    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
+    pop();
 
-        // Privacy Policy Checkbox
-        let privacyY = emailBoxY + emailBoxHeight + 20;
-        let checkboxSize = 20;
-        let privacyX = width/2 - 250;
-        
-        let isCheckboxHovering = mouseX >= privacyX && 
-                                mouseX <= privacyX + checkboxSize && 
-                                mouseY >= privacyY - checkboxSize/2 && 
-                                mouseY <= privacyY + checkboxSize/2;
-        
-        push();
-        strokeWeight(2);
-        stroke('#4B0082');
-        fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
-        rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
-        
-        if (isCheckboxHovering) {
-            cursor(HAND);
-            if (mouseIsPressed) {
-                privacyPolicyAccepted = !privacyPolicyAccepted;
-                mouseIsPressed = false;
-            }
-        } else {
-            cursor(ARROW);
+    // Submit button (centered below the form)
+    let submitBtnX = width/2;
+    let submitBtnY = privacyY + 100; // Moved further down
+    let submitBtnWidth = isMobileDevice() ? 150 : 200;
+    let submitBtnHeight = isMobileDevice() ? 50 : 60;
+    let isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 || (touches.length > 0 && touches[0].x >= submitBtnX - submitBtnWidth/2)) && 
+                             (mouseX <= submitBtnX + submitBtnWidth/2 || (touches.length > 0 && touches[0].x <= submitBtnX + submitBtnWidth/2)) && 
+                             (mouseY >= submitBtnY - submitBtnHeight/2 || (touches.length > 0 && touches[0].y >= submitBtnY - submitBtnHeight/2)) && 
+                             (mouseY <= submitBtnY + submitBtnHeight/2 || (touches.length > 0 && touches[0].y <= submitBtnY + submitBtnHeight/2));
+    
+    push();
+    strokeWeight(4);
+    stroke('#4B0082');
+    fill(isSubmitBtnHovering ? '#32CD32' : '#FF69B4');
+    rect(submitBtnX - submitBtnWidth/2, submitBtnY - submitBtnHeight/2, submitBtnWidth, submitBtnHeight, 15);
+    
+    textFont('Fredoka One');
+    fill('#FFFFFF');
+    textSize(isMobileDevice() ? 24 : 30);
+    textAlign(CENTER, CENTER);
+    text("SUBMIT", submitBtnX, submitBtnY);
+    pop();
+
+    if (isSubmitBtnHovering) {
+        cursor(HAND);
+        if ((mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) && privacyPolicyAccepted) {
+            submitScoreToLeaderboard();
+            mouseIsPressed = false;
         }
-        
-        fill('#FFFFFF');
-        textSize(16);
-        textAlign(LEFT, CENTER);
-        text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
-        text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
-        pop();
-
-        // Submit button
-        let submitBtnX = width/2;
-        let submitBtnY = privacyY + 100;
-        let submitBtnWidth = 200;
-        let submitBtnHeight = 60;
-        let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
-                                 mouseX <= submitBtnX + submitBtnWidth/2 && 
-                                 mouseY >= submitBtnY - submitBtnHeight/2 && 
-                                 mouseY <= submitBtnY + submitBtnHeight/2;
-        
-        push();
-        strokeWeight(4);
-        stroke('#4B0082');
-        fill(isSubmitBtnHovering ? '#32CD32' : '#FF69B4');
-        rect(submitBtnX - submitBtnWidth/2, submitBtnY - submitBtnHeight/2, submitBtnWidth, submitBtnHeight, 15);
-        
-        textFont('Fredoka One');
-        fill('#FFFFFF');
-        textSize(30);
-        textAlign(CENTER, CENTER);
-        text("SUBMIT", submitBtnX, submitBtnY);
-        pop();
-
-        if (isSubmitBtnHovering) {
-            cursor(HAND);
-            if ((mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) && privacyPolicyAccepted) {
-                submitScoreToLeaderboard();
-                mouseIsPressed = false;
-            }
-        } else {
-            cursor(ARROW);
-        }
+    } else {
+        cursor(ARROW);
     }
 
     // Draw privacy policy popup if active
@@ -3037,84 +3035,19 @@ function drawGameOverScreen() {
 
     // Privacy Policy link - positioned at the bottom of the screen
     let gameOverPrivacyLinkY = height * 0.9;
-    let isGameOverPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                                       mouseY >= gameOverPrivacyLinkY - 15 && mouseY <= gameOverPrivacyLinkY + 15;
+    let isGameOverPrivacyLinkHovering = (mouseX >= width/2 - 100 || (touches.length > 0 && touches[0].x >= width/2 - 100)) && 
+                                       (mouseX <= width/2 + 100 || (touches.length > 0 && touches[0].x <= width/2 + 100)) && 
+                                       (mouseY >= gameOverPrivacyLinkY - 15 || (touches.length > 0 && touches[0].y >= gameOverPrivacyLinkY - 15)) && 
+                                       (mouseY <= gameOverPrivacyLinkY + 15 || (touches.length > 0 && touches[0].y <= gameOverPrivacyLinkY + 15));
     
     push();
     textFont('Fredoka One');
-    textSize(16);
+    textSize(isMobileDevice() ? 16 : 16);
     textAlign(CENTER, CENTER);
     fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
     textStyle(NORMAL);
     text("Privacy Policy", width/2, gameOverPrivacyLinkY);
     pop();
-}
-
-// Add these new functions for mobile email form handling
-function showMobileEmailForm() {
-    const form = document.getElementById('mobile-email-form');
-    const emailInput = document.getElementById('mobile-email-input');
-    const privacyCheckbox = document.getElementById('mobile-privacy-checkbox');
-    const submitButton = document.getElementById('mobile-submit-button');
-    const privacyLink = document.getElementById('mobile-privacy-link');
-
-    // Show the form
-    form.style.display = 'flex';
-    
-    // Set initial values
-    emailInput.value = playerEmail || '';
-    privacyCheckbox.checked = privacyPolicyAccepted;
-
-    // Focus the email input
-    setTimeout(() => {
-        emailInput.focus();
-    }, 100);
-
-    // Handle input changes
-    emailInput.addEventListener('input', (e) => {
-        playerEmail = e.target.value;
-    });
-
-    // Handle form submission
-    submitButton.onclick = (e) => {
-        e.preventDefault();
-        if (privacyCheckbox.checked) {
-            playerEmail = emailInput.value;
-            privacyPolicyAccepted = true;
-            form.style.display = 'none';
-            submitScoreToLeaderboard();
-        }
-    };
-
-    // Handle privacy policy link
-    privacyLink.onclick = (e) => {
-        e.preventDefault();
-        showPrivacyPolicy = true;
-        form.style.display = 'none';
-    };
-
-    // Handle privacy checkbox changes
-    privacyCheckbox.onchange = () => {
-        privacyPolicyAccepted = privacyCheckbox.checked;
-    };
-
-    // Handle form close when clicking outside
-    form.addEventListener('click', (e) => {
-        if (e.target === form) {
-            form.style.display = 'none';
-        }
-    });
-
-    // Handle keyboard submit
-    emailInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && privacyCheckbox.checked) {
-            e.preventDefault();
-            playerEmail = emailInput.value;
-            privacyPolicyAccepted = true;
-            form.style.display = 'none';
-            submitScoreToLeaderboard();
-        }
-    });
 }
 
 function drawWinScreen() {
