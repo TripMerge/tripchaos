@@ -71,6 +71,7 @@
             visibility: visible;
             opacity: 1;
             z-index: 1;
+            transform: none !important;
         }
         
         #canvas-container {
@@ -84,6 +85,7 @@
             visibility: visible;
             opacity: 1;
             z-index: 2;
+            transform: none !important;
         }
         
         canvas {
@@ -100,6 +102,8 @@
             display: block;
             visibility: visible;
             opacity: 1;
+            z-index: 3;
+            transform: translate(-50%, -50%) !important;
         }
         
         #game-controls {
@@ -653,6 +657,38 @@
         </div>
     </div>
 
+    <!-- Initial page load script -->
+    <script>
+        // Handle initial page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const gameContainer = document.getElementById('game-container');
+            const canvasContainer = document.getElementById('canvas-container');
+            const canvas = document.querySelector('canvas');
+            
+            // Ensure proper initial positioning
+            gameContainer.style.position = 'fixed';
+            gameContainer.style.top = '0';
+            gameContainer.style.left = '0';
+            gameContainer.style.width = '100%';
+            gameContainer.style.height = '100%';
+            gameContainer.style.transform = 'none';
+            
+            // Ensure canvas container is properly positioned
+            canvasContainer.style.position = 'relative';
+            canvasContainer.style.width = '100%';
+            canvasContainer.style.height = '100%';
+            canvasContainer.style.transform = 'none';
+            
+            // Ensure canvas is properly positioned
+            if (canvas) {
+                canvas.style.position = 'absolute';
+                canvas.style.left = '50%';
+                canvas.style.top = '45%';
+                canvas.style.transform = 'translate(-50%, -50%)';
+            }
+        });
+    </script>
+    
     <!-- Game script -->
     <script>
         // Set initial state
@@ -666,17 +702,24 @@
         gameContainer.style.left = '0';
         gameContainer.style.width = '100%';
         gameContainer.style.height = '100%';
+        gameContainer.style.transform = 'none';
+        
+        // Ensure canvas container is properly positioned
+        canvasContainer.style.position = 'relative';
+        canvasContainer.style.width = '100%';
+        canvasContainer.style.height = '100%';
+        canvasContainer.style.transform = 'none';
+        
+        // Ensure canvas is properly positioned
+        if (canvas) {
+            canvas.style.position = 'absolute';
+            canvas.style.left = '50%';
+            canvas.style.top = '45%';
+            canvas.style.transform = 'translate(-50%, -50%)';
+        }
         
         // Wait for window load and p5.js initialization
         window.addEventListener('load', function() {
-            // Ensure canvas is properly positioned
-            if (canvas) {
-                canvas.style.position = 'absolute';
-                canvas.style.left = '50%';
-                canvas.style.top = '45%';
-                canvas.style.transform = 'translate(-50%, -50%)';
-            }
-            
             // Wait until sketch.js has fully loaded and initialized
             setTimeout(function() {
                 gameContainer.classList.remove('loading');
