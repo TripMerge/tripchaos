@@ -2612,8 +2612,8 @@ function touchStarted() {
         const privacyLinkY = height * 0.9;
         
         // Make the click area larger for mobile
-        const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
-        const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
+        const clickAreaWidth = isMobileDevice() ? 300 : 100;
+        const clickAreaHeight = isMobileDevice() ? 50 : 15;
         
         if (touch.x >= width/2 - clickAreaWidth/2 && 
             touch.x <= width/2 + clickAreaWidth/2 && 
@@ -2625,27 +2625,29 @@ function touchStarted() {
     }
     
     // Handle email input touch
-    if (gameState === 'gameOver' && isEmailInputActive) {
-        const input = document.querySelector('.game-email-input');
-        if (input) {
-            // Get the input's position and dimensions
-            const rect = input.getBoundingClientRect();
-            
-            // Check if touch is within the input area
-            if (touches[0].x >= rect.left && 
-                touches[0].x <= rect.right && 
-                touches[0].y >= rect.top && 
-                touches[0].y <= rect.bottom) {
-                // Focus the input and show keyboard
-                input.focus();
-                input.click();
+    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Email input box dimensions
+        let emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
+        let emailBoxY = height * 0.55;
+        let emailBoxWidth = isMobileDevice() ? 300 : 400;
+        let emailBoxHeight = isMobileDevice() ? 54 : 44;
+        
+        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
+            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+            if (!isEmailInputActive) {
+                isEmailInputActive = true;
+                const input = createEmailInput(playerEmail);
+                input.style.left = emailBoxX + 'px';
+                input.style.top = emailBoxY + 'px';
                 return false;
             }
         }
     }
     
-    // Rest of the touch handling code...
-    // ... existing code ...
+    // Handle other touch events
+    return true;
 }
 
 // Trigger a random decision
@@ -4299,26 +4301,7 @@ function createEmailInput(value) {
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
     
-    // Create a form element
-    const form = document.createElement('form');
-    form.style.position = 'fixed';
-    form.style.top = '50%';
-    form.style.left = '50%';
-    form.style.transform = 'translate(-50%, -50%)';
-    form.style.zIndex = '9999';
-    form.style.width = isMobileDevice() ? '90%' : '400px';
-    form.style.maxWidth = '500px';
-    
-    // Create container for input and button
-    const container = document.createElement('div');
-    container.style.width = '100%';
-    container.style.backgroundColor = 'white';
-    container.style.padding = '20px';
-    container.style.borderRadius = '12px';
-    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-    container.style.position = 'relative';
-    
-    // Create the actual input element
+    // Create the input element
     const input = document.createElement('input');
     input.setAttribute('type', 'email');
     input.setAttribute('inputmode', 'email');
@@ -4332,7 +4315,9 @@ function createEmailInput(value) {
     input.value = value || '';
     
     // Apply styles for better mobile UX
-    input.style.width = '100%';
+    input.style.position = 'absolute';
+    input.style.width = isMobileDevice() ? '90%' : '400px';
+    input.style.maxWidth = '500px';
     input.style.height = isMobileDevice() ? '54px' : '44px';
     input.style.fontSize = isMobileDevice() ? '18px' : '16px';
     input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
@@ -4341,77 +4326,13 @@ function createEmailInput(value) {
     input.style.borderRadius = '12px';
     input.style.backgroundColor = '#ffffff';
     input.style.color = '#333333';
-    input.style.marginBottom = '20px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
     input.style.webkitTapHighlightColor = 'transparent';
     input.style.touchAction = 'manipulation';
     input.style.webkitUserSelect = 'text';
     input.style.userSelect = 'text';
-    
-    // Add a submit button
-    const submitBtn = document.createElement('button');
-    submitBtn.textContent = 'Submit';
-    submitBtn.style.width = '100%';
-    submitBtn.style.height = isMobileDevice() ? '54px' : '44px';
-    submitBtn.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    submitBtn.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
-    submitBtn.style.backgroundColor = '#3498db';
-    submitBtn.style.color = 'white';
-    submitBtn.style.border = 'none';
-    submitBtn.style.borderRadius = '12px';
-    submitBtn.style.cursor = 'pointer';
-    submitBtn.type = 'submit';
-    
-    // Create close button
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕';
-    closeBtn.style.position = 'absolute';
-    closeBtn.style.top = '-44px';
-    closeBtn.style.left = '0';
-    closeBtn.style.background = '#FF1493';
-    closeBtn.style.border = 'none';
-    closeBtn.style.color = 'white';
-    closeBtn.style.width = '44px';
-    closeBtn.style.height = '44px';
-    closeBtn.style.borderRadius = '22px';
-    closeBtn.style.fontSize = '20px';
-    closeBtn.style.cursor = 'pointer';
-    closeBtn.style.zIndex = '10000';
-    closeBtn.style.pointerEvents = 'auto';
-    closeBtn.style.webkitTapHighlightColor = 'transparent';
-    closeBtn.style.touchAction = 'manipulation';
-    closeBtn.style.display = 'flex';
-    closeBtn.style.alignItems = 'center';
-    closeBtn.style.justifyContent = 'center';
-    closeBtn.type = 'button';
-    closeBtn.classList.add('email-close-btn');
-    
-    // Event handlers
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        playerEmail = input.value;
-        form.remove();
-        isEmailInputActive = false;
-        return false;
-    };
-    
-    const handleClose = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.remove();
-        isEmailInputActive = false;
-        return false;
-    };
-    
-    // Add event listeners for both click and touch events
-    form.onsubmit = handleSubmit;
-    submitBtn.onclick = handleSubmit;
-    submitBtn.ontouchstart = handleSubmit;
-    
-    closeBtn.onclick = handleClose;
-    closeBtn.ontouchstart = handleClose;
+    input.style.zIndex = '9999';
     
     // Add input event listener to ensure keyboard input is captured
     input.addEventListener('input', (e) => {
@@ -4423,6 +4344,15 @@ function createEmailInput(value) {
     // Add keydown event listener to prevent event bubbling
     input.addEventListener('keydown', (e) => {
         e.stopPropagation();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (validateEmail(input.value)) {
+                playerEmail = input.value;
+                input.remove();
+                isEmailInputActive = false;
+                submitScoreToLeaderboard();
+            }
+        }
     });
     
     // Add focus event listener to ensure keyboard shows
@@ -4436,25 +4366,15 @@ function createEmailInput(value) {
         input.focus();
     });
     
-    // Add elements to form
-    container.appendChild(input);
-    container.appendChild(submitBtn);
-    container.appendChild(closeBtn);
-    form.appendChild(container);
-    document.body.appendChild(form);
+    document.body.appendChild(input);
     
     // Force keyboard to show on mobile
     if (isMobileDevice()) {
-        // Focus the input immediately
-        input.focus();
-        
-        // Force keyboard to show after a short delay
         setTimeout(() => {
             input.focus();
             input.click();
         }, 100);
     } else {
-        // For desktop, just focus normally
         input.focus();
     }
     
