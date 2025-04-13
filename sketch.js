@@ -2847,7 +2847,7 @@ function drawGameOverScreen() {
     // Ground with grid effect
     push();
     fill('#4B0082');  // Deep purple ground
-  noStroke();
+    noStroke();
     rect(0, height * 0.85, width, height * 0.15);
     
     // Grid lines
@@ -2868,7 +2868,7 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#4B0082');
-  textStyle(BOLD);
+    textStyle(BOLD);
     textSize(64);
     textAlign(CENTER, CENTER);
     text("GAME OVER", width/2 + 4, topY + 4);
@@ -2963,124 +2963,37 @@ function drawGameOverScreen() {
         isEmailInputActive = true;
         mouseIsPressed = false;
         
-        // Show keyboard on mobile devices
+        // Create a hidden input element for mobile keyboard
+        const input = document.createElement('input');
+        input.type = 'email';
+        input.value = playerEmail || '';
+        input.style.position = 'fixed';
+        input.style.top = '0';
+        input.style.left = '0';
+        input.style.width = '1px';
+        input.style.height = '1px';
+        input.style.opacity = '0';
+        input.style.pointerEvents = 'none';
+        input.style.zIndex = '-1';
+        
+        // Add event listeners
+        input.addEventListener('input', (e) => {
+            playerEmail = e.target.value;
+        });
+        
+        input.addEventListener('blur', () => {
+            input.remove();
+            isEmailInputActive = false;
+        });
+        
+        // Add to document and focus
+        document.body.appendChild(input);
+        
+        // Force keyboard to show on mobile
         if (isMobileDevice()) {
-            // Create a temporary input to force keyboard
-            const tempInput = document.createElement('input');
-            tempInput.style.position = 'fixed';
-            tempInput.style.opacity = '0';
-            tempInput.style.height = '0';
-            tempInput.style.width = '0';
-            document.body.appendChild(tempInput);
-            
-            // Focus the temporary input first
-            tempInput.focus();
-            
-            // Create the email input
-            const emailInput = createEmailInput(playerEmail);
-            
-            // Focus the email input after a delay
-            setTimeout(() => {
-                emailInput.focus();
-                tempInput.remove();
-            }, 100);
-            
-            // Force keyboard to show after a longer delay
-            setTimeout(() => {
-                emailInput.focus();
-                emailInput.click();
-            }, 300);
+            input.focus();
+            input.click();
         }
-    }
-
-    // Privacy Policy Checkbox
-    let privacyY = emailBoxY + emailBoxHeight + 20;
-    let checkboxSize = 20;
-    let privacyX = width/2 - 250; // Position checkbox to the left of text
-    
-    let isCheckboxHovering = mouseX >= privacyX && 
-                            mouseX <= privacyX + checkboxSize && 
-                            mouseY >= privacyY - checkboxSize/2 && 
-                            mouseY <= privacyY + checkboxSize/2;
-    
-    push();
-    strokeWeight(2);
-    stroke('#4B0082');
-    fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
-    rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
-    
-    if (isCheckboxHovering) {
-        cursor(HAND);
-        if (mouseIsPressed) {
-            privacyPolicyAccepted = !privacyPolicyAccepted;
-            mouseIsPressed = false;
-        }
-    } else {
-        cursor(ARROW);
-    }
-    
-    fill('#FFFFFF');
-    textSize(16);
-    textAlign(LEFT, CENTER);
-    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
-    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
-    pop();
-
-    // Submit button (centered below the form)
-  let submitBtnX = width/2;
-    let submitBtnY = privacyY + 100; // Moved further down
-  let submitBtnWidth = 200;
-    let submitBtnHeight = 60;
-    let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
-                             mouseX <= submitBtnX + submitBtnWidth/2 && 
-                             mouseY >= submitBtnY - submitBtnHeight/2 && 
-                             mouseY <= submitBtnY + submitBtnHeight/2;
-    
-    push();
-    strokeWeight(4);
-    stroke('#4B0082');
-    fill(isSubmitBtnHovering ? '#32CD32' : '#FF69B4');
-    rect(submitBtnX - submitBtnWidth/2, submitBtnY - submitBtnHeight/2, submitBtnWidth, submitBtnHeight, 15);
-    
-    textFont('Fredoka One');
-    fill('#FFFFFF');
-    textSize(30);
-    textAlign(CENTER, CENTER);
-    text("SUBMIT", submitBtnX, submitBtnY);
-    pop();
-
-    if (isSubmitBtnHovering) {
-    cursor(HAND);
-        if (mouseIsPressed && privacyPolicyAccepted) {
-            submitScoreToLeaderboard();
-            mouseIsPressed = false;
-        }
-    } else {
-        cursor(ARROW);
-    }
-
-    
-    // Draw privacy policy popup if active
-    if (showPrivacyPolicy) {
-        drawPrivacyPolicyPopup();
-    }
-
-    // Privacy Policy link - positioned at the bottom of the screen
-    let gameOverPrivacyLinkY = height * 0.9;
-    let isGameOverPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                                       mouseY >= gameOverPrivacyLinkY - 15 && mouseY <= gameOverPrivacyLinkY + 15;
-    
-    push();
-    textFont('Fredoka One');
-    textSize(16);
-    textAlign(CENTER, CENTER);
-    fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
-    textStyle(NORMAL);
-    text("Privacy Policy", width/2, gameOverPrivacyLinkY);
-    pop();
-    
-    if (isGameOverPrivacyLinkHovering) {
-    cursor(HAND);
     }
 }
 
