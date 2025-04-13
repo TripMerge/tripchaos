@@ -4320,52 +4320,114 @@ function touchStarted() {
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
     // Remove any existing input
-    const existingInput = document.querySelector('.game-email-input');
+    const existingInput = document.querySelector('.mobile-email-input');
     if (existingInput) {
         existingInput.remove();
     }
+
+    // Create form container
+    const form = document.createElement('div');
+    form.className = 'mobile-email-form';
+    form.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+
+    // Create input container
+    const inputContainer = document.createElement('div');
+    inputContainer.style.cssText = `
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 300px;
+        text-align: center;
+    `;
 
     // Create input element
     const input = document.createElement('input');
     input.type = 'email';
     input.value = value || '';
-    input.className = 'game-email-input';
+    input.className = 'mobile-email-input';
+    input.style.cssText = `
+        width: 100%;
+        height: 44px;
+        padding: 10px;
+        font-size: 16px;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    `;
     input.placeholder = 'Enter your email';
     input.autocomplete = 'email';
     input.inputmode = 'email';
     input.autocapitalize = 'none';
     input.autocorrect = 'off';
     input.spellcheck = false;
-    
-    // Add event listeners
-    input.addEventListener('blur', () => {
-        if (input.value) {
-            playerEmail = input.value;
-            if (validateEmail(playerEmail)) {
-                submitScoreToLeaderboard();
-            }
-        }
-        input.remove();
-    });
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            playerEmail = input.value;
-            if (validateEmail(playerEmail)) {
-                submitScoreToLeaderboard();
-            }
-            input.remove();
-        }
-    });
+    // Create submit button
+    const submitButton = document.createElement('button');
+    submitButton.textContent = 'Submit';
+    submitButton.style.cssText = `
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+    `;
 
-    // Add to document
-    document.body.appendChild(input);
-    
-    // Focus and show keyboard
+    // Add elements to container
+    inputContainer.appendChild(input);
+    inputContainer.appendChild(submitButton);
+    form.appendChild(inputContainer);
+    document.body.appendChild(form);
+
+    // Focus input
     setTimeout(() => {
         input.focus();
         input.click();
     }, 100);
+
+    // Handle submit
+    submitButton.addEventListener('click', () => {
+        const email = input.value.trim();
+        if (email && validateEmail(email)) {
+            playerEmail = email;
+            submitScoreToLeaderboard();
+        }
+        form.remove();
+    });
+
+    // Handle form click to close
+    form.addEventListener('click', (e) => {
+        if (e.target === form) {
+            form.remove();
+        }
+    });
+
+    // Handle enter key
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const email = input.value.trim();
+            if (email && validateEmail(email)) {
+                playerEmail = email;
+                submitScoreToLeaderboard();
+            }
+            form.remove();
+        }
+    });
 
     return input;
 }
