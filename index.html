@@ -555,6 +555,49 @@
         .game-title {
             font-family: 'Fredoka One', cursive;
         }
+
+        .game-email-input {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 40px;
+            padding: 8px 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            z-index: 9999;
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .game-email-input:focus {
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Mobile-specific adjustments */
+        @media screen and (max-width: 926px) and (orientation: landscape) {
+            .game-email-input {
+                width: 250px;
+                height: 36px;
+                font-size: 14px;
+            }
+        }
+
+        /* iPhone SE and smaller devices */
+        @media screen and (max-width: 667px) and (orientation: landscape) {
+            .game-email-input {
+                width: 200px;
+                height: 32px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
