@@ -2609,7 +2609,7 @@ function touchStarted() {
             mouseY >= emailBoxY && mouseY <= emailBoxY + emailBoxHeight) {
             isEmailInputActive = true;
             
-            // Create a hidden input element for mobile keyboard
+            // Create a visible input element for mobile keyboard
             const input = document.createElement('input');
             input.type = 'email';
             input.value = playerEmail || '';
@@ -2621,7 +2621,14 @@ function touchStarted() {
             input.style.height = isMobileDevice() ? '40px' : '50px';
             input.style.zIndex = '9999';
             input.style.pointerEvents = 'auto';
-            input.style.opacity = '0';
+            input.style.backgroundColor = '#FFFFFF';
+            input.style.border = '2px solid #4B0082';
+            input.style.borderRadius = '10px';
+            input.style.padding = '10px';
+            input.style.fontSize = '16px';
+            input.style.fontFamily = 'Inter, sans-serif';
+            input.style.color = '#000000';
+            input.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
             
             // Add event listeners
             input.addEventListener('input', (e) => {
