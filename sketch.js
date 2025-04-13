@@ -2606,71 +2606,28 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
-    // Handle privacy policy link click first
-    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
-        let touch = touches[0];
-        const privacyLinkY = height * 0.9;
+    // Handle privacy policy link touch
+    if (showPrivacyPolicy) {
+        let closeBtnX = width/2 - 300;
+        let closeBtnY = height/2 - 200;
+        let closeBtnSize = 30;
         
-        // Make the click area larger for mobile
-        const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
-        const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
-        
-        // Debug log for touch position
-        console.log('Touch position:', touch.x, touch.y);
-        console.log('Privacy link area:', width/2 - clickAreaWidth/2, width/2 + clickAreaWidth/2, 
-                   privacyLinkY - clickAreaHeight/2, privacyLinkY + clickAreaHeight/2);
-        
-        if (touch.x >= width/2 - clickAreaWidth/2 && 
-            touch.x <= width/2 + clickAreaWidth/2 && 
-            touch.y >= privacyLinkY - clickAreaHeight/2 && 
-            touch.y <= privacyLinkY + clickAreaHeight/2) {
-            console.log('Privacy policy link clicked');
-            showPrivacyPolicy = true;
-            return false;
-        }
-    }
-    
-    // Handle privacy policy popup
-    if (showPrivacyPolicy && touches.length > 0) {
-        let touch = touches[0];
-        
-        // Calculate popup dimensions
-        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
-        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-        const popupX = (width - popupWidth) / 2;
-        const popupY = (height - popupHeight) / 2;
-        
-        // Close button dimensions
-        const closeButtonSize = isMobileDevice() ? 44 : 30;
-        const closeButtonX = popupX + 10;
-        const closeButtonY = popupY + 10;
-        
-        // Debug log for close button area
-        console.log('Close button area:', closeButtonX, closeButtonY, closeButtonSize);
-        
-        // Check if close button is clicked
-        if (touch.x >= closeButtonX && 
-            touch.x <= closeButtonX + closeButtonSize && 
-            touch.y >= closeButtonY && 
-            touch.y <= closeButtonY + closeButtonSize) {
-            console.log('Close button clicked');
+        if (mouseX >= closeBtnX && mouseX <= closeBtnX + closeBtnSize && 
+            mouseY >= closeBtnY && mouseY <= closeBtnY + closeBtnSize) {
             showPrivacyPolicy = false;
             return false;
         }
     }
     
-    // Handle email input box touch
-    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
-        let touch = touches[0];
-        const emailBoxX = width/2 - 200;
-        const emailBoxY = height/8 + 200; // Adjust this value based on your layout
-        const emailBoxWidth = 400;
-        const emailBoxHeight = 50;
+    // Handle email input touch
+    if (gameState === 'gameOver' || gameState === 'win') {
+        let emailBoxX = width/2 - 200;
+        let emailBoxY = height/2 - 50;
+        let emailBoxWidth = 400;
+        let emailBoxHeight = 50;
         
-        if (touch.x >= emailBoxX && 
-            touch.x <= emailBoxX + emailBoxWidth && 
-            touch.y >= emailBoxY && 
-            touch.y <= emailBoxY + emailBoxHeight) {
+        if (mouseX >= emailBoxX && mouseX <= emailBoxX + emailBoxWidth && 
+            mouseY >= emailBoxY && mouseY <= emailBoxY + emailBoxHeight) {
             isEmailInputActive = true;
             
             // Create a hidden input element for mobile keyboard
