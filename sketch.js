@@ -4440,14 +4440,38 @@ function createEmailInput(value) {
         isEmailInputActive = false;
     };
     
-    // Focus the input to show keyboard
-    setTimeout(() => {
+    // For mobile devices, we need to handle the input differently
+    if (isMobileDevice()) {
+        // Make sure the input is visible and properly positioned
+        input.style.opacity = '1';
+        input.style.position = 'relative';
+        input.style.zIndex = '1000';
+        
+        // Create a temporary input for iOS
+        const tempInput = document.createElement('input');
+        tempInput.type = 'email';
+        tempInput.style.position = 'fixed';
+        tempInput.style.top = '50%';
+        tempInput.style.left = '50%';
+        tempInput.style.transform = 'translate(-50%, -50%)';
+        tempInput.style.width = '200px';
+        tempInput.style.height = '40px';
+        tempInput.style.opacity = '0';
+        tempInput.style.zIndex = '1000';
+        
+        // Add to document and focus
+        document.body.appendChild(tempInput);
+        tempInput.focus();
+        
+        // After a short delay, remove the temporary input and focus the real one
+        setTimeout(() => {
+            tempInput.remove();
+            input.focus();
+        }, 100);
+    } else {
+        // For desktop, just focus the input
         input.focus();
-        // For iOS, we need to click the input as well
-        if (isMobileDevice()) {
-            input.click();
-        }
-    }, 100);
+    }
     
     return input;
 }
