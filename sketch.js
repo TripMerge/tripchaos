@@ -2799,35 +2799,63 @@ function drawGameOverScreen() {
         return;
     }
 
-    // Draw background
-    background('#1a1a2e');
+    // Draw solid pink background like the start screen
+    background('#FF69B4');
     
-    // Draw title
+    // Draw stars
+    for (let i = 0; i < 20; i++) {
+        drawStar(random(width), random(height * 0.4), random(5, 15));
+    }
+
+    // Draw palm trees at the bottom
+    drawPalmTree(width * 0.2, height * 0.85, 0.8);
+    drawPalmTree(width * 0.8, height * 0.85, 0.8);
+
+    // Ground with grid effect like the start screen
+    push();
+    fill('#4B0082');  // Deep purple ground
+    noStroke();
+    rect(0, height * 0.85, width, height * 0.15);
+    
+    // Grid lines
+    stroke('#FF1493');  // Deep pink lines
+    strokeWeight(1);
+    for(let x = 0; x < width; x += 50) {
+        line(x, height * 0.85, x, height);
+    }
+    for(let y = height * 0.85; y < height; y += 25) {
+        line(0, y, width, y);
+    }
+    pop();
+
+    // Draw title (Using fixed desktop size)
     let topY = height * 0.2;
     push();
     textFont('Fredoka One');
-    fill('#FF69B4');
-    textSize(64); // Use desktop size
+    // Add shadow like start screen title
+    fill('#4B0082'); 
+    textSize(64);
     textAlign(CENTER, CENTER);
+    text("GAME OVER", width/2 + 4, topY + 4); 
+    // Main text
+    fill('#FFFFFF'); 
     text("GAME OVER", width/2, topY);
     pop();
 
-    // Draw score
+    // Draw score (Using fixed desktop size)
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(48); // Use desktop size
+    textSize(48); 
     textAlign(CENTER, CENTER);
     text("Score: " + score, width/2, topY + 80);
     pop();
 
-    // Play Again button
+    // Play Again button (Using fixed desktop size and position)
     let playAgainX = width/2;
-    let playAgainWidth = 300; // Use desktop size
-    let playAgainHeight = 80; // Use desktop size
-    
-    // Position the Play Again button relative to the title/score area
-    let playAgainY = topY + 160; // Adjusted Y position for better spacing
+    let playAgainWidth = 300; 
+    let playAgainHeight = 80; 
+    let playAgainY = topY + 160; 
 
     let isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
                              mouseX <= playAgainX + playAgainWidth/2 && 
@@ -2841,13 +2869,13 @@ function drawGameOverScreen() {
     
     push();
     strokeWeight(4);
-    stroke('#4B0082');
-    fill(isPlayAgainHovering ? '#32CD32' : '#FF69B4');
+    stroke('#4B0082'); // Use start screen button outline
+    fill(isPlayAgainHovering ? '#32CD32' : '#FF69B4'); // Use start screen button colors
     rect(playAgainX - playAgainWidth/2, playAgainY - playAgainHeight/2, playAgainWidth, playAgainHeight, 15);
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(30); // Use desktop size
+    textSize(30); 
     textAlign(CENTER, CENTER);
     text("PLAY AGAIN", playAgainX, playAgainY);
     pop();
@@ -2863,55 +2891,55 @@ function drawGameOverScreen() {
         cursor(ARROW);
     }
 
-    // Email input section - Adjusted Y position
-    let emailSectionY = playAgainY + playAgainHeight/2 + 60; // Position below Play Again button
+    // Email input section (Using fixed desktop size and position)
+    let emailSectionY = playAgainY + playAgainHeight/2 + 60; 
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(32); // Use desktop size
+    textSize(32); 
     textAlign(CENTER, CENTER);
     text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, emailSectionY);
     pop();
 
-    // Email input box
-    let emailBoxX = width/2 - 200; // Use desktop size, centered
+    // Email input box (Using fixed desktop size and position)
+    let emailBoxX = width/2 - 200; 
     let emailBoxY = emailSectionY + 50;
-    let emailBoxWidth = 400; // Use desktop size
-    let emailBoxHeight = 44; // Use desktop size
+    let emailBoxWidth = 400; 
+    let emailBoxHeight = 44; 
 
     // Draw email input box
     push();
     strokeWeight(2);
-    stroke('#4B0082');
+    stroke('#4B0082'); // Style like start screen buttons
     fill('#FFFFFF');
     rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
     
     // Draw email input text
     fill('#000000');
-    textSize(20); // Use desktop size
+    textSize(20); 
     textAlign(LEFT, CENTER);
     let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
     text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
     pop();
 
-    // Handle email input box click
+    // Handle email input box click (remains the same)
     if ((mouseIsPressed || touches.length > 0) && 
         (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
         (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
         (mouseY >= emailBoxY || (touches.length > 0 && touches[0].y >= emailBoxY)) && 
         (mouseY <= emailBoxY + emailBoxHeight || (touches.length > 0 && touches[0].y <= emailBoxY + emailBoxHeight))) {
-        if (!isEmailInputActive) { // Only activate if not already active
+        if (!isEmailInputActive) { 
             isEmailInputActive = true;
-            mouseIsPressed = false; // Prevent immediate re-trigger
-            createEmailInput(playerEmail); // Create the actual HTML input
+            mouseIsPressed = false; 
+            createEmailInput(playerEmail); 
         }
     }
 
-    // Privacy Policy Checkbox
-    let privacyY = emailBoxY + emailBoxHeight + 30; // Adjusted spacing
-    let checkboxSize = 20; // Use desktop size
+    // Privacy Policy Checkbox (Using fixed desktop size and position)
+    let privacyY = emailBoxY + emailBoxHeight + 30; 
+    let checkboxSize = 20; 
     let privacyTextWidth = textWidth("I accept the privacy policy and would like to register for the public leaderboard");
-    let privacyX = width/2 - (privacyTextWidth/2 + checkboxSize + 10)/2; // Centered below email
+    let privacyX = width/2 - (privacyTextWidth/2 + checkboxSize + 10)/2; 
     
     let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
                             (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
@@ -2920,7 +2948,7 @@ function drawGameOverScreen() {
     
     push();
     strokeWeight(2);
-    stroke('#4B0082');
+    stroke('#4B0082'); // Style like start screen elements
     fill(privacyPolicyAccepted ? '#32CD32' : '#FFFFFF');
     rect(privacyX, privacyY - checkboxSize/2, checkboxSize, checkboxSize, 5);
     
@@ -2935,17 +2963,17 @@ function drawGameOverScreen() {
     }
     
     fill('#FFFFFF');
-    textSize(16); // Use desktop size
+    textSize(16); 
     textAlign(LEFT, CENTER);
     text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
-    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20); // Second line
+    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20); 
     pop();
 
-    // Submit button
+    // Submit button (Using fixed desktop size and position)
     let submitBtnX = width/2;
-    let submitBtnY = privacyY + 60; // Position below privacy text
-    let submitBtnWidth = 200; // Use desktop size
-    let submitBtnHeight = 60; // Use desktop size
+    let submitBtnY = privacyY + 60; 
+    let submitBtnWidth = 200; 
+    let submitBtnHeight = 60; 
     let isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 || (touches.length > 0 && touches[0].x >= submitBtnX - submitBtnWidth/2)) && 
                              (mouseX <= submitBtnX + submitBtnWidth/2 || (touches.length > 0 && touches[0].x <= submitBtnX + submitBtnWidth/2)) && 
                              (mouseY >= submitBtnY - submitBtnHeight/2 || (touches.length > 0 && touches[0].y >= submitBtnY - submitBtnHeight/2)) && 
@@ -2953,19 +2981,18 @@ function drawGameOverScreen() {
     
     push();
     strokeWeight(4);
-    stroke('#4B0082');
-    // Disable button if privacy policy not accepted
+    stroke('#4B0082'); // Style like start screen buttons
     fill(privacyPolicyAccepted ? (isSubmitBtnHovering ? '#32CD32' : '#FF69B4') : '#AAAAAA'); 
     rect(submitBtnX - submitBtnWidth/2, submitBtnY - submitBtnHeight/2, submitBtnWidth, submitBtnHeight, 15);
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(30); // Use desktop size
+    textSize(30); 
     textAlign(CENTER, CENTER);
     text("SUBMIT", submitBtnX, submitBtnY);
     pop();
 
-    if (isSubmitBtnHovering && privacyPolicyAccepted) { // Only enable hover/click if accepted
+    if (isSubmitBtnHovering && privacyPolicyAccepted) { 
         cursor(HAND);
         if (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) {
             submitScoreToLeaderboard();
@@ -2975,13 +3002,13 @@ function drawGameOverScreen() {
         cursor(ARROW);
     }
 
-    // Draw privacy policy popup if active
+    // Draw privacy policy popup if active (No changes here)
     if (showPrivacyPolicy) {
         drawPrivacyPolicyPopup();
     }
 
-    // Privacy Policy link
-    let gameOverPrivacyLinkY = height * 0.95; // Position lower
+    // Privacy Policy link (Using fixed desktop size and position)
+    let gameOverPrivacyLinkY = height * 0.95; 
     let isGameOverPrivacyLinkHovering = (mouseX >= width/2 - 100 || (touches.length > 0 && touches[0].x >= width/2 - 100)) && 
                                        (mouseX <= width/2 + 100 || (touches.length > 0 && touches[0].x <= width/2 + 100)) && 
                                        (mouseY >= gameOverPrivacyLinkY - 15 || (touches.length > 0 && touches[0].y >= gameOverPrivacyLinkY - 15)) && 
@@ -2989,9 +3016,9 @@ function drawGameOverScreen() {
     
     push();
     textFont('Fredoka One');
-    textSize(16); // Use desktop size
+    textSize(16); 
     textAlign(CENTER, CENTER);
-    fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
+    fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF'); // Use start screen link hover color
     textStyle(NORMAL);
     text("Privacy Policy", width/2, gameOverPrivacyLinkY);
     pop();
