@@ -2807,7 +2807,7 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#FF69B4');
-    textSize(isMobileDevice() ? 48 : 64);
+    textSize(64); // Use desktop size
     textAlign(CENTER, CENTER);
     text("GAME OVER", width/2, topY);
     pop();
@@ -2816,15 +2816,15 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 32 : 48);
+    textSize(48); // Use desktop size
     textAlign(CENTER, CENTER);
     text("Score: " + score, width/2, topY + 80);
     pop();
 
     // Play Again button
     let playAgainX = width/2;
-    let playAgainWidth = isMobileDevice() ? 200 : 300;
-    let playAgainHeight = isMobileDevice() ? 60 : 80;
+    let playAgainWidth = 300; // Use desktop size
+    let playAgainHeight = 80; // Use desktop size
     
     let isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
                              mouseX <= playAgainX + playAgainWidth/2 && 
@@ -2844,7 +2844,7 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 : 30);
+    textSize(30); // Use desktop size
     textAlign(CENTER, CENTER);
     text("PLAY AGAIN", playAgainX, topY);
     pop();
@@ -2865,16 +2865,16 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 : 32);
+    textSize(32); // Use desktop size
     textAlign(CENTER, CENTER);
     text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, emailY);
     pop();
 
     // Email input box
-    let emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
+    let emailBoxX = width/2 - 200; // Use desktop size
     let emailBoxY = emailY + 50;
-    let emailBoxWidth = isMobileDevice() ? 300 : 400;
-    let emailBoxHeight = isMobileDevice() ? 54 : 44;
+    let emailBoxWidth = 400; // Use desktop size
+    let emailBoxHeight = 44; // Use desktop size
 
     // Draw email input box
     push();
@@ -2885,7 +2885,7 @@ function drawGameOverScreen() {
     
     // Draw email input text
     fill('#000000');
-    textSize(isMobileDevice() ? 16 : 20);
+    textSize(20); // Use desktop size
     textAlign(LEFT, CENTER);
     let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
     text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
@@ -2908,8 +2908,8 @@ function drawGameOverScreen() {
 
     // Privacy Policy Checkbox
     let privacyY = emailBoxY + emailBoxHeight + 20;
-    let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - (isMobileDevice() ? 150 : 250);
+    let checkboxSize = 20; // Use desktop size
+    let privacyX = width/2 - 250; // Use desktop size
     
     let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
                             (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
@@ -2933,7 +2933,7 @@ function drawGameOverScreen() {
     }
     
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 16 : 16);
+    textSize(16); // Use desktop size
     textAlign(LEFT, CENTER);
     text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
     text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
@@ -2942,8 +2942,8 @@ function drawGameOverScreen() {
     // Submit button
     let submitBtnX = width/2;
     let submitBtnY = privacyY + 100;
-    let submitBtnWidth = isMobileDevice() ? 150 : 200;
-    let submitBtnHeight = isMobileDevice() ? 50 : 60;
+    let submitBtnWidth = 200; // Use desktop size
+    let submitBtnHeight = 60; // Use desktop size
     let isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 || (touches.length > 0 && touches[0].x >= submitBtnX - submitBtnWidth/2)) && 
                              (mouseX <= submitBtnX + submitBtnWidth/2 || (touches.length > 0 && touches[0].x <= submitBtnX + submitBtnWidth/2)) && 
                              (mouseY >= submitBtnY - submitBtnHeight/2 || (touches.length > 0 && touches[0].y >= submitBtnY - submitBtnHeight/2)) && 
@@ -2957,7 +2957,7 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 : 30);
+    textSize(30); // Use desktop size
     textAlign(CENTER, CENTER);
     text("SUBMIT", submitBtnX, submitBtnY);
     pop();
@@ -2986,7 +2986,7 @@ function drawGameOverScreen() {
     
     push();
     textFont('Fredoka One');
-    textSize(isMobileDevice() ? 16 : 16);
+    textSize(16); // Use desktop size
     textAlign(CENTER, CENTER);
     fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
     textStyle(NORMAL);
