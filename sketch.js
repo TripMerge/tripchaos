@@ -758,10 +758,6 @@ function draw() {
 
 // Draw the start screen with improved layout
 function drawStartScreen() {
-    // Reset email input state when returning to start screen
-    isEmailInputActive = false;
-    playerEmail = '';
-    
     // Background
     background('#FF69B4');
     
@@ -2628,8 +2624,8 @@ function touchStarted() {
         }
     }
     
-    // Handle email input touch - only on desktop
-    if (!isMobileDevice() && gameState === 'gameOver' && isEmailInputActive) {
+    // Handle email input touch
+    if (gameState === 'gameOver' && isEmailInputActive) {
         const input = document.querySelector('.game-email-input');
         if (input) {
             // Get the input's position and dimensions
@@ -2801,10 +2797,10 @@ function drawMeter(label, value, x, y) {
 
 // Draw game over screen with improved readability
 function drawGameOverScreen() {
-    if (showLeaderboard) {
-        drawLeaderboardScreen();
-        return;
-    }
+  if (showLeaderboard) {
+    drawLeaderboardScreen();
+    return;
+  }
 
     // Draw solid pink background
     background('#FF69B4');
@@ -2835,51 +2831,39 @@ function drawGameOverScreen() {
     }
     pop();
 
-    // Calculate game viewport offset for mobile
-    let gameWidth = 1000 * window.gameScale;
-    let gameHeight = 600 * window.gameScale;
-    let offsetX = (width - gameWidth) / 2;
-    let offsetY = (height - gameHeight) / 2;
-
-    // Apply translation for mobile devices
-    if (isMobileDevice()) {
-        push();
-        translate(offsetX, offsetY);
-    }
-
     // Top Section: Game Info
-    let topY = isMobileDevice() ? 50 : height/8;
+    let topY = height/8;
     
     // Game Over Title (centered)
     push();
     textFont('Fredoka One');
     fill('#4B0082');
     textStyle(BOLD);
-    textSize(isMobileDevice() ? 48 * window.gameScale : 64);
+    textSize(isMobileDevice() ? 48 : 64);
     textAlign(CENTER, CENTER);
-    text("GAME OVER", gameWidth/2 + 4, topY + 4);
+    text("GAME OVER", width/2 + 4, topY + 4);
     fill('#FFFFFF');
-    text("GAME OVER", gameWidth/2, topY);
+    text("GAME OVER", width/2, topY);
     pop();
 
     // Score and Achievement (left side, with proper spacing)
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 20 * window.gameScale : 24);
+    textSize(isMobileDevice() ? 20 : 24);
     textAlign(LEFT, CENTER);
-    let scoreX = isMobileDevice() ? 20 : gameWidth * 0.1;
+    let scoreX = width * 0.1;
     text("YOUR SCORE: " + score, scoreX, topY);
     
     let achievement = getAchievement(score);
-    textSize(isMobileDevice() ? 16 * window.gameScale : 20);
+    textSize(isMobileDevice() ? 16 : 20);
     text("🏆 " + achievement.title, scoreX, topY + 30);
     pop();
 
     // Play Again button (right side, smaller)
-    let playAgainX = isMobileDevice() ? gameWidth - 100 : gameWidth * 0.85;
-    let playAgainWidth = isMobileDevice() ? 150 * window.gameScale : 200;
-    let playAgainHeight = isMobileDevice() ? 50 * window.gameScale : 60;
+    let playAgainX = width * 0.85;
+    let playAgainWidth = isMobileDevice() ? 150 : 200;
+    let playAgainHeight = isMobileDevice() ? 50 : 60;
     let isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
                              mouseX <= playAgainX + playAgainWidth/2 && 
                              mouseY >= topY - playAgainHeight/2 && 
@@ -2898,7 +2882,7 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 * window.gameScale : 30);
+    textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
     text("PLAY AGAIN", playAgainX, topY);
     pop();
@@ -2915,17 +2899,17 @@ function drawGameOverScreen() {
     }
 
     // Leaderboard Section (centered below the top section)
-    let leaderboardY = topY + (isMobileDevice() ? 100 : 150);
+    let leaderboardY = topY + 150;
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 * window.gameScale : 32);
+    textSize(isMobileDevice() ? 24 : 32);
     textAlign(CENTER, CENTER);
-    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", gameWidth/2, leaderboardY);
+    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
     pop();
 
-    // Email Submission Form - Show on both desktop and mobile
-    let emailBoxX = gameWidth/2 - (isMobileDevice() ? 150 : 200);
+    // Email Submission Form
+    let emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
     let emailBoxY = leaderboardY + 50;
     let emailBoxWidth = isMobileDevice() ? 300 : 400;
     let emailBoxHeight = isMobileDevice() ? 40 : 50;
@@ -2939,7 +2923,7 @@ function drawGameOverScreen() {
     
     // Draw email input text
     fill('#000000');
-    textSize(isMobileDevice() ? 16 * window.gameScale : 20);
+    textSize(isMobileDevice() ? 16 : 20);
     textAlign(LEFT, CENTER);
     let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
     text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
@@ -2954,17 +2938,34 @@ function drawGameOverScreen() {
         isEmailInputActive = true;
         mouseIsPressed = false;
         
-        // On mobile, create and show the email input
+        // Show keyboard on mobile devices
         if (isMobileDevice()) {
-            const input = createEmailInput(playerEmail);
-            input.focus();
+            // Create a temporary input to force keyboard
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            tempInput.style.height = '0';
+            tempInput.style.width = '0';
+            document.body.appendChild(tempInput);
+            
+            // Focus the temporary input first
+            tempInput.focus();
+            
+            // Create the email input
+            const emailInput = createEmailInput(playerEmail);
+            
+            // Focus the email input after a delay
+            setTimeout(() => {
+                emailInput.focus();
+                tempInput.remove();
+            }, 100);
         }
     }
 
-    // Privacy Policy Checkbox - Adjusted positioning
-    let privacyY = leaderboardY + (isMobileDevice() ? 30 : 120);
-    let checkboxSize = isMobileDevice() ? 30 * window.gameScale : 20;
-    let privacyX = gameWidth/2 - (isMobileDevice() ? 150 : 250);
+    // Privacy Policy Checkbox
+    let privacyY = emailBoxY + emailBoxHeight + 20;
+    let checkboxSize = isMobileDevice() ? 30 : 20;
+    let privacyX = width/2 - (isMobileDevice() ? 150 : 250); // Position checkbox to the left of text
     
     let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
                             (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
@@ -2988,17 +2989,17 @@ function drawGameOverScreen() {
     }
     
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 16 * window.gameScale : 16);
+    textSize(isMobileDevice() ? 16 : 16);
     textAlign(LEFT, CENTER);
     text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
     text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
     pop();
 
     // Submit button (centered below the form)
-    let submitBtnX = gameWidth/2;
-    let submitBtnY = privacyY + (isMobileDevice() ? 50 : 100);
-    let submitBtnWidth = isMobileDevice() ? 150 * window.gameScale : 200;
-    let submitBtnHeight = isMobileDevice() ? 50 * window.gameScale : 60;
+    let submitBtnX = width/2;
+    let submitBtnY = privacyY + 100; // Moved further down
+    let submitBtnWidth = isMobileDevice() ? 150 : 200;
+    let submitBtnHeight = isMobileDevice() ? 50 : 60;
     let isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 || (touches.length > 0 && touches[0].x >= submitBtnX - submitBtnWidth/2)) && 
                              (mouseX <= submitBtnX + submitBtnWidth/2 || (touches.length > 0 && touches[0].x <= submitBtnX + submitBtnWidth/2)) && 
                              (mouseY >= submitBtnY - submitBtnHeight/2 || (touches.length > 0 && touches[0].y >= submitBtnY - submitBtnHeight/2)) && 
@@ -3012,7 +3013,7 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 24 * window.gameScale : 30);
+    textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
     text("SUBMIT", submitBtnX, submitBtnY);
     pop();
@@ -3033,24 +3034,20 @@ function drawGameOverScreen() {
     }
 
     // Privacy Policy link - positioned at the bottom of the screen
-    let gameOverPrivacyLinkY = isMobileDevice() ? gameHeight - 50 : height * 0.9;
-    let isGameOverPrivacyLinkHovering = (mouseX >= gameWidth/2 - 100 || (touches.length > 0 && touches[0].x >= gameWidth/2 - 100)) && 
-                                       (mouseX <= gameWidth/2 + 100 || (touches.length > 0 && touches[0].x <= gameWidth/2 + 100)) && 
+    let gameOverPrivacyLinkY = height * 0.9;
+    let isGameOverPrivacyLinkHovering = (mouseX >= width/2 - 100 || (touches.length > 0 && touches[0].x >= width/2 - 100)) && 
+                                       (mouseX <= width/2 + 100 || (touches.length > 0 && touches[0].x <= width/2 + 100)) && 
                                        (mouseY >= gameOverPrivacyLinkY - 15 || (touches.length > 0 && touches[0].y >= gameOverPrivacyLinkY - 15)) && 
                                        (mouseY <= gameOverPrivacyLinkY + 15 || (touches.length > 0 && touches[0].y <= gameOverPrivacyLinkY + 15));
     
     push();
     textFont('Fredoka One');
-    textSize(isMobileDevice() ? 16 * window.gameScale : 16);
+    textSize(isMobileDevice() ? 16 : 16);
     textAlign(CENTER, CENTER);
+    fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
     textStyle(NORMAL);
-    text("Privacy Policy", gameWidth/2, gameOverPrivacyLinkY);
+    text("Privacy Policy", width/2, gameOverPrivacyLinkY);
     pop();
-
-    // End mobile translation
-    if (isMobileDevice()) {
-        pop();
-    }
 }
 
 function drawWinScreen() {
@@ -4011,35 +4008,14 @@ function mouseClicked() {
 
 // Add keyTyped function to handle email input
 function keyTyped() {
-    // Only handle email input on desktop
-    if (!isMobileDevice() && isEmailInputActive) {
-        if (keyCode === BACKSPACE) {
-            playerEmail = playerEmail.slice(0, -1);
-            return false;
-        } else if (keyCode === ENTER) {
-            isEmailInputActive = false;
-            submitScoreToLeaderboard();
-            return false;
-        } else if (keyCode === ESCAPE) {
-            isEmailInputActive = false;
-            return false;
-        } else {
-            playerEmail += key;
-            return false;
+    if (isEmailInputActive) {
+        // Only add printable characters
+        if (key.length === 1 && key.charCodeAt(0) >= 32) {
+            playerEmail = playerEmail.substring(0, emailInputCursor) + key + playerEmail.substring(emailInputCursor);
+            emailInputCursor++;
         }
+        return false; // Prevent default behavior
     }
-    
-    // Handle game state transitions
-    if (keyCode === 32) { // SPACE key
-        if (gameState === 'start') {
-            startGame();
-            return false;
-        } else if (gameState === 'gameOver' || gameState === 'win') {
-            startGame();
-            return false;
-        }
-    }
-    
     return true;
 }
 
@@ -4319,116 +4295,141 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    // Remove any existing input
-    const existingInput = document.querySelector('.mobile-email-input');
-    if (existingInput) {
-        existingInput.remove();
+    // Remove any existing input elements
+    const existingInputs = document.querySelectorAll('.game-email-input');
+    existingInputs.forEach(input => input.remove());
+    
+    // Create a form element
+    const form = document.createElement('form');
+    form.style.position = 'fixed';
+    form.style.left = '50%';
+    form.style.transform = 'translateX(-50%)';
+    form.style.zIndex = '9999';
+    form.style.width = isMobileDevice() ? '90%' : '400px';
+    form.style.maxWidth = '500px';
+    form.style.backgroundColor = 'transparent';
+    form.style.padding = '0';
+    form.style.margin = '0';
+    form.style.border = 'none';
+    
+    // Position the form at the bottom on mobile
+    if (isMobileDevice()) {
+        form.style.bottom = '20px';
+    } else {
+        form.style.top = '50%';
+        form.style.transform = 'translate(-50%, -50%)';
     }
-
-    // Create form container
-    const form = document.createElement('div');
-    form.className = 'mobile-email-form';
-    form.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    `;
-
-    // Create input container
-    const inputContainer = document.createElement('div');
-    inputContainer.style.cssText = `
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 300px;
-        text-align: center;
-    `;
-
-    // Create input element
+    
+    // Create container for input and button
+    const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.backgroundColor = 'white';
+    container.style.padding = '20px';
+    container.style.borderRadius = '12px';
+    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    container.style.position = 'relative';
+    
+    // Create the actual input element
     const input = document.createElement('input');
-    input.type = 'email';
+    input.setAttribute('type', 'email');
+    input.setAttribute('inputmode', 'email');
+    input.setAttribute('autocapitalize', 'none');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('spellcheck', 'false');
+    input.setAttribute('autocomplete', 'email');
+    input.setAttribute('placeholder', 'Enter your email');
+    input.setAttribute('enterkeyhint', 'done');
+    input.classList.add('game-email-input');
     input.value = value || '';
-    input.className = 'mobile-email-input';
-    input.style.cssText = `
-        width: 100%;
-        height: 44px;
-        padding: 10px;
-        font-size: 16px;
-        border: 2px solid #3498db;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        box-sizing: border-box;
-    `;
-    input.placeholder = 'Enter your email';
-    input.autocomplete = 'email';
-    input.inputmode = 'email';
-    input.autocapitalize = 'none';
-    input.autocorrect = 'off';
-    input.spellcheck = false;
-
+    
+    // Apply styles for better mobile UX
+    input.style.width = '100%';
+    input.style.height = isMobileDevice() ? '54px' : '44px';
+    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    input.style.boxSizing = 'border-box';
+    input.style.border = '2px solid #3498db';
+    input.style.borderRadius = '12px';
+    input.style.backgroundColor = '#ffffff';
+    input.style.color = '#000000'; // Changed to black
+    input.style.marginBottom = '20px';
+    input.style.WebkitAppearance = 'none';
+    input.style.appearance = 'none';
+    input.style.webkitTapHighlightColor = 'transparent';
+    
     // Create submit button
     const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
     submitButton.textContent = 'Submit';
-    submitButton.style.cssText = `
-        background: #3498db;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        width: 100%;
-    `;
-
-    // Add elements to container
-    inputContainer.appendChild(input);
-    inputContainer.appendChild(submitButton);
-    form.appendChild(inputContainer);
-    document.body.appendChild(form);
-
-    // Focus input
-    setTimeout(() => {
-        input.focus();
-        input.click();
-    }, 100);
-
-    // Handle submit
-    submitButton.addEventListener('click', () => {
+    submitButton.style.width = '100%';
+    submitButton.style.height = isMobileDevice() ? '54px' : '44px';
+    submitButton.style.fontSize = isMobileDevice() ? '18px' : '16px';
+    submitButton.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    submitButton.style.backgroundColor = '#3498db';
+    submitButton.style.color = 'white';
+    submitButton.style.border = 'none';
+    submitButton.style.borderRadius = '12px';
+    submitButton.style.cursor = 'pointer';
+    submitButton.style.fontWeight = 'bold';
+    submitButton.style.transition = 'background-color 0.2s';
+    
+    // Add hover effect for non-mobile devices
+    if (!isMobileDevice()) {
+        submitButton.addEventListener('mouseover', () => {
+            submitButton.style.backgroundColor = '#2980b9';
+        });
+        submitButton.addEventListener('mouseout', () => {
+            submitButton.style.backgroundColor = '#3498db';
+        });
+    }
+    
+    // Add active state for all devices
+    submitButton.addEventListener('touchstart', () => {
+        submitButton.style.backgroundColor = '#2980b9';
+    });
+    submitButton.addEventListener('touchend', () => {
+        submitButton.style.backgroundColor = '#3498db';
+    });
+    
+    // Handle form submission
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
         const email = input.value.trim();
+        
         if (email && validateEmail(email)) {
             playerEmail = email;
+            isEmailInputActive = false;
+            form.remove();
             submitScoreToLeaderboard();
-        }
-        form.remove();
-    });
-
-    // Handle form click to close
-    form.addEventListener('click', (e) => {
-        if (e.target === form) {
-            form.remove();
-        }
-    });
-
-    // Handle enter key
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            const email = input.value.trim();
-            if (email && validateEmail(email)) {
-                playerEmail = email;
-                submitScoreToLeaderboard();
+        } else {
+            // Show error message
+            const errorMsg = document.createElement('div');
+            errorMsg.textContent = 'Please enter a valid email address';
+            errorMsg.style.color = '#e74c3c';
+            errorMsg.style.fontSize = '14px';
+            errorMsg.style.marginTop = '10px';
+            errorMsg.style.textAlign = 'center';
+            
+            // Remove any existing error message
+            const existingError = container.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
             }
-            form.remove();
+            
+            container.appendChild(errorMsg);
+            errorMsg.classList.add('error-message');
         }
     });
-
+    
+    // Add input and button to container
+    container.appendChild(input);
+    container.appendChild(submitButton);
+    form.appendChild(container);
+    document.body.appendChild(form);
+    
+    // Focus the input
+    input.focus();
+    
     return input;
 }
 
