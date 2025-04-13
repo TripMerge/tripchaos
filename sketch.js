@@ -2805,306 +2805,46 @@ function drawMeter(label, value, x, y) {
 
 // Draw game over screen with improved readability
 function drawGameOverScreen() {
-  if (showLeaderboard) {
-    drawLeaderboardScreen();
-    return;
-  }
+    if (showLeaderboard) {
+        // ... existing leaderboard drawing code ...
 
-    // Draw solid pink background
-    background('#FF69B4');
-    
-    // Draw stars
-    for (let i = 0; i < 20; i++) {
-        drawStar(random(width), random(height * 0.4), random(5, 15));
-    }
+        if (isMobileDevice()) {
+            // Show mobile email form when clicking the leaderboard section
+            let leaderboardArea = {
+                x: width/2 - 200,
+                y: leaderboardY - 30,
+                width: 400,
+                height: 60
+            };
 
-    // Draw palm trees at the bottom
-    drawPalmTree(width * 0.2, height * 0.85, 0.8);
-    drawPalmTree(width * 0.8, height * 0.85, 0.8);
+            // Draw leaderboard section with touch area
+            push();
+            fill('#FF69B4');
+            noStroke();
+            rect(leaderboardArea.x, leaderboardArea.y, leaderboardArea.width, leaderboardArea.height, 10);
+            fill('#FFFFFF');
+            textSize(24);
+            textAlign(CENTER, CENTER);
+            text("TAP HERE TO ENTER EMAIL", width/2, leaderboardY);
+            pop();
 
-    // Ground with grid effect
-    push();
-    fill('#4B0082');  // Deep purple ground
-    noStroke();
-    rect(0, height * 0.85, width, height * 0.15);
-    
-    // Grid lines
-    stroke('#FF1493');  // Deep pink lines
-    strokeWeight(1);
-    for(let x = 0; x < width; x += 50) {
-        line(x, height * 0.85, x, height);
-    }
-    for(let y = height * 0.85; y < height; y += 25) {
-        line(0, y, width, y);
-    }
-    pop();
-
-    // Top Section: Game Info
-    let topY = height/8;
-    
-    // Game Over Title (centered)
-    push();
-    textFont('Fredoka One');
-    fill('#4B0082');
-    textStyle(BOLD);
-    textSize(64);
-    textAlign(CENTER, CENTER);
-    text("GAME OVER", width/2 + 4, topY + 4);
-    fill('#FFFFFF');
-    text("GAME OVER", width/2, topY);
-    pop();
-
-    // Score and Achievement (left side, with proper spacing)
-    push();
-    textFont('Fredoka One');
-    fill('#FFFFFF');
-    textSize(24);
-    textAlign(LEFT, CENTER);
-    let scoreX = width * 0.1;
-    text("YOUR SCORE: " + score, scoreX, topY);
-    
-    let achievement = getAchievement(score);
-    textSize(20);
-    text("🏆 " + achievement.title, scoreX, topY + 30);
-    pop();
-
-    // Play Again button (right side, smaller)
-    let playAgainX = width * 0.85;
-    let playAgainWidth = 200;
-    let playAgainHeight = 60;
-    let isPlayAgainHovering = mouseX >= playAgainX - playAgainWidth/2 && 
-                             mouseX <= playAgainX + playAgainWidth/2 && 
-                             mouseY >= topY - playAgainHeight/2 && 
-                             mouseY <= topY + playAgainHeight/2;
-    
-    push();
-    strokeWeight(4);
-    stroke('#4B0082');
-    fill(isPlayAgainHovering ? '#32CD32' : '#FF69B4');
-    rect(playAgainX - playAgainWidth/2, topY - playAgainHeight/2, playAgainWidth, playAgainHeight, 15);
-    
-    textFont('Fredoka One');
-    fill('#FFFFFF');
-    textSize(30);
-    textAlign(CENTER, CENTER);
-    text("PLAY AGAIN", playAgainX, topY);
-    pop();
-
-    if (isPlayAgainHovering) {
-        cursor(HAND);
-        if (mouseIsPressed) {
-            resetGame();
-            startGame();
-            mouseIsPressed = false;
-        }
-    } else {
-        cursor(ARROW);
-    }
-
-    // Leaderboard Section (centered below the top section)
-    let leaderboardY = topY + 150;
-    push();
-    textFont('Fredoka One');
-    fill('#FFFFFF');
-    textSize(32);
-    textAlign(CENTER, CENTER);
-    text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
-    pop();
-
-    if (isMobileDevice()) {
-        // Show mobile email form when clicking the leaderboard section
-        let leaderboardArea = {
-            x: width/2 - 200,
-            y: leaderboardY - 30,
-            width: 400,
-            height: 60
-        };
-
-        // Draw leaderboard section with touch area
-        push();
-        fill('#FF69B4');
-        noStroke();
-        rect(leaderboardArea.x, leaderboardArea.y, leaderboardArea.width, leaderboardArea.height, 10);
-        fill('#FFFFFF');
-        textSize(24);
-        textAlign(CENTER, CENTER);
-        text("TAP HERE TO ENTER EMAIL", width/2, leaderboardY);
-        pop();
-
-        // Draw privacy policy checkbox for mobile
-        let checkboxSize = 30;
-        let privacyX = width/2 - 200;
-        let privacyY = leaderboardY + 100;
-        
-        push();
-        strokeWeight(2);
-        stroke('#4B0082');
-    rect(popupX, popupY, popupWidth, popupHeight, 20);
-    pop();
-    
-    // Draw close button in left corner
-    const closeButtonSize = isMobileDevice() ? 44 : 30;
-    const closeButtonX = popupX + 10;
-    const closeButtonY = popupY + 10;
-    
-    // Draw close button background
-    push();
-    fill('#FF1493');
-    noStroke();
-    rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
-    pop();
-    
-    // Draw close button text
-    push();
-    fill(255);
-    textSize(isMobileDevice() ? 24 : 20);
-    textAlign(CENTER, CENTER);
-    text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
-    pop();
-    
-    // Draw title
-    push();
-    fill(0);
-    textSize(isMobileDevice() ? 24 : 20);
-    textAlign(CENTER, CENTER);
-    textStyle(BOLD);
-    text("Privacy Policy", popupX + popupWidth/2, popupY + 40);
-    pop();
-    
-    // Draw content
-    push();
-    textSize(isMobileDevice() ? 16 : 14);
-    textStyle(NORMAL);
-    textAlign(LEFT, TOP);
-    const margin = isMobileDevice() ? 20 : 30;
-    const contentWidth = popupWidth - (margin * 2);
-    const contentX = popupX + margin;
-    const contentY = popupY + 80;
-    
-    // Privacy policy text
-    const policyText = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
-    
-    // Draw text with word wrapping
-    text(policyText, contentX, contentY, contentWidth);
-    pop();
-    
-    // Draw accept button
-    const buttonWidth = isMobileDevice() ? 200 : 150;
-    const buttonHeight = isMobileDevice() ? 60 : 50;
-    const buttonX = popupX + (popupWidth - buttonWidth) / 2;
-    const buttonY = popupY + popupHeight - buttonHeight - 30;
-    
-    // Button background
-    push();
-    fill('#FF1493');
-    noStroke();
-    rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
-    pop();
-    
-    // Button text
-    push();
-    fill(255);
-    textSize(isMobileDevice() ? 20 : 18);
-    textAlign(CENTER, CENTER);
-    text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
-    pop();
-}
-
-function mousePressed() {
-    if (showPrivacyPolicy) {
-        // Calculate popup dimensions
-        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
-        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-        const popupX = (width - popupWidth) / 2;
-        const popupY = (height - popupHeight) / 2;
-        
-        // Close button dimensions
-        const closeButtonSize = isMobileDevice() ? 44 : 30;
-        const closeButtonX = popupX + 10;
-        const closeButtonY = popupY + 10;
-        
-        // Check if close button was clicked
-        if (mouseX > closeButtonX && mouseX < closeButtonX + closeButtonSize &&
-            mouseY > closeButtonY && mouseY < closeButtonY + closeButtonSize) {
-            showPrivacyPolicy = false;
-        }
-    }
-    // ... rest of the mousePressed function ...
-}
-
-// ... existing code ...
-
-function drawEffectNotifications() {
-    for (let i = effectNotifications.length - 1; i >= 0; i--) {
-        let notification = effectNotifications[i];
-        
-        // Update position
-        notification.y -= NOTIFICATION_RISE_SPEED;
-        notification.duration--;
-        
-        // Draw notification
-        push();
-        textAlign(CENTER);
-        textSize(20);
-        
-        // Fade out near the end
-        let alpha = notification.duration > 15 ? 255 : map(notification.duration, 0, 15, 0, 255);
-        
-        if (notification.value > 0) {
-            fill(50, 205, 50, alpha); // Green for positive
-            text("+" + notification.value + " " + notification.type, notification.x, notification.y);
+            // Check for touch events
+            if (touches.length > 0) {
+                let touch = touches[0];
+                if (touch.x >= leaderboardArea.x && 
+                    touch.x <= leaderboardArea.x + leaderboardArea.width && 
+                    touch.y >= leaderboardArea.y && 
+                    touch.y <= leaderboardArea.y + leaderboardArea.height) {
+                    showMobileEmailForm();
+                    return;
+                }
+            }
         } else {
-            fill(255, 50, 50, alpha); // Red for negative
-            text(notification.value + " " + notification.type, notification.x, notification.y);
-        }
-        pop();
-        
-        // Remove expired notifications
-        if (notification.duration <= 0) {
-            effectNotifications.splice(i, 1);
+            // Desktop email submission form (unchanged)
+            // ... existing desktop code ...
         }
     }
-}
-
-// ... existing code ...
-
-function drawFogEffect() {
-    push();
-    // Create multiple layers of fog with different opacities and movement
-    for (let i = 0; i < 3; i++) {
-        let fogOpacity = map(i, 0, 2, 40, 20); // Increased base opacity
-        let yOffset = sin(frameCount * 0.02 + i) * 10;
-        
-        // Main fog layer
-        noStroke();
-        fill(147, 112, 219, fogOpacity); // Purple fog with varying opacity
-        rect(0, yOffset, width, height);
-        
-        // Add some darker patches for depth
-        fill(75, 0, 130, fogOpacity * 0.5); // Darker purple patches
-        for (let j = 0; j < 5; j++) {
-            let x = ((frameCount * (i + 1) + j * 200) % width) - 100;
-            let y = (height * j / 5) + yOffset;
-            ellipse(x, y, 200, 100);
-        }
-    }
-    
-    // Add lightning flash effect occasionally
-    if (frameCount % 60 < 2) { // Flash every ~1 second
-        noStroke();
-        fill(255, 255, 255, 30);
-        rect(0, 0, width, height);
-    }
-    
-    // Add rain effect
-    stroke(147, 112, 219, 100);
-    strokeWeight(2);
-    for (let i = 0; i < 50; i++) {
-        let x = ((frameCount * 5 + i * 20) % width);
-        let y = ((frameCount * 15 + i * 30) % height);
-        line(x, y, x + 5, y + 15);
-    }
-    pop();
+    // ... rest of the function ...
 }
 
 function showMobileEmailForm() {
@@ -3116,6 +2856,15 @@ function showMobileEmailForm() {
 
     // Make sure the form is visible
     form.style.display = 'flex';
+    form.style.position = 'fixed';
+    form.style.top = '0';
+    form.style.left = '0';
+    form.style.width = '100%';
+    form.style.height = '100%';
+    form.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    form.style.zIndex = '9999';
+    form.style.justifyContent = 'center';
+    form.style.alignItems = 'center';
     
     // Set initial values
     emailInput.value = playerEmail || '';
@@ -3171,47 +2920,4 @@ function showMobileEmailForm() {
             submitScoreToLeaderboard();
         }
     });
-}
-
-function drawGameOverScreen() {
-    if (showLeaderboard) {
-        // ... existing leaderboard drawing code ...
-
-        if (isMobileDevice()) {
-            // Show mobile email form when clicking the leaderboard section
-            let leaderboardArea = {
-                x: width/2 - 200,
-                y: leaderboardY - 30,
-                width: 400,
-                height: 60
-            };
-
-            // Draw leaderboard section with touch area
-            push();
-            fill('#FF69B4');
-            noStroke();
-            rect(leaderboardArea.x, leaderboardArea.y, leaderboardArea.width, leaderboardArea.height, 10);
-            fill('#FFFFFF');
-            textSize(24);
-            textAlign(CENTER, CENTER);
-            text("TAP HERE TO ENTER EMAIL", width/2, leaderboardY);
-            pop();
-
-            // Check for touch events
-            if (touches.length > 0) {
-                let touch = touches[0];
-                if (touch.x >= leaderboardArea.x && 
-                    touch.x <= leaderboardArea.x + leaderboardArea.width && 
-                    touch.y >= leaderboardArea.y && 
-                    touch.y <= leaderboardArea.y + leaderboardArea.height) {
-                    showMobileEmailForm();
-                    return;
-                }
-            }
-        } else {
-            // Desktop email submission form (unchanged)
-            // ... existing desktop code ...
-        }
-    }
-    // ... rest of the function ...
 }
