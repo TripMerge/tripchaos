@@ -4344,7 +4344,7 @@ function createEmailInput(value) {
     input.style.border = '2px solid #3498db';
     input.style.borderRadius = '12px';
     input.style.backgroundColor = '#ffffff';
-    input.style.color = '#333333';
+    input.style.color = '#000000'; // Changed to black
     input.style.marginBottom = '20px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
