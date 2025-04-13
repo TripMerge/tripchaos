@@ -4301,10 +4301,10 @@ function createEmailInput(value) {
     
     // Create a form element
     const form = document.createElement('form');
-    form.style.position = 'fixed';
-    form.style.top = '50%';
+    form.style.position = 'absolute';
+    form.style.top = '20%'; // Position at top of canvas
     form.style.left = '50%';
-    form.style.transform = 'translate(-50%, -50%)';
+    form.style.transform = 'translate(-50%, 0)';
     form.style.zIndex = '9999';
     form.style.width = isMobileDevice() ? '90%' : '400px';
     form.style.maxWidth = '500px';
@@ -4344,7 +4344,7 @@ function createEmailInput(value) {
     input.style.border = '2px solid #3498db';
     input.style.borderRadius = '12px';
     input.style.backgroundColor = '#ffffff';
-    input.style.color = '#000000'; // Changed to black
+    input.style.color = '#000000';
     input.style.marginBottom = '20px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
@@ -4418,7 +4418,10 @@ function createEmailInput(value) {
     container.appendChild(input);
     container.appendChild(submitButton);
     form.appendChild(container);
-    document.body.appendChild(form);
+    
+    // Add form to canvas container instead of body
+    const canvasContainer = document.getElementById('canvas-container');
+    canvasContainer.appendChild(form);
     
     // Focus the input
     input.focus();
