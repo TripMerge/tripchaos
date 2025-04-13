@@ -2817,7 +2817,7 @@ function drawGameOverScreen() {
     // Ground with grid effect
     push();
     fill('#4B0082');  // Deep purple ground
-  noStroke();
+    noStroke();
     rect(0, height * 0.85, width, height * 0.15);
     
     // Grid lines
@@ -2838,8 +2838,8 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#4B0082');
-  textStyle(BOLD);
-    textSize(64);
+    textStyle(BOLD);
+    textSize(isMobileDevice() ? 48 : 64);
     textAlign(CENTER, CENTER);
     text("GAME OVER", width/2 + 4, topY + 4);
     fill('#FFFFFF');
@@ -2850,24 +2850,29 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(24);
+    textSize(isMobileDevice() ? 20 : 24);
     textAlign(LEFT, CENTER);
     let scoreX = width * 0.1;
     text("YOUR SCORE: " + score, scoreX, topY);
     
     let achievement = getAchievement(score);
-    textSize(20);
+    textSize(isMobileDevice() ? 16 : 20);
     text("🏆 " + achievement.title, scoreX, topY + 30);
     pop();
 
     // Play Again button (right side, smaller)
     let playAgainX = width * 0.85;
-    let playAgainWidth = 200;
-    let playAgainHeight = 60;
-    let isPlayAgainHovering = mouseX >= playAgainX - playAgainWidth/2 && 
+    let playAgainWidth = isMobileDevice() ? 150 : 200;
+    let playAgainHeight = isMobileDevice() ? 50 : 60;
+    let isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
                              mouseX <= playAgainX + playAgainWidth/2 && 
                              mouseY >= topY - playAgainHeight/2 && 
-                             mouseY <= topY + playAgainHeight/2;
+                             mouseY <= topY + playAgainHeight/2) ||
+                             (touches.length > 0 && 
+                              touches[0].x >= playAgainX - playAgainWidth/2 && 
+                              touches[0].x <= playAgainX + playAgainWidth/2 && 
+                              touches[0].y >= topY - playAgainHeight/2 && 
+                              touches[0].y <= topY + playAgainHeight/2);
     
     push();
     strokeWeight(4);
@@ -2877,14 +2882,14 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(30);
+    textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
     text("PLAY AGAIN", playAgainX, topY);
     pop();
 
     if (isPlayAgainHovering) {
         cursor(HAND);
-        if (mouseIsPressed) {
+        if (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) {
             resetGame();
             startGame();
             mouseIsPressed = false;
@@ -2898,16 +2903,16 @@ function drawGameOverScreen() {
     push();
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(32);
+    textSize(isMobileDevice() ? 24 : 32);
     textAlign(CENTER, CENTER);
     text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
     pop();
 
     // Email Submission Form
-    let emailBoxX = width/2 - 200;
+    let emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
     let emailBoxY = leaderboardY + 50;
-    let emailBoxWidth = 400;
-    let emailBoxHeight = 50;
+    let emailBoxWidth = isMobileDevice() ? 300 : 400;
+    let emailBoxHeight = isMobileDevice() ? 40 : 50;
 
     // Draw email input box
     push();
@@ -2918,18 +2923,18 @@ function drawGameOverScreen() {
     
     // Draw email input text
     fill('#000000');
-    textSize(20);
+    textSize(isMobileDevice() ? 16 : 20);
     textAlign(LEFT, CENTER);
     let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
     text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
     pop();
 
     // Check if email box is clicked
-    if (mouseIsPressed && 
-        mouseX >= emailBoxX && 
-        mouseX <= emailBoxX + emailBoxWidth && 
-        mouseY >= emailBoxY && 
-        mouseY <= emailBoxY + emailBoxHeight) {
+    if ((mouseIsPressed || touches.length > 0) && 
+        (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
+        (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
+        (mouseY >= emailBoxY || (touches.length > 0 && touches[0].y >= emailBoxY)) && 
+        (mouseY <= emailBoxY + emailBoxHeight || (touches.length > 0 && touches[0].y <= emailBoxY + emailBoxHeight))) {
         isEmailInputActive = true;
         mouseIsPressed = false;
         
@@ -2954,24 +2959,18 @@ function drawGameOverScreen() {
                 emailInput.focus();
                 tempInput.remove();
             }, 100);
-            
-            // Force keyboard to show after a longer delay
-            setTimeout(() => {
-                emailInput.focus();
-                emailInput.click();
-            }, 300);
         }
     }
 
     // Privacy Policy Checkbox
     let privacyY = emailBoxY + emailBoxHeight + 20;
     let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - 250; // Position checkbox to the left of text
+    let privacyX = width/2 - (isMobileDevice() ? 150 : 250); // Position checkbox to the left of text
     
-    let isCheckboxHovering = mouseX >= privacyX && 
-                            mouseX <= privacyX + checkboxSize && 
-                            mouseY >= privacyY - checkboxSize/2 && 
-                            mouseY <= privacyY + checkboxSize/2;
+    let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
+                            (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
+                            (mouseY >= privacyY - checkboxSize/2 || (touches.length > 0 && touches[0].y >= privacyY - checkboxSize/2)) && 
+                            (mouseY <= privacyY + checkboxSize/2 || (touches.length > 0 && touches[0].y <= privacyY + checkboxSize/2));
     
     push();
     strokeWeight(2);
@@ -2981,7 +2980,7 @@ function drawGameOverScreen() {
     
     if (isCheckboxHovering) {
         cursor(HAND);
-        if (mouseIsPressed) {
+        if (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
             mouseIsPressed = false;
         }
@@ -2990,21 +2989,21 @@ function drawGameOverScreen() {
     }
     
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 20 : 16);
+    textSize(isMobileDevice() ? 16 : 16);
     textAlign(LEFT, CENTER);
     text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
     text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
     pop();
 
     // Submit button (centered below the form)
-  let submitBtnX = width/2;
+    let submitBtnX = width/2;
     let submitBtnY = privacyY + 100; // Moved further down
-  let submitBtnWidth = 200;
-    let submitBtnHeight = 60;
-    let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
-                             mouseX <= submitBtnX + submitBtnWidth/2 && 
-                             mouseY >= submitBtnY - submitBtnHeight/2 && 
-                             mouseY <= submitBtnY + submitBtnHeight/2;
+    let submitBtnWidth = isMobileDevice() ? 150 : 200;
+    let submitBtnHeight = isMobileDevice() ? 50 : 60;
+    let isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 || (touches.length > 0 && touches[0].x >= submitBtnX - submitBtnWidth/2)) && 
+                             (mouseX <= submitBtnX + submitBtnWidth/2 || (touches.length > 0 && touches[0].x <= submitBtnX + submitBtnWidth/2)) && 
+                             (mouseY >= submitBtnY - submitBtnHeight/2 || (touches.length > 0 && touches[0].y >= submitBtnY - submitBtnHeight/2)) && 
+                             (mouseY <= submitBtnY + submitBtnHeight/2 || (touches.length > 0 && touches[0].y <= submitBtnY + submitBtnHeight/2));
     
     push();
     strokeWeight(4);
@@ -3014,14 +3013,14 @@ function drawGameOverScreen() {
     
     textFont('Fredoka One');
     fill('#FFFFFF');
-    textSize(30);
+    textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
     text("SUBMIT", submitBtnX, submitBtnY);
     pop();
 
     if (isSubmitBtnHovering) {
-    cursor(HAND);
-        if (mouseIsPressed && privacyPolicyAccepted) {
+        cursor(HAND);
+        if ((mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) && privacyPolicyAccepted) {
             submitScoreToLeaderboard();
             mouseIsPressed = false;
         }
@@ -3036,21 +3035,19 @@ function drawGameOverScreen() {
 
     // Privacy Policy link - positioned at the bottom of the screen
     let gameOverPrivacyLinkY = height * 0.9;
-    let isGameOverPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                                       mouseY >= gameOverPrivacyLinkY - 15 && mouseY <= gameOverPrivacyLinkY + 15;
+    let isGameOverPrivacyLinkHovering = (mouseX >= width/2 - 100 || (touches.length > 0 && touches[0].x >= width/2 - 100)) && 
+                                       (mouseX <= width/2 + 100 || (touches.length > 0 && touches[0].x <= width/2 + 100)) && 
+                                       (mouseY >= gameOverPrivacyLinkY - 15 || (touches.length > 0 && touches[0].y >= gameOverPrivacyLinkY - 15)) && 
+                                       (mouseY <= gameOverPrivacyLinkY + 15 || (touches.length > 0 && touches[0].y <= gameOverPrivacyLinkY + 15));
     
     push();
     textFont('Fredoka One');
-    textSize(isMobileDevice() ? 20 : 16);
+    textSize(isMobileDevice() ? 16 : 16);
     textAlign(CENTER, CENTER);
     fill(isGameOverPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
     textStyle(NORMAL);
     text("Privacy Policy", width/2, gameOverPrivacyLinkY);
     pop();
-    
-    if (isGameOverPrivacyLinkHovering) {
-    cursor(HAND);
-    }
 }
 
 function drawWinScreen() {
@@ -3059,7 +3056,7 @@ function drawWinScreen() {
     
     // Draw ground with grid effect
     fill('#FFD1DC');
-  noStroke();
+    noStroke();
     rect(0, height * 0.7, width, height * 0.3);
     
     // Draw grid lines on ground
@@ -3082,77 +3079,129 @@ function drawWinScreen() {
     // Draw title
     fill(255);
     textAlign(CENTER, CENTER);
-    textSize(60);
+    textSize(isMobileDevice() ? 48 : 60);
     textFont('Fredoka One');
     text('YOU WON!', width/2, height * 0.2);
     
     // Draw score in a bubble container
     fill(255, 200);
     noStroke();
-    ellipse(width * 0.15, height * 0.3, 200, 100);
+    ellipse(width * 0.15, height * 0.3, isMobileDevice() ? 150 : 200, isMobileDevice() ? 75 : 100);
     fill(0);
-    textSize(30);
+    textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
     text('Score: ' + score, width * 0.15, height * 0.3);
     
     // Draw play again button
+    let playAgainWidth = isMobileDevice() ? 150 : 200;
+    let playAgainHeight = isMobileDevice() ? 50 : 60;
+    let isPlayAgainHovering = (mouseX >= width * 0.85 || (touches.length > 0 && touches[0].x >= width * 0.85)) && 
+                             (mouseX <= width * 0.85 + playAgainWidth || (touches.length > 0 && touches[0].x <= width * 0.85 + playAgainWidth)) && 
+                             (mouseY >= height * 0.3 || (touches.length > 0 && touches[0].y >= height * 0.3)) && 
+                             (mouseY <= height * 0.3 + playAgainHeight || (touches.length > 0 && touches[0].y <= height * 0.3 + playAgainHeight));
+    
     fill(255);
     stroke(0);
     strokeWeight(4);
-    rect(width * 0.85, height * 0.3, 200, 60, 15);
+    rect(width * 0.85, height * 0.3, playAgainWidth, playAgainHeight, 15);
     fill(0);
-    textSize(30);
+    textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
-    text('PLAY AGAIN', width * 0.85 + 100, height * 0.3 + 30);
+    text('PLAY AGAIN', width * 0.85 + playAgainWidth/2, height * 0.3 + playAgainHeight/2);
+    
+    if (isPlayAgainHovering) {
+        cursor(HAND);
+        if (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) {
+            resetGame();
+            startGame();
+            mouseIsPressed = false;
+        }
+    } else {
+        cursor(ARROW);
+    }
     
     // Draw social share buttons
     const socialY = height * 0.4;
-    const socialSpacing = 60;
+    const socialSpacing = isMobileDevice() ? 50 : 60;
+    const socialSize = isMobileDevice() ? 40 : 50;
     
     // Twitter
+    let isTwitterHovering = (mouseX >= width * 0.4 - socialSize/2 || (touches.length > 0 && touches[0].x >= width * 0.4 - socialSize/2)) && 
+                           (mouseX <= width * 0.4 + socialSize/2 || (touches.length > 0 && touches[0].x <= width * 0.4 + socialSize/2)) && 
+                           (mouseY >= socialY - socialSize/2 || (touches.length > 0 && touches[0].y >= socialY - socialSize/2)) && 
+                           (mouseY <= socialY + socialSize/2 || (touches.length > 0 && touches[0].y <= socialY + socialSize/2));
+    
     fill(255);
-    ellipse(width * 0.4, socialY, 50, 50);
+    ellipse(width * 0.4, socialY, socialSize, socialSize);
     fill(0);
-    textSize(30);
+    textSize(isMobileDevice() ? 24 : 30);
     text('🐦', width * 0.4, socialY);
     
+    if (isTwitterHovering && (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0))) {
+        shareScore('twitter');
+        mouseIsPressed = false;
+    }
+    
     // Facebook
+    let isFacebookHovering = (mouseX >= width * 0.5 - socialSize/2 || (touches.length > 0 && touches[0].x >= width * 0.5 - socialSize/2)) && 
+                            (mouseX <= width * 0.5 + socialSize/2 || (touches.length > 0 && touches[0].x <= width * 0.5 + socialSize/2)) && 
+                            (mouseY >= socialY - socialSize/2 || (touches.length > 0 && touches[0].y >= socialY - socialSize/2)) && 
+                            (mouseY <= socialY + socialSize/2 || (touches.length > 0 && touches[0].y <= socialY + socialSize/2));
+    
     fill(255);
-    ellipse(width * 0.5, socialY, 50, 50);
+    ellipse(width * 0.5, socialY, socialSize, socialSize);
     fill(0);
     text('📘', width * 0.5, socialY);
     
+    if (isFacebookHovering && (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0))) {
+        shareScore('facebook');
+        mouseIsPressed = false;
+    }
+    
     // WhatsApp
+    let isWhatsAppHovering = (mouseX >= width * 0.6 - socialSize/2 || (touches.length > 0 && touches[0].x >= width * 0.6 - socialSize/2)) && 
+                            (mouseX <= width * 0.6 + socialSize/2 || (touches.length > 0 && touches[0].x <= width * 0.6 + socialSize/2)) && 
+                            (mouseY >= socialY - socialSize/2 || (touches.length > 0 && touches[0].y >= socialY - socialSize/2)) && 
+                            (mouseY <= socialY + socialSize/2 || (touches.length > 0 && touches[0].y <= socialY + socialSize/2));
+    
     fill(255);
-    ellipse(width * 0.6, socialY, 50, 50);
+    ellipse(width * 0.6, socialY, socialSize, socialSize);
     fill(0);
     text('💬', width * 0.6, socialY);
     
+    if (isWhatsAppHovering && (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0))) {
+        shareScore('whatsapp');
+        mouseIsPressed = false;
+    }
+    
     // Draw leaderboard section
     fill(255);
-    textSize(24);
+    textSize(isMobileDevice() ? 20 : 24);
     textAlign(CENTER, CENTER);
     text('JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES', width/2, height * 0.5);
     
     // Draw email input box
+    let emailBoxWidth = isMobileDevice() ? 250 : 300;
+    let emailBoxHeight = isMobileDevice() ? 40 : 50;
+    
     fill(255);
     stroke(0);
     strokeWeight(2);
-    rect(width/2 - 150, height * 0.55, 300, 50, 10);
+    rect(width/2 - emailBoxWidth/2, height * 0.55, emailBoxWidth, emailBoxHeight, 10);
     fill(0);
-    textSize(20);
+    textSize(isMobileDevice() ? 16 : 20);
     textAlign(LEFT, CENTER);
-    text(emailInput, width/2 - 140, height * 0.55 + 25);
+    text(emailInput, width/2 - emailBoxWidth/2 + 10, height * 0.55 + emailBoxHeight/2);
     
     // Draw privacy policy checkbox
     let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - 150;
+    let privacyX = width/2 - emailBoxWidth/2;
     let privacyY = height * 0.62;
     
-    let isCheckboxHovering = mouseX >= privacyX && 
-                            mouseX <= privacyX + checkboxSize && 
-                            mouseY >= privacyY - checkboxSize/2 && 
-                            mouseY <= privacyY + checkboxSize/2;
+    let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
+                            (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
+                            (mouseY >= privacyY - checkboxSize/2 || (touches.length > 0 && touches[0].y >= privacyY - checkboxSize/2)) && 
+                            (mouseY <= privacyY + checkboxSize/2 || (touches.length > 0 && touches[0].y <= privacyY + checkboxSize/2));
     
     push();
     strokeWeight(2);
@@ -3162,7 +3211,7 @@ function drawWinScreen() {
     
     if (isCheckboxHovering) {
         cursor(HAND);
-        if (mouseIsPressed) {
+        if (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
             mouseIsPressed = false;
         }
@@ -3171,21 +3220,33 @@ function drawWinScreen() {
     }
     
     fill('#FFFFFF');
-    textSize(isMobileDevice() ? 20 : 16);
+    textSize(isMobileDevice() ? 16 : 16);
     textAlign(LEFT, CENTER);
     text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
     text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
     pop();
     
     // Draw submit button
+    let submitWidth = isMobileDevice() ? 150 : 200;
+    let submitHeight = isMobileDevice() ? 50 : 60;
+    let isSubmitHovering = (mouseX >= width/2 - submitWidth/2 || (touches.length > 0 && touches[0].x >= width/2 - submitWidth/2)) && 
+                          (mouseX <= width/2 + submitWidth/2 || (touches.length > 0 && touches[0].x <= width/2 + submitWidth/2)) && 
+                          (mouseY >= height * 0.7 || (touches.length > 0 && touches[0].y >= height * 0.7)) && 
+                          (mouseY <= height * 0.7 + submitHeight || (touches.length > 0 && touches[0].y <= height * 0.7 + submitHeight));
+    
     fill(255);
     stroke(0);
     strokeWeight(4);
-    rect(width/2 - 100, height * 0.7, 200, 60, 15);
+    rect(width/2 - submitWidth/2, height * 0.7, submitWidth, submitHeight, 15);
     fill(0);
-    textSize(30);
+    textSize(isMobileDevice() ? 24 : 30);
     textAlign(CENTER, CENTER);
-    text('SUBMIT', width/2, height * 0.7 + 30);
+    text('SUBMIT', width/2, height * 0.7 + submitHeight/2);
+
+    if (isSubmitHovering && (mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) && privacyPolicyAccepted) {
+        submitScoreToLeaderboard();
+        mouseIsPressed = false;
+    }
 
     // Draw privacy policy popup if active
     if (showPrivacyPolicy) {
@@ -3194,12 +3255,14 @@ function drawWinScreen() {
 
     // Privacy Policy link - positioned at the bottom of the screen
     let winPrivacyLinkY = height * 0.9;
-    let isWinPrivacyLinkHovering = mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-                                  mouseY >= winPrivacyLinkY - 15 && mouseY <= winPrivacyLinkY + 15;
+    let isWinPrivacyLinkHovering = (mouseX >= width/2 - 100 || (touches.length > 0 && touches[0].x >= width/2 - 100)) && 
+                                  (mouseX <= width/2 + 100 || (touches.length > 0 && touches[0].x <= width/2 + 100)) && 
+                                  (mouseY >= winPrivacyLinkY - 15 || (touches.length > 0 && touches[0].y >= winPrivacyLinkY - 15)) && 
+                                  (mouseY <= winPrivacyLinkY + 15 || (touches.length > 0 && touches[0].y <= winPrivacyLinkY + 15));
     
     push();
     textFont('Fredoka One');
-    textSize(isMobileDevice() ? 20 : 16);
+    textSize(isMobileDevice() ? 16 : 16);
     textAlign(CENTER, CENTER);
     fill(isWinPrivacyLinkHovering ? '#FF1493' : '#FFFFFF');
     textStyle(NORMAL);
