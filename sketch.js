@@ -2624,8 +2624,8 @@ function touchStarted() {
         }
     }
     
-    // Handle email input touch
-    if (gameState === 'gameOver' && isEmailInputActive) {
+    // Handle email input touch - only on desktop
+    if (!isMobileDevice() && gameState === 'gameOver' && isEmailInputActive) {
         const input = document.querySelector('.game-email-input');
         if (input) {
             // Get the input's position and dimensions
