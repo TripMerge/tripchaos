@@ -2609,27 +2609,19 @@ function touchStarted() {
             mouseY >= emailBoxY && mouseY <= emailBoxY + emailBoxHeight) {
             isEmailInputActive = true;
             
-            // Create a visible input element for mobile keyboard
+            // Create a hidden input element for mobile keyboard
             const input = document.createElement('input');
             input.type = 'email';
             input.value = playerEmail || '';
             input.style.position = 'fixed';
-            input.style.top = '0';
-            input.style.left = '0';
-            input.style.width = '100%';
-            input.style.height = '50px';
+            input.style.top = '50%';
+            input.style.left = '50%';
+            input.style.transform = 'translate(-50%, -50%)';
+            input.style.width = isMobileDevice() ? '300px' : '400px';
+            input.style.height = isMobileDevice() ? '40px' : '50px';
             input.style.zIndex = '9999';
             input.style.pointerEvents = 'auto';
-            input.style.backgroundColor = '#FFFFFF';
-            input.style.border = '2px solid #4B0082';
-            input.style.borderRadius = '0';
-            input.style.padding = '10px';
-            input.style.fontSize = '16px';
-            input.style.fontFamily = 'Inter, sans-serif';
-            input.style.color = '#000000';
-            input.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-            input.style.boxSizing = 'border-box';
-            input.style.outline = 'none';
+            input.style.opacity = '0';
             
             // Add event listeners
             input.addEventListener('input', (e) => {
@@ -2646,10 +2638,8 @@ function touchStarted() {
             
             // Force keyboard to show on mobile
             if (isMobileDevice()) {
-                setTimeout(() => {
-                    input.focus();
-                    input.click();
-                }, 100);
+                input.focus();
+                input.click();
             }
             
             return false;
@@ -2985,31 +2975,18 @@ function drawGameOverScreen() {
         isEmailInputActive = true;
         mouseIsPressed = false;
         
-        // Remove any existing input element
-        const existingInput = document.getElementById('email-input');
-        if (existingInput) {
-            existingInput.remove();
-        }
-        
         // Create a hidden input element for mobile keyboard
         const input = document.createElement('input');
-        input.id = 'email-input';
         input.type = 'email';
         input.value = playerEmail || '';
         input.style.position = 'fixed';
-        input.style.top = '50%';
-        input.style.left = '50%';
-        input.style.transform = 'translate(-50%, -50%)';
-        input.style.width = '200px';
-        input.style.height = '40px';
+        input.style.top = '0';
+        input.style.left = '0';
+        input.style.width = '1px';
+        input.style.height = '1px';
         input.style.opacity = '0';
-        input.style.zIndex = '1000';
-        input.style.backgroundColor = '#FFFFFF';
-        input.style.border = '2px solid #4B0082';
-        input.style.borderRadius = '10px';
-        input.style.padding = '5px 10px';
-        input.style.fontSize = '20px';
-        input.style.fontFamily = 'Fredoka One';
+        input.style.pointerEvents = 'none';
+        input.style.zIndex = '-1';
         
         // Add event listeners
         input.addEventListener('input', (e) => {
@@ -3023,7 +3000,12 @@ function drawGameOverScreen() {
         
         // Add to document and focus
         document.body.appendChild(input);
-        input.focus();
+        
+        // Force keyboard to show on mobile
+        if (isMobileDevice()) {
+            input.focus();
+            input.click();
+        }
     }
 
     // Privacy Policy Checkbox
@@ -3260,31 +3242,18 @@ function drawWinScreen() {
         isEmailInputActive = true;
         mouseIsPressed = false;
         
-        // Remove any existing input element
-        const existingInput = document.getElementById('email-input');
-        if (existingInput) {
-            existingInput.remove();
-        }
-        
         // Create a hidden input element for mobile keyboard
         const input = document.createElement('input');
-        input.id = 'email-input';
         input.type = 'email';
         input.value = playerEmail || '';
         input.style.position = 'fixed';
-        input.style.top = '50%';
-        input.style.left = '50%';
-        input.style.transform = 'translate(-50%, -50%)';
-        input.style.width = '200px';
-        input.style.height = '40px';
+        input.style.top = '0';
+        input.style.left = '0';
+        input.style.width = '1px';
+        input.style.height = '1px';
         input.style.opacity = '0';
-        input.style.zIndex = '1000';
-        input.style.backgroundColor = '#FFFFFF';
-        input.style.border = '2px solid #4B0082';
-        input.style.borderRadius = '10px';
-        input.style.padding = '5px 10px';
-        input.style.fontSize = '20px';
-        input.style.fontFamily = 'Fredoka One';
+        input.style.pointerEvents = 'none';
+        input.style.zIndex = '-1';
         
         // Add event listeners
         input.addEventListener('input', (e) => {
@@ -3298,7 +3267,12 @@ function drawWinScreen() {
         
         // Add to document and focus
         document.body.appendChild(input);
-        input.focus();
+        
+        // Force keyboard to show on mobile
+        if (isMobileDevice()) {
+            input.focus();
+            input.click();
+        }
     }
 
     // Privacy Policy Checkbox
@@ -4419,29 +4393,37 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
-    const inputContainer = document.getElementById('email-input-container');
-    const input = document.getElementById('email-input');
-    
-    if (!input || !inputContainer) return null;
-    
-    // Set initial value
+    // Create a hidden input element for mobile keyboard
+    const input = document.createElement('input');
+    input.type = 'email';
     input.value = value || '';
-    
-    // Show the input container
-    inputContainer.style.display = 'block';
+    input.style.position = 'fixed';
+    input.style.top = '0';
+    input.style.left = '0';
+    input.style.width = '1px';
+    input.style.height = '1px';
+    input.style.opacity = '0';
+    input.style.pointerEvents = 'none';
+    input.style.zIndex = '-1';
     
     // Add event listeners
-    input.oninput = (e) => {
+    input.addEventListener('input', (e) => {
         playerEmail = e.target.value;
-    };
+    });
     
-    input.onblur = () => {
-        inputContainer.style.display = 'none';
+    input.addEventListener('blur', () => {
+        input.remove();
         isEmailInputActive = false;
-    };
+    });
     
-    // Focus the input to show keyboard
-    input.focus();
+    // Add to document and focus
+    document.body.appendChild(input);
+    
+    // Force keyboard to show on mobile
+    if (isMobileDevice()) {
+        input.focus();
+        input.click();
+    }
     
     return input;
 }
