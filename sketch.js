@@ -492,8 +492,8 @@ let decisions = [
 // Setup function
 function setup() {
     // Create canvas with proper scaling for mobile
-    let canvasWidth = isMobileDevice() ? window.innerWidth : 1920;
-    let canvasHeight = isMobileDevice() ? window.innerHeight : 1080;
+    let canvasWidth = isMobileDevice() ? window.innerWidth : 1000;
+    let canvasHeight = isMobileDevice() ? window.innerHeight : 600;
     
     // Create canvas with proper dimensions
     let canvas = createCanvas(canvasWidth, canvasHeight);
@@ -1501,70 +1501,49 @@ function updateCompanion() {
 
 // Draw the playing screen
 function drawPlayingScreen() {
-  // Clear the entire canvas at the start of each frame
-  clear();
-  
-  // Draw the current theme background first
-  if (currentTheme === "beach") {
-    drawBeachTheme();
-  } else if (currentTheme === "city") {
-    drawCityTheme();
-  } else {
-    drawAdventureTheme();
-  }
-
-  // Apply camera transform for game objects
-  push();
-  translate(-cameraOffset, 0);
-  
-  // Draw all game objects in order of depth
-  // Draw background elements first
-  drawBackgroundElements();
-  
-  // Draw platforms
-  for (let platform of platforms) {
-    drawPlatform(platform);
-  }
-  
-  // Draw perks
-  for (let perk of perks) {
-    drawPerk(perk);
-  }
-  
-  // Draw mishaps
-  for (let mishap of mishaps) {
-    drawMishap(mishap);
-  }
-  
-  // Draw level end marker (portal)
-  if (levelEndMarker) {
-    drawLevelEndMarker();
-  }
-  
-  // Draw characters last
-  drawCompanion();
-  drawPlayer();
-  
-  pop(); // End camera transform
-  
-  // Draw UI elements (not affected by camera)
-  drawGameUI();
-  
-  // Apply fog effect if active (on top of everything)
-  if (player.cloudEffectCounter > 0) {
-    drawFogEffect();
-  }
-  
-  // Draw decision UI if active (should be on top of fog)
-  if (showingDecision) {
-    drawDecisionUI();
-  }
-  
-  // Draw effect notifications
-  drawEffectNotifications();
-  
-  // Draw slowdown message if active
-  drawSlowdownMessage();
+    // Clear the background
+    background(0);
+    
+    // Apply proper scaling and positioning for mobile
+    if (isMobileDevice()) {
+        push();
+        // Calculate the game viewport center offset
+        let gameWidth = 1000 * window.gameScale;
+        let gameHeight = 600 * window.gameScale;
+        let offsetX = (width - gameWidth) / 2;
+        let offsetY = (height - gameHeight) / 2;
+        
+        // Apply translation to center the game viewport
+        translate(offsetX, offsetY);
+        
+        // Draw the game content
+        drawBackgroundElements();
+        drawPlatforms();
+        drawPlayer();
+        drawCompanion();
+        drawPerks();
+        drawMishaps();
+        drawLevelEndMarker();
+        
+        pop();
+    } else {
+        // Desktop version
+        drawBackgroundElements();
+        drawPlatforms();
+        drawPlayer();
+        drawCompanion();
+        drawPerks();
+        drawMishaps();
+        drawLevelEndMarker();
+    }
+    
+    // Draw UI elements
+    drawGameUI();
+    
+    // Draw decision UI if active
+    if (showingDecision) {
+        drawDecisionUI();
+    }
 }
 
 // Helper function to draw background elements
