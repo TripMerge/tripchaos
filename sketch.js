@@ -4234,15 +4234,15 @@ function touchStarted() {
         if (touch.x >= playAgainX && touch.x <= playAgainX + playAgainW &&
             touch.y >= playAgainY && touch.y <= playAgainY + playAgainH) {
             startGame();
-        return false;
-      }
-      
+            return false;
+        }
+        
         // Email input box touch handling
-    let emailBoxX = width/2 - 200;
+        let emailBoxX = width/2 - 200;
         let emailBoxY = playAgainY + 500;
-    let emailBoxWidth = 400;
+        let emailBoxWidth = 400;
         let emailBoxHeight = 50;
-    
+        
         if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
             touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
       isEmailInputActive = true;
@@ -4333,6 +4333,7 @@ function createEmailInput(value) {
         setTimeout(function() {
             input.style.pointerEvents = 'none';
             input.style.top = '-1000px';
+            isEmailInputActive = false;
         }, 100);
     });
     
