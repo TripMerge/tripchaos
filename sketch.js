@@ -4441,43 +4441,7 @@ function createEmailInput(value) {
     };
     
     // Focus the input to show keyboard
-    setTimeout(() => {
-        // Make sure the input is visible and properly positioned
-        input.style.opacity = '1';
-        input.style.position = 'relative';
-        input.style.zIndex = '1001';
-        
-        // Focus the input
-        input.focus();
-        
-        // For iOS, we need to ensure the input is properly positioned
-        if (isMobileDevice()) {
-            // Force a reflow to ensure the input is properly positioned
-            input.offsetHeight;
-            
-            // Create a temporary input to trigger the keyboard
-            const tempInput = document.createElement('input');
-            tempInput.type = 'email';
-            tempInput.style.position = 'fixed';
-            tempInput.style.top = '50%';
-            tempInput.style.left = '50%';
-            tempInput.style.transform = 'translate(-50%, -50%)';
-            tempInput.style.width = '200px';
-            tempInput.style.height = '40px';
-            tempInput.style.opacity = '0';
-            tempInput.style.zIndex = '1000';
-            
-            // Add to document and focus
-            document.body.appendChild(tempInput);
-            tempInput.focus();
-            
-            // After a short delay, remove the temporary input and focus the real one
-            setTimeout(() => {
-                tempInput.remove();
-                input.focus();
-            }, 100);
-        }
-    }, 100);
+    input.focus();
     
     return input;
 }
