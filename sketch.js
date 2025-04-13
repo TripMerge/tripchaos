@@ -2920,14 +2920,16 @@ function drawGameOverScreen() {
             height: 60
         };
 
-        if ((mouseIsPressed || (touches.length > 0 && touches[0].x !== 0)) && 
-            (mouseX >= leaderboardArea.x || (touches.length > 0 && touches[0].x >= leaderboardArea.x)) && 
-            (mouseX <= leaderboardArea.x + leaderboardArea.width || (touches.length > 0 && touches[0].x <= leaderboardArea.x + leaderboardArea.width)) && 
-            (mouseY >= leaderboardArea.y || (touches.length > 0 && touches[0].y >= leaderboardArea.y)) && 
-            (mouseY <= leaderboardArea.y + leaderboardArea.height || (touches.length > 0 && touches[0].y <= leaderboardArea.y + leaderboardArea.height))) {
-            showMobileEmailForm();
-            mouseIsPressed = false;
-            return;
+        // Check for touch events
+        if (touches.length > 0) {
+            let touch = touches[0];
+            if (touch.x >= leaderboardArea.x && 
+                touch.x <= leaderboardArea.x + leaderboardArea.width && 
+                touch.y >= leaderboardArea.y && 
+                touch.y <= leaderboardArea.y + leaderboardArea.height) {
+                showMobileEmailForm();
+                return;
+            }
         }
     } else {
         // Desktop email submission form (unchanged)
@@ -3056,8 +3058,12 @@ function showMobileEmailForm() {
     const submitButton = document.getElementById('mobile-submit-button');
     const privacyLink = document.getElementById('mobile-privacy-link');
 
+    // Show the form
+    form.style.display = 'flex';
     form.classList.add('active');
-    emailInput.value = playerEmail;
+    
+    // Set initial values
+    emailInput.value = playerEmail || '';
     privacyCheckbox.checked = privacyPolicyAccepted;
 
     // Focus the email input
@@ -3071,10 +3077,12 @@ function showMobileEmailForm() {
     });
 
     // Handle form submission
-    submitButton.onclick = () => {
+    submitButton.onclick = (e) => {
+        e.preventDefault();
         if (privacyCheckbox.checked) {
             playerEmail = emailInput.value;
             privacyPolicyAccepted = true;
+            form.style.display = 'none';
             form.classList.remove('active');
             submitScoreToLeaderboard();
         }
@@ -3084,6 +3092,7 @@ function showMobileEmailForm() {
     privacyLink.onclick = (e) => {
         e.preventDefault();
         showPrivacyPolicy = true;
+        form.style.display = 'none';
         form.classList.remove('active');
     };
 
@@ -3095,6 +3104,7 @@ function showMobileEmailForm() {
     // Handle form close when clicking outside
     form.addEventListener('click', (e) => {
         if (e.target === form) {
+            form.style.display = 'none';
             form.classList.remove('active');
         }
     });
@@ -3102,8 +3112,10 @@ function showMobileEmailForm() {
     // Handle keyboard submit
     emailInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && privacyCheckbox.checked) {
+            e.preventDefault();
             playerEmail = emailInput.value;
             privacyPolicyAccepted = true;
+            form.style.display = 'none';
             form.classList.remove('active');
             submitScoreToLeaderboard();
         }
