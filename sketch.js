@@ -2737,6 +2737,11 @@ function drawGameUI() {
     
     // Apply translation to center the game viewport
     translate(offsetX, offsetY);
+    
+    // Draw a background to ensure the viewport is visible
+    fill(0);
+    noStroke();
+    rect(0, 0, gameWidth, gameHeight);
   }
   
   // Draw UI elements
@@ -2765,6 +2770,8 @@ function drawGameUI() {
     drawMeter("Time", timeLeft, meterSpacing * 3, meterY);
     drawMeter("Score", score, meterSpacing * 4, meterY);
   }
+  
+  pop();
 }
 
 // Draw a meter for game stats
