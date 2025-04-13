@@ -3048,6 +3048,42 @@ function drawGameOverScreen() {
     textStyle(NORMAL);
     text("Privacy Policy", width/2, gameOverPrivacyLinkY);
     pop();
+
+    if (isMobileDevice()) {
+        // Show mobile email form when clicking the leaderboard section
+        let leaderboardArea = {
+            x: width/2 - 200,
+            y: leaderboardY - 30,
+            width: 400,
+            height: 60
+        };
+
+        // Draw leaderboard section with touch area
+        push();
+        fill('#FF69B4');
+        noStroke();
+        rect(leaderboardArea.x, leaderboardArea.y, leaderboardArea.width, leaderboardArea.height, 10);
+        fill('#FFFFFF');
+        textSize(24);
+        textAlign(CENTER, CENTER);
+        text("TAP HERE TO ENTER EMAIL", width/2, leaderboardY);
+        pop();
+
+        // Check for touch events
+        if (touches.length > 0) {
+            let touch = touches[0];
+            if (touch.x >= leaderboardArea.x && 
+                touch.x <= leaderboardArea.x + leaderboardArea.width && 
+                touch.y >= leaderboardArea.y && 
+                touch.y <= leaderboardArea.y + leaderboardArea.height) {
+                showMobileEmailForm();
+                return;
+            }
+        }
+    } else {
+        // Desktop email submission form (unchanged)
+        // ... existing desktop code ...
+    }
 }
 
 function drawWinScreen() {
@@ -4794,4 +4830,113 @@ function drawFogEffect() {
         line(x, y, x + 5, y + 15);
     }
     pop();
+}
+
+function showMobileEmailForm() {
+    const form = document.getElementById('mobile-email-form');
+    const emailInput = document.getElementById('mobile-email-input');
+    const privacyCheckbox = document.getElementById('mobile-privacy-checkbox');
+    const submitButton = document.getElementById('mobile-submit-button');
+    const privacyLink = document.getElementById('mobile-privacy-link');
+
+    // Show the form
+    form.style.display = 'flex';
+    
+    // Set initial values
+    emailInput.value = playerEmail || '';
+    privacyCheckbox.checked = privacyPolicyAccepted;
+
+    // Focus the email input
+    setTimeout(() => {
+        emailInput.focus();
+    }, 100);
+
+    // Handle input changes
+    emailInput.addEventListener('input', (e) => {
+        playerEmail = e.target.value;
+    });
+
+    // Handle form submission
+    submitButton.onclick = (e) => {
+        e.preventDefault();
+        if (privacyCheckbox.checked) {
+            playerEmail = emailInput.value;
+            privacyPolicyAccepted = true;
+            form.style.display = 'none';
+            submitScoreToLeaderboard();
+        }
+    };
+
+    // Handle privacy policy link
+    privacyLink.onclick = (e) => {
+        e.preventDefault();
+        showPrivacyPolicy = true;
+        form.style.display = 'none';
+    };
+
+    // Handle privacy checkbox changes
+    privacyCheckbox.onchange = () => {
+        privacyPolicyAccepted = privacyCheckbox.checked;
+    };
+
+    // Handle form close when clicking outside
+    form.addEventListener('click', (e) => {
+        if (e.target === form) {
+            form.style.display = 'none';
+        }
+    });
+
+    // Handle keyboard submit
+    emailInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && privacyCheckbox.checked) {
+            e.preventDefault();
+            playerEmail = emailInput.value;
+            privacyPolicyAccepted = true;
+            form.style.display = 'none';
+            submitScoreToLeaderboard();
+        }
+    });
+}
+
+function drawGameOverScreen() {
+    if (showLeaderboard) {
+        // ... existing leaderboard drawing code ...
+
+        if (isMobileDevice()) {
+            // Show mobile email form when clicking the leaderboard section
+            let leaderboardArea = {
+                x: width/2 - 200,
+                y: leaderboardY - 30,
+                width: 400,
+                height: 60
+            };
+
+            // Draw leaderboard section with touch area
+            push();
+            fill('#FF69B4');
+            noStroke();
+            rect(leaderboardArea.x, leaderboardArea.y, leaderboardArea.width, leaderboardArea.height, 10);
+            fill('#FFFFFF');
+            textSize(24);
+            textAlign(CENTER, CENTER);
+            text("TAP HERE TO ENTER EMAIL", width/2, leaderboardY);
+            pop();
+
+            // Check for touch events
+            if (touches.length > 0) {
+                let touch = touches[0];
+                if (touch.x >= leaderboardArea.x && 
+                    touch.x <= leaderboardArea.x + leaderboardArea.width && 
+                    touch.y >= leaderboardArea.y && 
+                    touch.y <= leaderboardArea.y + leaderboardArea.height) {
+                    showMobileEmailForm();
+                    return;
+                }
+            }
+        } else {
+            // Desktop email submission form (unchanged)
+            // ... existing desktop code ...
+        }
+    }
+    // ... rest of the function ...
 }

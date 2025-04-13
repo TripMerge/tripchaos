@@ -534,6 +534,86 @@
         .game-title {
             font-family: 'Fredoka One', cursive;
         }
+
+        #mobile-email-form {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container {
+            background-color: #FF69B4;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-container input[type="email"] {
+            width: 100%;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid #4B0082;
+            border-radius: 15px;
+            font-size: 20px;
+            font-family: 'Fredoka One', sans-serif;
+            background-color: white;
+            color: #333;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: flex-start;
+            margin: 20px 0;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 30px;
+            height: 30px;
+            margin-right: 15px;
+            margin-top: 3px;
+            accent-color: #4B0082;
+        }
+
+        .checkbox-container label {
+            font-size: 18px;
+            color: white;
+            font-family: 'Fredoka One', sans-serif;
+            line-height: 1.4;
+        }
+
+        #mobile-submit-button {
+            width: 100%;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #4B0082;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 20px;
+            font-family: 'Fredoka One', sans-serif;
+            cursor: pointer;
+        }
+
+        .privacy-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .privacy-link a {
+            color: white;
+            text-decoration: underline;
+            font-size: 16px;
+            font-family: 'Fredoka One', sans-serif;
+        }
     </style>
 </head>
 <body>
@@ -554,6 +634,24 @@
             <div class="control-group-right">
                 <button class="game-button" id="leftBtn">←</button>
                 <button class="game-button" id="rightBtn">→</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Email Form -->
+    <div id="mobile-email-form">
+        <div class="form-container">
+            <input type="email" id="mobile-email-input" placeholder="Enter your email" />
+            <div class="checkbox-container">
+                <input type="checkbox" id="mobile-privacy-checkbox" />
+                <label for="mobile-privacy-checkbox">
+                    I accept the privacy policy and would like to register for the public leaderboard
+                    and get news about TripMerge launch and updates
+                </label>
+            </div>
+            <button id="mobile-submit-button">SUBMIT</button>
+            <div class="privacy-link">
+                <a href="#" id="mobile-privacy-link">Privacy Policy</a>
             </div>
         </div>
     </div>
