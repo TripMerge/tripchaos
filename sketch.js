@@ -2965,7 +2965,7 @@ function drawGameOverScreen() {
     // Privacy Policy Checkbox
     let privacyY = emailBoxY + emailBoxHeight + 20;
     let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - (isMobileDevice() ? 150 : 250); // Position checkbox to the left of text
+    let privacyX = width/2 - (isMobileDevice() ? 150 : 250);
     
     let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
                             (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
@@ -2990,9 +2990,14 @@ function drawGameOverScreen() {
     
     fill('#FFFFFF');
     textSize(isMobileDevice() ? 16 : 16);
-    textAlign(LEFT, CENTER);
-    text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
-    text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
+    textAlign(isMobileDevice() ? CENTER : LEFT, CENTER);
+    if (isMobileDevice()) {
+        text("I accept the privacy policy and would like to register for the public leaderboard", width/2, privacyY);
+        text("and get news about TripMerge launch and updates", width/2, privacyY + 20);
+    } else {
+        text("I accept the privacy policy and would like to register for the public leaderboard", privacyX + checkboxSize + 10, privacyY);
+        text("and get news about TripMerge launch and updates", privacyX + checkboxSize + 10, privacyY + 20);
+    }
     pop();
 
     // Submit button (centered below the form)
