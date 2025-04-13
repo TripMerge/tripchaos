@@ -2614,21 +2614,22 @@ function touchStarted() {
             input.type = 'email';
             input.value = playerEmail || '';
             input.style.position = 'fixed';
-            input.style.top = '50%';
-            input.style.left = '50%';
-            input.style.transform = 'translate(-50%, -50%)';
-            input.style.width = isMobileDevice() ? '300px' : '400px';
-            input.style.height = isMobileDevice() ? '40px' : '50px';
+            input.style.top = '0';
+            input.style.left = '0';
+            input.style.width = '100%';
+            input.style.height = '50px';
             input.style.zIndex = '9999';
             input.style.pointerEvents = 'auto';
             input.style.backgroundColor = '#FFFFFF';
             input.style.border = '2px solid #4B0082';
-            input.style.borderRadius = '10px';
+            input.style.borderRadius = '0';
             input.style.padding = '10px';
             input.style.fontSize = '16px';
             input.style.fontFamily = 'Inter, sans-serif';
             input.style.color = '#000000';
             input.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            input.style.boxSizing = 'border-box';
+            input.style.outline = 'none';
             
             // Add event listeners
             input.addEventListener('input', (e) => {
@@ -2645,8 +2646,10 @@ function touchStarted() {
             
             // Force keyboard to show on mobile
             if (isMobileDevice()) {
-                input.focus();
-                input.click();
+                setTimeout(() => {
+                    input.focus();
+                    input.click();
+                }, 100);
             }
             
             return false;
