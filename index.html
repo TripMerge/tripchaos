@@ -56,7 +56,9 @@
         }
         
         #game-container {
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             margin: 0;
@@ -68,6 +70,7 @@
             align-items: center;
             visibility: visible;
             opacity: 1;
+            z-index: 1;
         }
         
         #canvas-container {
@@ -80,6 +83,7 @@
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
             visibility: visible;
             opacity: 1;
+            z-index: 2;
         }
         
         canvas {
@@ -651,14 +655,30 @@
 
     <!-- Game script -->
     <script>
-        // Set initial loading state
-        document.getElementById('game-container').classList.add('loading');
+        // Set initial state
+        const gameContainer = document.getElementById('game-container');
+        const canvasContainer = document.getElementById('canvas-container');
+        const canvas = document.querySelector('canvas');
+        
+        // Ensure proper initial positioning
+        gameContainer.style.position = 'fixed';
+        gameContainer.style.top = '0';
+        gameContainer.style.left = '0';
+        gameContainer.style.width = '100%';
+        gameContainer.style.height = '100%';
         
         // Wait for window load and p5.js initialization
         window.addEventListener('load', function() {
+            // Ensure canvas is properly positioned
+            if (canvas) {
+                canvas.style.position = 'absolute';
+                canvas.style.left = '50%';
+                canvas.style.top = '45%';
+                canvas.style.transform = 'translate(-50%, -50%)';
+            }
+            
             // Wait until sketch.js has fully loaded and initialized
             setTimeout(function() {
-                const gameContainer = document.getElementById('game-container');
                 gameContainer.classList.remove('loading');
                 gameContainer.classList.add('loaded');
                 
