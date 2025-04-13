@@ -4299,14 +4299,18 @@ function createEmailInput(value) {
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
     
+    // Get canvas dimensions
+    const canvas = document.querySelector('canvas');
+    const canvasRect = canvas.getBoundingClientRect();
+    
     // Create a form element
     const form = document.createElement('form');
     form.style.position = 'absolute';
-    form.style.top = '20%'; // Position at top of canvas
-    form.style.left = '50%';
+    form.style.top = `${canvasRect.top + (canvasRect.height * 0.1)}px`; // 10% from top of canvas
+    form.style.left = `${canvasRect.left + (canvasRect.width * 0.5)}px`; // Center horizontally
     form.style.transform = 'translate(-50%, 0)';
     form.style.zIndex = '9999';
-    form.style.width = isMobileDevice() ? '90%' : '400px';
+    form.style.width = isMobileDevice() ? '80%' : '400px';
     form.style.maxWidth = '500px';
     form.style.backgroundColor = 'transparent';
     form.style.padding = '0';
