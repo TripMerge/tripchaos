@@ -491,81 +491,78 @@ let decisions = [
 
 // Setup function
 function setup() {
-    // Create canvas with fixed dimensions
-    let canvas = createCanvas(1000, 600);
-    canvas.parent('game-container');
-    
-    // Set initial scale based on device type
-    if (isMobileDevice()) {
-        // Calculate scale based on available space
-        let containerWidth = windowWidth;
-        let containerHeight = windowHeight;
-        let scale = min(containerWidth / 1000, containerHeight / 600);
+    // Wait for fonts to load
+    document.fonts.ready.then(() => {
+        // Create canvas with fixed dimensions
+        let canvas = createCanvas(1000, 600);
+        canvas.parent('game-container');
         
-        // Apply scale
-        resizeCanvas(1000 * scale, 600 * scale);
-        window.gameScale = scale;
+        // Set initial scale based on device type and screen size
+        if (isMobileDevice()) {
+            // Calculate available space considering safe areas
+            let availableWidth = windowWidth - (window.visualViewport ? 0 : 40); // Account for mobile browsers' UI
+            let availableHeight = windowHeight - (window.visualViewport ? 0 : 80);
+            
+            // Calculate scale maintaining aspect ratio
+            let scale = min(availableWidth / 1000, availableHeight / 600);
+            
+            // Apply scale
+            resizeCanvas(1000 * scale, 600 * scale);
+            window.gameScale = scale;
+            
+            // Force immediate scale update
+            canvas.style('width', `${1000 * scale}px`);
+            canvas.style('height', `${600 * scale}px`);
+        } else {
+            window.gameScale = 1;
+        }
         
-        // Force canvas to update its position
-        canvas.style('position', 'absolute');
-        canvas.style('left', '50%');
-        canvas.style('top', '50%');
-        canvas.style('transform', 'translate(-50%, -50%)');
-    } else {
-        window.gameScale = 1;
-    }
-    
-    // Initialize level length
-    levelLength = 3000;
-    
-    // Set initial game state
-    gameState = 'start';
-    window.gameState = 'start';
-  
-    // Initialize game objects and settings
-    resetGame();
-  
-    // Add window resize handler
-    window.addEventListener('resize', windowResized);
-    
-    // Force initial resize to ensure proper scaling
-    windowResized();
-    
-    // Debug log
-    console.log('Canvas created:', canvas);
-    console.log('Game state:', gameState);
-    console.log('Initial scale:', window.gameScale);
+        // Initialize level length
+        levelLength = 3000;
+        
+        // Set initial game state
+        gameState = 'start';
+        window.gameState = 'start';
+        
+        // Initialize game objects and settings
+        resetGame();
+        
+        // Add window resize handler
+        window.addEventListener('resize', () => {
+            // Use requestAnimationFrame to ensure smooth resize
+            requestAnimationFrame(windowResized);
+        });
+        
+        // Force initial resize
+        windowResized();
+    });
 }
 
-// Handle window resize events
+// Update window resize handler
 function windowResized() {
     if (isMobileDevice()) {
-        // Calculate scale based on available space
-        let containerWidth = windowWidth;
-        let containerHeight = windowHeight;
-        let scale = min(containerWidth / 1000, containerHeight / 600);
+        // Calculate available space considering safe areas
+        let availableWidth = windowWidth - (window.visualViewport ? 0 : 40);
+        let availableHeight = windowHeight - (window.visualViewport ? 0 : 80);
+        
+        // Calculate scale maintaining aspect ratio
+        let scale = min(availableWidth / 1000, availableHeight / 600);
         
         // Apply scale
         resizeCanvas(1000 * scale, 600 * scale);
         window.gameScale = scale;
         
-        // Force canvas to update its position
+        // Force immediate scale update
         let canvas = document.querySelector('canvas');
         if (canvas) {
-            canvas.style.position = 'absolute';
-            canvas.style.left = '50%';
-            canvas.style.top = '50%';
-            canvas.style.transform = 'translate(-50%, -50%)';
+            canvas.style.width = `${1000 * scale}px`;
+            canvas.style.height = `${600 * scale}px`;
         }
     } else {
         // Desktop keeps fixed size
         resizeCanvas(1000, 600);
         window.gameScale = 1;
     }
-    
-    // Debug log
-    console.log('Window resized:', windowWidth, windowHeight);
-    console.log('Current scale:', window.gameScale);
 }
 
 // Update mobile detection to be more reliable
