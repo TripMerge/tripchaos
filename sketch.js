@@ -518,9 +518,16 @@ function setup() {
 
 // Handle window resize events
 function windowResized() {
-  // Desktop keeps fixed size, no resize needed
-  resizeCanvas(1000, 600);
-  window.gameScale = 1;
+  if (isMobileDevice()) {
+    // For mobile devices, use the full available space
+    let scale = min(windowWidth / 1000, windowHeight / 600);
+    resizeCanvas(1000 * scale, 600 * scale);
+    window.gameScale = scale;
+  } else {
+    // Desktop keeps fixed size
+    resizeCanvas(1000, 600);
+    window.gameScale = 1;
+  }
 }
 
 // Update mobile detection to be more reliable
