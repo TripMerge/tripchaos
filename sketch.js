@@ -2985,18 +2985,31 @@ function drawGameOverScreen() {
         isEmailInputActive = true;
         mouseIsPressed = false;
         
+        // Remove any existing input element
+        const existingInput = document.getElementById('email-input');
+        if (existingInput) {
+            existingInput.remove();
+        }
+        
         // Create a hidden input element for mobile keyboard
         const input = document.createElement('input');
+        input.id = 'email-input';
         input.type = 'email';
         input.value = playerEmail || '';
         input.style.position = 'fixed';
-        input.style.top = '0';
-        input.style.left = '0';
-        input.style.width = '1px';
-        input.style.height = '1px';
+        input.style.top = '50%';
+        input.style.left = '50%';
+        input.style.transform = 'translate(-50%, -50%)';
+        input.style.width = '200px';
+        input.style.height = '40px';
         input.style.opacity = '0';
-        input.style.pointerEvents = 'none';
-        input.style.zIndex = '-1';
+        input.style.zIndex = '1000';
+        input.style.backgroundColor = '#FFFFFF';
+        input.style.border = '2px solid #4B0082';
+        input.style.borderRadius = '10px';
+        input.style.padding = '5px 10px';
+        input.style.fontSize = '20px';
+        input.style.fontFamily = 'Fredoka One';
         
         // Add event listeners
         input.addEventListener('input', (e) => {
@@ -3010,12 +3023,7 @@ function drawGameOverScreen() {
         
         // Add to document and focus
         document.body.appendChild(input);
-        
-        // Force keyboard to show on mobile
-        if (isMobileDevice()) {
-            input.focus();
-            input.click();
-        }
+        input.focus();
     }
 
     // Privacy Policy Checkbox
@@ -3252,18 +3260,31 @@ function drawWinScreen() {
         isEmailInputActive = true;
         mouseIsPressed = false;
         
+        // Remove any existing input element
+        const existingInput = document.getElementById('email-input');
+        if (existingInput) {
+            existingInput.remove();
+        }
+        
         // Create a hidden input element for mobile keyboard
         const input = document.createElement('input');
+        input.id = 'email-input';
         input.type = 'email';
         input.value = playerEmail || '';
         input.style.position = 'fixed';
-        input.style.top = '0';
-        input.style.left = '0';
-        input.style.width = '1px';
-        input.style.height = '1px';
+        input.style.top = '50%';
+        input.style.left = '50%';
+        input.style.transform = 'translate(-50%, -50%)';
+        input.style.width = '200px';
+        input.style.height = '40px';
         input.style.opacity = '0';
-        input.style.pointerEvents = 'none';
-        input.style.zIndex = '-1';
+        input.style.zIndex = '1000';
+        input.style.backgroundColor = '#FFFFFF';
+        input.style.border = '2px solid #4B0082';
+        input.style.borderRadius = '10px';
+        input.style.padding = '5px 10px';
+        input.style.fontSize = '20px';
+        input.style.fontFamily = 'Fredoka One';
         
         // Add event listeners
         input.addEventListener('input', (e) => {
@@ -3277,12 +3298,7 @@ function drawWinScreen() {
         
         // Add to document and focus
         document.body.appendChild(input);
-        
-        // Force keyboard to show on mobile
-        if (isMobileDevice()) {
-            input.focus();
-            input.click();
-        }
+        input.focus();
     }
 
     // Privacy Policy Checkbox
