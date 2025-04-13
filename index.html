@@ -542,14 +542,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-        }
-
-        #mobile-email-form.active {
-            display: flex;
-            flex-direction: column;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
             justify-content: center;
             align-items: center;
         }
@@ -575,13 +569,13 @@
             color: #333;
         }
 
-        .form-container .checkbox-container {
+        .checkbox-container {
             display: flex;
             align-items: flex-start;
             margin: 20px 0;
         }
 
-        .form-container input[type="checkbox"] {
+        .checkbox-container input[type="checkbox"] {
             width: 30px;
             height: 30px;
             margin-right: 15px;
@@ -589,7 +583,7 @@
             accent-color: #4B0082;
         }
 
-        .form-container label {
+        .checkbox-container label {
             font-size: 18px;
             color: white;
             font-family: 'Fredoka One', sans-serif;
@@ -607,11 +601,6 @@
             font-size: 20px;
             font-family: 'Fredoka One', sans-serif;
             cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #mobile-submit-button:active {
-            background-color: #3B0072;
         }
 
         .privacy-link {
