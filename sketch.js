@@ -2801,10 +2801,10 @@ function drawMeter(label, value, x, y) {
 
 // Draw game over screen with improved readability
 function drawGameOverScreen() {
-  if (showLeaderboard) {
-    drawLeaderboardScreen();
-    return;
-  }
+    if (showLeaderboard) {
+        drawLeaderboardScreen();
+        return;
+    }
 
     // Draw solid pink background
     background('#FF69B4');
@@ -2912,64 +2912,43 @@ function drawGameOverScreen() {
     text("JOIN THE LEADERBOARD & GET TRIPMERGE UPDATES", width/2, leaderboardY);
     pop();
 
-    // Email Submission Form
-    let emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
-    let emailBoxY = leaderboardY + 50;
-    let emailBoxWidth = isMobileDevice() ? 300 : 400;
-    let emailBoxHeight = isMobileDevice() ? 40 : 50;
+    // Email Submission Form - Only show on desktop
+    if (!isMobileDevice()) {
+        let emailBoxX = width/2 - 200;
+        let emailBoxY = leaderboardY + 50;
+        let emailBoxWidth = 400;
+        let emailBoxHeight = 50;
 
-    // Draw email input box
-    push();
-    strokeWeight(2);
-    stroke('#4B0082');
-    fill('#FFFFFF');
-    rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
-    
-    // Draw email input text
-    fill('#000000');
-    textSize(isMobileDevice() ? 16 : 20);
-    textAlign(LEFT, CENTER);
-    let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
-    text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
-    pop();
-
-    // Check if email box is clicked
-    if ((mouseIsPressed || touches.length > 0) && 
-        (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
-        (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
-        (mouseY >= emailBoxY || (touches.length > 0 && touches[0].y >= emailBoxY)) && 
-        (mouseY <= emailBoxY + emailBoxHeight || (touches.length > 0 && touches[0].y <= emailBoxY + emailBoxHeight))) {
-        isEmailInputActive = true;
-        mouseIsPressed = false;
+        // Draw email input box
+        push();
+        strokeWeight(2);
+        stroke('#4B0082');
+        fill('#FFFFFF');
+        rect(emailBoxX, emailBoxY, emailBoxWidth, emailBoxHeight, 10);
         
-        // Show keyboard on mobile devices
-        if (isMobileDevice()) {
-            // Create a temporary input to force keyboard
-            const tempInput = document.createElement('input');
-            tempInput.style.position = 'absolute';
-            tempInput.style.opacity = '0';
-            tempInput.style.height = '0';
-            tempInput.style.width = '0';
-            document.body.appendChild(tempInput);
-            
-            // Focus the temporary input first
-            tempInput.focus();
-            
-            // Create the email input
-            const emailInput = createEmailInput(playerEmail);
-            
-            // Focus the email input after a delay
-            setTimeout(() => {
-                emailInput.focus();
-                tempInput.remove();
-            }, 100);
+        // Draw email input text
+        fill('#000000');
+        textSize(20);
+        textAlign(LEFT, CENTER);
+        let displayText = isEmailInputActive ? playerEmail + (frameCount % 60 < 30 ? '|' : '') : 'Enter your email';
+        text(displayText, emailBoxX + 10, emailBoxY + emailBoxHeight/2);
+        pop();
+
+        // Check if email box is clicked
+        if ((mouseIsPressed || touches.length > 0) && 
+            (mouseX >= emailBoxX || (touches.length > 0 && touches[0].x >= emailBoxX)) && 
+            (mouseX <= emailBoxX + emailBoxWidth || (touches.length > 0 && touches[0].x <= emailBoxX + emailBoxWidth)) && 
+            (mouseY >= emailBoxY || (touches.length > 0 && touches[0].y >= emailBoxY)) && 
+            (mouseY <= emailBoxY + emailBoxHeight || (touches.length > 0 && touches[0].y <= emailBoxY + emailBoxHeight))) {
+            isEmailInputActive = true;
+            mouseIsPressed = false;
         }
     }
 
     // Privacy Policy Checkbox
-    let privacyY = emailBoxY + emailBoxHeight + 20;
+    let privacyY = leaderboardY + (isMobileDevice() ? 30 : 100);
     let checkboxSize = isMobileDevice() ? 30 : 20;
-    let privacyX = width/2 - (isMobileDevice() ? 150 : 250); // Position checkbox to the left of text
+    let privacyX = width/2 - (isMobileDevice() ? 150 : 250);
     
     let isCheckboxHovering = (mouseX >= privacyX || (touches.length > 0 && touches[0].x >= privacyX)) && 
                             (mouseX <= privacyX + checkboxSize || (touches.length > 0 && touches[0].x <= privacyX + checkboxSize)) && 
@@ -3001,7 +2980,7 @@ function drawGameOverScreen() {
 
     // Submit button (centered below the form)
     let submitBtnX = width/2;
-    let submitBtnY = privacyY + 100; // Moved further down
+    let submitBtnY = privacyY + (isMobileDevice() ? 50 : 100);
     let submitBtnWidth = isMobileDevice() ? 150 : 200;
     let submitBtnHeight = isMobileDevice() ? 50 : 60;
     let isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 || (touches.length > 0 && touches[0].x >= submitBtnX - submitBtnWidth/2)) && 
@@ -4317,10 +4296,10 @@ function createEmailInput(value) {
     
     // Basic styling
     input.style.position = 'fixed';
-    input.style.top = '50%';
-    input.style.left = '50%';
-    input.style.transform = 'translate(-50%, -50%)';
-    input.style.width = isMobileDevice() ? '80%' : '300px';
+    input.style.top = isMobileDevice() ? '-1000px' : '50%';
+    input.style.left = isMobileDevice() ? '-1000px' : '50%';
+    input.style.transform = isMobileDevice() ? 'none' : 'translate(-50%, -50%)';
+    input.style.width = isMobileDevice() ? '0' : '300px';
     input.style.height = '44px';
     input.style.padding = '10px 15px';
     input.style.fontSize = '16px';
