@@ -4365,13 +4365,28 @@ function createEmailInput(value) {
     
     // Force keyboard to show on mobile
     if (isMobileDevice()) {
-        // Focus the input immediately
-        input.focus();
+        // Create a temporary input to force keyboard
+        const tempInput = document.createElement('input');
+        tempInput.style.position = 'fixed';
+        tempInput.style.opacity = '0';
+        tempInput.style.pointerEvents = 'none';
+        document.body.appendChild(tempInput);
         
-        // Force keyboard to show after a short delay
+        // Focus temporary input first
+        tempInput.focus();
+        
+        // Then focus the actual input
         setTimeout(() => {
+            tempInput.remove();
             input.focus();
             input.click();
+            
+            // Force keyboard to show
+            const event = new Event('touchstart', {
+                bubbles: true,
+                cancelable: true
+            });
+            input.dispatchEvent(event);
         }, 100);
     } else {
         // For desktop, just focus normally
