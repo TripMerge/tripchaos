@@ -3064,6 +3064,11 @@ function showMobileEmailForm() {
         emailInput.focus();
     }, 100);
 
+    // Handle input changes
+    emailInput.addEventListener('input', (e) => {
+        playerEmail = e.target.value;
+    });
+
     // Handle form submission
     submitButton.onclick = () => {
         if (privacyCheckbox.checked) {
@@ -3085,6 +3090,23 @@ function showMobileEmailForm() {
     privacyCheckbox.onchange = () => {
         privacyPolicyAccepted = privacyCheckbox.checked;
     };
+
+    // Handle form close when clicking outside
+    form.addEventListener('click', (e) => {
+        if (e.target === form) {
+            form.classList.remove('active');
+        }
+    });
+
+    // Handle keyboard submit
+    emailInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && privacyCheckbox.checked) {
+            playerEmail = emailInput.value;
+            privacyPolicyAccepted = true;
+            form.classList.remove('active');
+            submitScoreToLeaderboard();
+        }
+    });
 }
 
 function drawWinScreen() {
