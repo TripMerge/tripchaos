@@ -2606,12 +2606,10 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
-    // Handle privacy policy link click first
+    // Handle privacy policy link click
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
         const privacyLinkY = height * 0.9;
-        
-        // Make the click area larger for mobile
         const clickAreaWidth = isMobileDevice() ? 300 : 100;
         const clickAreaHeight = isMobileDevice() ? 50 : 15;
         
@@ -2627,26 +2625,23 @@ function touchStarted() {
     // Handle email input touch
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
+        const emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
+        const emailBoxY = height * 0.55;
+        const emailBoxWidth = isMobileDevice() ? 300 : 400;
+        const emailBoxHeight = isMobileDevice() ? 54 : 44;
         
-        // Email input box dimensions
-        let emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
-        let emailBoxY = height * 0.55;
-        let emailBoxWidth = isMobileDevice() ? 300 : 400;
-        let emailBoxHeight = isMobileDevice() ? 54 : 44;
-        
-        if (touch.x >= emailBoxX && touch.x <= emailBoxX + emailBoxWidth &&
-            touch.y >= emailBoxY && touch.y <= emailBoxY + emailBoxHeight) {
+        if (touch.x >= emailBoxX && 
+            touch.x <= emailBoxX + emailBoxWidth && 
+            touch.y >= emailBoxY && 
+            touch.y <= emailBoxY + emailBoxHeight) {
             if (!isEmailInputActive) {
                 isEmailInputActive = true;
-                const input = createEmailInput(playerEmail);
-                input.style.left = emailBoxX + 'px';
-                input.style.top = emailBoxY + 'px';
+                createEmailInput(playerEmail);
                 return false;
             }
         }
     }
     
-    // Handle other touch events
     return true;
 }
 
@@ -4314,13 +4309,18 @@ function createEmailInput(value) {
     input.classList.add('game-email-input');
     input.value = value || '';
     
+    // Position the input where the email box is drawn
+    const emailBoxX = width/2 - (isMobileDevice() ? 150 : 200);
+    const emailBoxY = height * 0.55;
+    
     // Apply styles for better mobile UX
     input.style.position = 'absolute';
-    input.style.width = isMobileDevice() ? '90%' : '400px';
-    input.style.maxWidth = '500px';
-    input.style.height = isMobileDevice() ? '54px' : '44px';
-    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    input.style.left = emailBoxX + 'px';
+    input.style.top = emailBoxY + 'px';
+    input.style.width = (isMobileDevice() ? 300 : 400) + 'px';
+    input.style.height = (isMobileDevice() ? 54 : 44) + 'px';
+    input.style.fontSize = (isMobileDevice() ? 18 : 16) + 'px';
+    input.style.padding = '12px 16px';
     input.style.boxSizing = 'border-box';
     input.style.border = '2px solid #3498db';
     input.style.borderRadius = '12px';
@@ -4333,15 +4333,15 @@ function createEmailInput(value) {
     input.style.webkitUserSelect = 'text';
     input.style.userSelect = 'text';
     input.style.zIndex = '9999';
+    input.style.transform = 'translate(-50%, 0)';
     
-    // Add input event listener to ensure keyboard input is captured
+    // Add input event listener
     input.addEventListener('input', (e) => {
         e.stopPropagation();
         playerEmail = e.target.value;
-        input.value = playerEmail; // Keep input value in sync
     });
     
-    // Add keydown event listener to prevent event bubbling
+    // Add keydown event listener
     input.addEventListener('keydown', (e) => {
         e.stopPropagation();
         if (e.key === 'Enter') {
@@ -4355,20 +4355,22 @@ function createEmailInput(value) {
         }
     });
     
-    // Add focus event listener to ensure keyboard shows
-    input.addEventListener('focus', () => {
-        input.focus();
-    });
-    
-    // Add touch event listener for mobile
-    input.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        input.focus();
+    // Add blur event listener to handle clicking outside
+    input.addEventListener('blur', () => {
+        if (validateEmail(input.value)) {
+            playerEmail = input.value;
+            input.remove();
+            isEmailInputActive = false;
+            submitScoreToLeaderboard();
+        } else {
+            input.remove();
+            isEmailInputActive = false;
+        }
     });
     
     document.body.appendChild(input);
     
-    // Force keyboard to show on mobile
+    // Focus and show keyboard
     if (isMobileDevice()) {
         setTimeout(() => {
             input.focus();
