@@ -4295,6 +4295,11 @@ function touchStarted() {
 
 // Modified function to create a more browser-friendly email input
 function createEmailInput(value) {
+    // Disable email input on mobile devices
+    if (isMobileDevice()) {
+        return null;
+    }
+
     // Remove any existing input elements
     const existingInputs = document.querySelectorAll('.game-email-input');
     existingInputs.forEach(input => input.remove());
@@ -4302,32 +4307,24 @@ function createEmailInput(value) {
     // Create a form element
     const form = document.createElement('form');
     form.style.position = 'fixed';
+    form.style.top = '50%';
     form.style.left = '50%';
-    form.style.transform = 'translateX(-50%)';
+    form.style.transform = 'translate(-50%, -50%)';
     form.style.zIndex = '9999';
-    form.style.width = isMobileDevice() ? '90%' : '400px';
+    form.style.width = '400px';
     form.style.maxWidth = '500px';
     form.style.backgroundColor = 'transparent';
     form.style.padding = '0';
     form.style.margin = '0';
     form.style.border = 'none';
     
-    // Position the form at the bottom on mobile
-    if (isMobileDevice()) {
-        form.style.bottom = '0';
-        form.style.paddingBottom = 'env(safe-area-inset-bottom, 20px)';
-    } else {
-        form.style.top = '50%';
-        form.style.transform = 'translate(-50%, -50%)';
-    }
-    
     // Create container for input and button
     const container = document.createElement('div');
     container.style.width = '100%';
     container.style.backgroundColor = 'white';
     container.style.padding = '20px';
-    container.style.borderRadius = '12px 12px 0 0';
-    container.style.boxShadow = '0 -4px 12px rgba(0,0,0,0.2)';
+    container.style.borderRadius = '12px';
+    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
     container.style.position = 'relative';
     
     // Create the actual input element
@@ -4343,11 +4340,11 @@ function createEmailInput(value) {
     input.classList.add('game-email-input');
     input.value = value || '';
     
-    // Apply styles for better mobile UX
+    // Apply styles for desktop
     input.style.width = '100%';
-    input.style.height = isMobileDevice() ? '54px' : '44px';
-    input.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    input.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    input.style.height = '44px';
+    input.style.fontSize = '16px';
+    input.style.padding = '12px 16px';
     input.style.boxSizing = 'border-box';
     input.style.border = '2px solid #3498db';
     input.style.borderRadius = '12px';
@@ -4356,16 +4353,15 @@ function createEmailInput(value) {
     input.style.marginBottom = '20px';
     input.style.WebkitAppearance = 'none';
     input.style.appearance = 'none';
-    input.style.webkitTapHighlightColor = 'transparent';
     
     // Create submit button
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
     submitButton.textContent = 'Submit';
     submitButton.style.width = '100%';
-    submitButton.style.height = isMobileDevice() ? '54px' : '44px';
-    submitButton.style.fontSize = isMobileDevice() ? '18px' : '16px';
-    submitButton.style.padding = isMobileDevice() ? '14px 20px' : '12px 16px';
+    submitButton.style.height = '44px';
+    submitButton.style.fontSize = '16px';
+    submitButton.style.padding = '12px 16px';
     submitButton.style.backgroundColor = '#3498db';
     submitButton.style.color = 'white';
     submitButton.style.border = 'none';
@@ -4374,21 +4370,11 @@ function createEmailInput(value) {
     submitButton.style.fontWeight = 'bold';
     submitButton.style.transition = 'background-color 0.2s';
     
-    // Add hover effect for non-mobile devices
-    if (!isMobileDevice()) {
-        submitButton.addEventListener('mouseover', () => {
-            submitButton.style.backgroundColor = '#2980b9';
-        });
-        submitButton.addEventListener('mouseout', () => {
-            submitButton.style.backgroundColor = '#3498db';
-        });
-    }
-    
-    // Add active state for all devices
-    submitButton.addEventListener('touchstart', () => {
+    // Add hover effect
+    submitButton.addEventListener('mouseover', () => {
         submitButton.style.backgroundColor = '#2980b9';
     });
-    submitButton.addEventListener('touchend', () => {
+    submitButton.addEventListener('mouseout', () => {
         submitButton.style.backgroundColor = '#3498db';
     });
     
@@ -4428,27 +4414,8 @@ function createEmailInput(value) {
     form.appendChild(container);
     document.body.appendChild(form);
     
-    // Force keyboard to show on mobile
-    if (isMobileDevice()) {
-        // Create a temporary input to force keyboard
-        const tempInput = document.createElement('input');
-        tempInput.style.position = 'absolute';
-        tempInput.style.opacity = '0';
-        tempInput.style.height = '0';
-        tempInput.style.width = '0';
-        document.body.appendChild(tempInput);
-        
-        // Focus the temporary input first
-        tempInput.focus();
-        
-        // Focus the actual input after a short delay
-        setTimeout(() => {
-            input.focus();
-            tempInput.remove();
-        }, 100);
-    } else {
-        input.focus();
-    }
+    // Focus the input
+    input.focus();
     
     return input;
 }
