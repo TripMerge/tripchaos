@@ -4041,13 +4041,9 @@ function keyTyped() {
 
 // Add touch support for mobile
 function touchStarted() {
-    // Convert touch coordinates to canvas coordinates
-    const touch = {
-        x: mouseX,
-        y: mouseY
-    };
-    
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
+        let touch = touches[0];
+        
         // Handle Play Again button
         let playAgainX = width * 0.85;
         let playAgainWidth = isMobileDevice() ? 150 : 200;
