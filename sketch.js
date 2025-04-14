@@ -2625,12 +2625,32 @@ function touchStarted() {
         
         // Check if touch is on close button of privacy policy
         if (showPrivacyPolicy) {
-            let closeButtonX = canvasRect.left + canvasRect.width * 0.8;
-            let closeButtonY = canvasRect.top + canvasRect.height * 0.1;
-            let closeButtonSize = 30;
+            // Calculate popup dimensions based on device type
+            const popupWidth = isMobileDevice() ? canvasRect.width * 0.95 : canvasRect.width * 0.8;
+            const popupHeight = isMobileDevice() ? canvasRect.height * 0.9 : canvasRect.height * 0.8;
+            const popupX = canvasRect.left + (canvasRect.width - popupWidth) / 2;
+            const popupY = canvasRect.top + (canvasRect.height - popupHeight) / 2;
+            
+            // Close button is in the left corner
+            const closeButtonSize = isMobileDevice() ? 44 : 30;
+            const closeButtonX = popupX + 10;
+            const closeButtonY = popupY + 10;
             
             if (mouseX >= closeButtonX && mouseX <= closeButtonX + closeButtonSize &&
                 mouseY >= closeButtonY && mouseY <= closeButtonY + closeButtonSize) {
+                showPrivacyPolicy = false;
+                return false;
+            }
+            
+            // Check if touch is on accept button
+            const buttonWidth = isMobileDevice() ? 200 : 150;
+            const buttonHeight = isMobileDevice() ? 60 : 50;
+            const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+            const buttonY = popupY + popupHeight - buttonHeight - 30;
+            
+            if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
+                mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+                privacyPolicyAccepted = true;
                 showPrivacyPolicy = false;
                 return false;
             }
