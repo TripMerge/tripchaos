@@ -8,8 +8,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="description" content="TripChaos: Group Traveler - A fun game about group travel planning mishaps">
     <meta name="theme-color" content="#1a1a2e">
-    <!-- Add meta tag to prevent zoom on input focus -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <title>TripChaos: Group Travel Adventures by TripMerge</title>
     
@@ -162,22 +160,15 @@
         /* Mobile landscape adjustments */
         @media screen and (max-width: 926px) and (orientation: landscape) {
             canvas {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                max-width: min(500px, 80vw);
-                max-height: min(281px, 70vh);
+                top: 45%;
+                max-width: min(560px, 85vw);
+                max-height: min(315px, 80vh);
                 transform: translate(-50%, -50%);
             }
             
             #canvas-container {
-                position: relative;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
                 padding: env(safe-area-inset-top, 0) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+                height: calc(100% - env(safe-area-inset-bottom, 0px));
             }
 
             .game-button {
@@ -202,7 +193,7 @@
             
             /* Make game container take full height accounting for safe areas */
             #game-container {
-                height: 100svh;
+                height: 100svh; /* Use svh for a more accurate viewport height in mobile browsers */
                 padding-top: env(safe-area-inset-top, 0);
                 padding-bottom: env(safe-area-inset-bottom, 0);
             }
@@ -218,11 +209,9 @@
         /* iPhone SE and smaller devices */
         @media screen and (max-width: 667px) and (orientation: landscape) {
             canvas {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                max-width: min(450px, 75vw);
-                max-height: min(253px, 65vh);
+                top: 47%;
+                max-width: min(450px, 80vw);
+                max-height: min(253px, 75vh);
                 transform: translate(-50%, -50%);
             }
         }
@@ -273,12 +262,9 @@
         /* Smaller iPhone models in landscape */
         @media screen and (max-width: 844px) and (orientation: landscape) {
             canvas {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                max-width: min(475px, 75vw);
-                max-height: min(267px, 65vh);
-                transform: translate(-50%, -50%);
+                max-width: min(500px, 80vw);
+                max-height: min(281px, 80vh);
+                transform: translate(-50%, calc(-50% - 15px)); /* Adjust for controls while maintaining center */
             }
         }
         
@@ -496,8 +482,8 @@
             /* Notched device adjustments */
             @media screen and (max-width: 926px) and (orientation: landscape) {
                 canvas {
-                    transform: translate(-50%, -50%);
-                    max-height: calc(70vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+                    transform: translate(-50%, calc(-50% - env(safe-area-inset-top, 0px) / 2));
+                    max-height: calc(85vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
                 }
                 
                 #game-controls {
@@ -509,22 +495,16 @@
         /* Add mobile-specific adjustments */
         @media (max-width: 768px) {
             canvas {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                max-height: 70vh;
-                transform: translate(-50%, -50%);
+                top: 38%;
+                max-height: 85vh;
             }
         }
         
         /* Add even more adjustment for shorter screens */
         @media (max-height: 600px) {
             canvas {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                max-height: 65vh;
-                transform: translate(-50%, -50%);
+                top: 40%;
+                max-height: 80vh;
             }
         }
 
@@ -553,35 +533,6 @@
 
         .game-title {
             font-family: 'Fredoka One', cursive;
-        }
-
-        /* Add styles for email input */
-        .game-email-input {
-            position: absolute;
-            z-index: 1000;
-            border: 2px solid #000;
-            border-radius: 10px;
-            padding: 0 20px;
-            font-size: 20px;
-            font-family: Arial, sans-serif;
-            background-color: rgba(255, 255, 255, 0.8);
-            outline: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        
-        /* Prevent zoom on input focus */
-        @media screen and (-webkit-min-device-pixel-ratio:0) {
-            select:focus,
-            textarea:focus,
-            input:focus {
-                font-size: 16px;
-            }
         }
     </style>
 </head>

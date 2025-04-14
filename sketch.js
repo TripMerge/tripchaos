@@ -4138,6 +4138,10 @@ function createEmailInput(value) {
     input.classList.add('game-email-input');
     input.value = value || '';
     
+    // Add mobile-specific attributes to ensure keyboard appears
+    input.setAttribute('autofocus', 'true');
+    input.setAttribute('enterkeyhint', 'done');
+    
     // Position input relative to canvas
     let canvas = document.querySelector('canvas');
     let canvasRect = canvas.getBoundingClientRect();
@@ -4160,13 +4164,6 @@ function createEmailInput(value) {
     input.style.zIndex = '1000';
     input.style.opacity = '1';
     input.style.visibility = 'visible';
-    input.style.webkitAppearance = 'none';
-    input.style.mozAppearance = 'none';
-    input.style.appearance = 'none';
-    input.style.webkitTapHighlightColor = 'transparent';
-    input.style.webkitTouchCallout = 'none';
-    input.style.webkitUserSelect = 'none';
-    input.style.userSelect = 'none';
     
     // Add event listeners
     input.addEventListener('input', function(e) {
@@ -4182,14 +4179,6 @@ function createEmailInput(value) {
     // Handle focus event
     input.addEventListener('focus', function() {
         isEmailInputActive = true;
-        // Force focus on mobile
-        if (isMobileDevice()) {
-            input.focus();
-            // Small delay to ensure focus is maintained
-            setTimeout(() => {
-                input.focus();
-            }, 100);
-        }
     });
     
     input.addEventListener('keydown', function(e) {
@@ -4201,16 +4190,7 @@ function createEmailInput(value) {
     
     // Add to document and focus
     document.body.appendChild(input);
-    
-    // Force focus on mobile
-    if (isMobileDevice()) {
-        setTimeout(() => {
-            input.focus();
-        }, 100);
-    } else {
-        input.focus();
-    }
-    
+    input.focus();
     isEmailInputActive = true;
     
     return input;
