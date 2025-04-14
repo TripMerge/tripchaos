@@ -2612,7 +2612,7 @@ function touchStarted(event) {
     // Get the first touch
     let touch = touches[0];
     
-    // Handle email input touch
+    // Handle game over screen interactions
     if (gameState === 'gameOver' || gameState === 'win') {
         // Email input box dimensions
         let emailBoxX = width * 0.1;
@@ -2639,27 +2639,26 @@ function touchStarted(event) {
         // Check if privacy policy checkbox was touched
         let checkboxX = emailBoxX;
         let checkboxY = emailBoxY + emailBoxHeight + 20;
-        let checkboxSize = 20;
+        let checkboxSize = 24;
         
         if (touch.x >= checkboxX &&
             touch.x <= checkboxX + checkboxSize &&
-            touch.y >= checkboxY &&
-            touch.y <= checkboxY + checkboxSize) {
+            touch.y >= checkboxY - checkboxSize/2 &&
+            touch.y <= checkboxY + checkboxSize/2) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
             return false;
         }
         
         // Check if submit button was touched
         let submitBtnX = width/2;
-        let submitBtnY = emailBoxY + 70;
-        let submitBtnWidth = 250;
-        let submitBtnHeight = 45;
-        let submitTouchArea = 70;
+        let submitBtnY = checkboxY + 50;
+        let submitBtnWidth = width * 0.6;
+        let submitBtnHeight = 50;
         
-        if (touch.x >= submitBtnX - submitBtnWidth/2 - submitTouchArea && 
-            touch.x <= submitBtnX + submitBtnWidth/2 + submitTouchArea && 
-            touch.y >= submitBtnY - submitTouchArea && 
-            touch.y <= submitBtnY + submitBtnHeight + submitTouchArea) {
+        if (touch.x >= submitBtnX - submitBtnWidth/2 && 
+            touch.x <= submitBtnX + submitBtnWidth/2 && 
+            touch.y >= submitBtnY - submitBtnHeight/2 && 
+            touch.y <= submitBtnY + submitBtnHeight/2) {
             
             if (privacyPolicyAccepted) {
                 submitScoreToLeaderboard();
@@ -2668,16 +2667,29 @@ function touchStarted(event) {
         }
         
         // Check if play again button was touched
-        let playAgainBtnX = width/2;
-        let playAgainBtnY = height/2;
-        let playAgainBtnWidth = 200;
-        let playAgainBtnHeight = 50;
+        let playAgainX = width * 0.85;
+        let playAgainY = height/8;
+        let playAgainWidth = isMobileDevice() ? 150 : 200;
+        let playAgainHeight = isMobileDevice() ? 50 : 60;
         
-        if (touch.x >= playAgainBtnX - playAgainBtnWidth/2 && 
-            touch.x <= playAgainBtnX + playAgainBtnWidth/2 && 
-            touch.y >= playAgainBtnY - playAgainBtnHeight/2 && 
-            touch.y <= playAgainBtnY + playAgainBtnHeight/2) {
+        if (touch.x >= playAgainX - playAgainWidth/2 && 
+            touch.x <= playAgainX + playAgainWidth/2 && 
+            touch.y >= playAgainY - playAgainHeight/2 && 
+            touch.y <= playAgainY + playAgainHeight/2) {
             resetGame();
+            return false;
+        }
+        
+        // Check if privacy policy link was touched
+        let privacyLinkY = height * 0.9;
+        let privacyLinkWidth = 200;
+        let privacyLinkHeight = 30;
+        
+        if (touch.x >= width/2 - privacyLinkWidth/2 && 
+            touch.x <= width/2 + privacyLinkWidth/2 && 
+            touch.y >= privacyLinkY - privacyLinkHeight/2 && 
+            touch.y <= privacyLinkY + privacyLinkHeight/2) {
+            showPrivacyPolicy = true;
             return false;
         }
     }
