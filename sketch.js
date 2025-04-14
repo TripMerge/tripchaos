@@ -4677,14 +4677,15 @@ function createMobilePrivacyOverlay() {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         background-color: rgba(0, 0, 0, 0.7);
         z-index: 9999;
         display: flex;
         justify-content: center;
         align-items: center;
         font-family: Arial, sans-serif;
+        -webkit-tap-highlight-color: transparent;
     `;
     
     // Create popup container
@@ -4698,6 +4699,8 @@ function createMobilePrivacyOverlay() {
         position: relative;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
         margin: 20px;
+        box-sizing: border-box;
+        overflow: hidden;
     `;
     
     // Create close button
@@ -4719,8 +4722,12 @@ function createMobilePrivacyOverlay() {
         align-items: center;
         justify-content: center;
         z-index: 10000;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     `;
-    closeButton.onclick = function() {
+    closeButton.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         showPrivacyPolicy = false;
         overlay.remove();
     };
@@ -4731,19 +4738,22 @@ function createMobilePrivacyOverlay() {
     title.style.cssText = `
         text-align: center;
         margin-top: 0;
-        margin-bottom: 20px;
+        margin-bottom: 30px;
         color: #333;
-        font-size: 24px;
+        font-size: 28px;
+        font-weight: bold;
+        padding-top: 20px;
     `;
     
     // Create content
     const content = document.createElement('p');
     content.textContent = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
     content.style.cssText = `
-        margin: 0 0 20px 0;
+        margin: 0 0 30px 0;
         color: #666;
-        font-size: 16px;
-        line-height: 1.5;
+        font-size: 18px;
+        line-height: 1.6;
+        text-align: center;
     `;
     
     // Create accept button
@@ -4752,16 +4762,21 @@ function createMobilePrivacyOverlay() {
     acceptButton.style.cssText = `
         display: block;
         width: 100%;
-        padding: 15px;
+        padding: 20px;
         background-color: #FF1493;
         color: white;
         border: none;
-        border-radius: 10px;
-        font-size: 18px;
+        border-radius: 15px;
+        font-size: 22px;
+        font-weight: bold;
         cursor: pointer;
         margin-top: 20px;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
     `;
-    acceptButton.onclick = function() {
+    acceptButton.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         privacyPolicyAccepted = true;
         showPrivacyPolicy = false;
         overlay.remove();
@@ -4773,5 +4788,15 @@ function createMobilePrivacyOverlay() {
     popup.appendChild(content);
     popup.appendChild(acceptButton);
     overlay.appendChild(popup);
+    
+    // Add touch event listeners
+    overlay.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }, { passive: false });
+    
     document.body.appendChild(overlay);
+    
+    // Force a reflow to ensure the overlay is visible
+    overlay.offsetHeight;
 }
