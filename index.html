@@ -8,6 +8,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="description" content="TripChaos: Group Traveler - A fun game about group travel planning mishaps">
     <meta name="theme-color" content="#1a1a2e">
+    <!-- Add meta tag to prevent zoom on input focus -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <title>TripChaos: Group Travel Adventures by TripMerge</title>
     
@@ -533,6 +535,35 @@
 
         .game-title {
             font-family: 'Fredoka One', cursive;
+        }
+
+        /* Add styles for email input */
+        .game-email-input {
+            position: absolute;
+            z-index: 1000;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 0 20px;
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            background-color: rgba(255, 255, 255, 0.8);
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        /* Prevent zoom on input focus */
+        @media screen and (-webkit-min-device-pixel-ratio:0) {
+            select:focus,
+            textarea:focus,
+            input:focus {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
