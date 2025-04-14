@@ -2605,90 +2605,81 @@ function makeDecision(optionIndex) {
 }
 
 // Single touchStarted function that handles all touch events
-function touchStarted() {
-    // Handle privacy policy link click first
-    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
-        let touch = touches[0];
-        const privacyLinkY = height * 0.9;
+function touchStarted(event) {
+    // Prevent default behavior
+    event.preventDefault();
+    
+    // Get the first touch
+    let touch = touches[0];
+    
+    // Handle email input touch
+    if (gameState === 'gameOver' || gameState === 'win') {
+        // Email input box dimensions
+        let emailBoxX = width * 0.1;
+        let emailBoxY = height/8 + 100;
+        let emailBoxWidth = width * 0.8;
+        let emailBoxHeight = 50;
         
-        // Make the click area larger for mobile
-        const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
-        const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
-        
-        if (touch.x >= width/2 - clickAreaWidth/2 && 
-            touch.x <= width/2 + clickAreaWidth/2 && 
-            touch.y >= privacyLinkY - clickAreaHeight/2 && 
-            touch.y <= privacyLinkY + clickAreaHeight/2) {
-            showPrivacyPolicy = true;
+        // Check if touch is within the email input box
+        if (touch.x >= emailBoxX &&
+            touch.x <= emailBoxX + emailBoxWidth &&
+            touch.y >= emailBoxY &&
+            touch.y <= emailBoxY + emailBoxHeight) {
+            
+            // Create input for both mobile and desktop
+            isEmailInputActive = true;
+            emailInputCursor = playerEmail.length;
+            const tempInput = createEmailInput(playerEmail);
+            if (tempInput) {
+                tempInput.focus();
+            }
             return false;
         }
-
-        // Handle privacy policy checkbox click
-        let checkboxX = width * 0.1;
-        let checkboxY = height/8 + 160;  // Position below email input
+        
+        // Check if privacy policy checkbox was touched
+        let checkboxX = emailBoxX;
+        let checkboxY = emailBoxY + emailBoxHeight + 20;
         let checkboxSize = 20;
         
-        if (touch.x >= checkboxX && 
-            touch.x <= checkboxX + checkboxSize && 
-            touch.y >= checkboxY && 
+        if (touch.x >= checkboxX &&
+            touch.x <= checkboxX + checkboxSize &&
+            touch.y >= checkboxY &&
             touch.y <= checkboxY + checkboxSize) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
             return false;
         }
-    }
-    
-    // Handle email input touch
-    if (gameState === 'gameOver' || gameState === 'win') {
-      // Email input box dimensions
-      let emailBoxX = width * 0.1;
-      let emailBoxY = height/8 + 100;
-      let emailBoxWidth = width * 0.8;
-      let emailBoxHeight = 50;
-      
-      // Check if touch is within the email input box
-      if (touch.x >= emailBoxX &&
-          touch.x <= emailBoxX + emailBoxWidth &&
-          touch.y >= emailBoxY &&
-          touch.y <= emailBoxY + emailBoxHeight) {
         
-        // Prevent default behavior
-        event.preventDefault();
+        // Check if submit button was touched
+        let submitBtnX = width/2;
+        let submitBtnY = emailBoxY + 70;
+        let submitBtnWidth = 250;
+        let submitBtnHeight = 45;
+        let submitTouchArea = 70;
         
-        // Only create input for mobile devices
-        if (isMobileDevice()) {
-          isEmailInputActive = true;
-          emailInputCursor = playerEmail.length;
-          const tempInput = createEmailInput(playerEmail);
-          if (tempInput) {
-            tempInput.focus();
-          }
-        } else {
-          // On desktop, just activate the input state
-          isEmailInputActive = true;
-          emailInputCursor = playerEmail.length;
-        }
-        
-                return false;
+        if (touch.x >= submitBtnX - submitBtnWidth/2 - submitTouchArea && 
+            touch.x <= submitBtnX + submitBtnWidth/2 + submitTouchArea && 
+            touch.y >= submitBtnY - submitTouchArea && 
+            touch.y <= submitBtnY + submitBtnHeight + submitTouchArea) {
+            
+            if (privacyPolicyAccepted) {
+                submitScoreToLeaderboard();
             }
-      
-      // Check if submit button was touched
-      let submitBtnX = width/2;
-      let submitBtnY = emailBoxY + 70;
-      let submitBtnWidth = 250;
-      let submitBtnHeight = 45;
-      let submitTouchArea = 70;
-      
-      if (touch.x >= submitBtnX - submitBtnWidth/2 - submitTouchArea && 
-          touch.x <= submitBtnX + submitBtnWidth/2 + submitTouchArea && 
-          touch.y >= submitBtnY - submitTouchArea && 
-          touch.y <= submitBtnY + submitBtnHeight + submitTouchArea) {
-        
-        if (privacyPolicyAccepted) {
-          submitScoreToLeaderboard();
+            return false;
         }
         
-        return false;
-      }
+        // Check if play again button was touched
+        let playAgainBtnX = width/2;
+        let playAgainBtnY = height/2;
+        let playAgainBtnWidth = 200;
+        let playAgainBtnHeight = 50;
+        
+        if (touch.x >= playAgainBtnX - playAgainBtnWidth/2 && 
+            touch.x <= playAgainBtnX + playAgainBtnWidth/2 && 
+            touch.y >= playAgainBtnY - playAgainBtnHeight/2 && 
+            touch.y <= playAgainBtnY + playAgainBtnHeight/2) {
+            resetGame();
+            return false;
+        }
     }
     
     // Handle game controls
