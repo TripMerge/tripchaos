@@ -4007,7 +4007,10 @@ function keyTyped() {
 }
 
 // Add touch support for mobile
-function touchStarted() {
+function touchStarted(event) {
+    // Prevent default behavior
+    event.preventDefault();
+    
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
         
@@ -4019,19 +4022,21 @@ function touchStarted() {
             touch.x <= playAgainX + playAgainWidth/2 && 
             touch.y >= height/8 - playAgainHeight/2 && 
             touch.y <= height/8 + playAgainHeight/2) {
-                    resetGame();
+            resetGame();
             startGame();
-      return false;
-    }
+            return false;
+        }
 
         // Handle privacy policy link
         let privacyLinkY = height * 0.9;
-        if (touch.x >= width/2 - 100 && 
-            touch.x <= width/2 + 100 && 
-            touch.y >= privacyLinkY - 15 && 
-            touch.y <= privacyLinkY + 15) {
+        let privacyLinkWidth = 200;
+        let privacyLinkHeight = 30;
+        if (touch.x >= width/2 - privacyLinkWidth/2 && 
+            touch.x <= width/2 + privacyLinkWidth/2 && 
+            touch.y >= privacyLinkY - privacyLinkHeight/2 && 
+            touch.y <= privacyLinkY + privacyLinkHeight/2) {
             showPrivacyPolicy = true;
-        return false;
+            return false;
         }
         
         // Handle privacy policy checkbox
@@ -4041,12 +4046,12 @@ function touchStarted() {
         let privacyX = width * 0.1;
         
         if (touch.x >= privacyX && 
-            touch.x <= privacyX + checkboxSize + 200 &&  // Include text area
+            touch.x <= privacyX + checkboxSize && 
             touch.y >= privacyY - checkboxSize/2 && 
             touch.y <= privacyY + checkboxSize/2) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
-        return false;
-      }
+            return false;
+        }
       
         // Handle email input touch
         let emailBoxX = width * 0.1;
@@ -4057,13 +4062,13 @@ function touchStarted() {
             touch.x <= emailBoxX + emailBoxWidth &&
             touch.y >= emailBoxY &&
             touch.y <= emailBoxY + emailBoxHeight) {
-      isEmailInputActive = true;
+            isEmailInputActive = true;
             emailInputCursor = playerEmail.length;
             const input = createEmailInput(playerEmail);
             if (input) {
                 input.focus();
             }
-      return false;
+            return false;
         }
         
         // Handle submit button
@@ -4079,11 +4084,32 @@ function touchStarted() {
             if (privacyPolicyAccepted) {
                 submitScoreToLeaderboard();
             }
-      return false;
+            return false;
         }
     }
     
-    // ... rest of the function ...
+    // Handle game controls
+    if (gameState === 'playing' && touches.length > 0) {
+        let touch = touches[0];
+        
+        // Check if touch is within the game area
+        if (touch.x >= 0 && touch.x <= width && touch.y >= 0 && touch.y <= height) {
+            // Handle jump button
+            if (touch.x >= width * 0.8 && touch.y >= height * 0.7) {
+                player.jump();
+                return false;
+            }
+            
+            // Handle left/right movement
+            if (touch.x < width/2) {
+                player.moveLeft();
+            } else {
+                player.moveRight();
+            }
+        }
+    }
+    
+    return false;
 }
 
 // Modified function to create a more browser-friendly email input
