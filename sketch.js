@@ -4041,82 +4041,122 @@ function keyTyped() {
 
 // Add touch support for mobile
 function touchStarted() {
-    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
-        let touch = touches[0];
-        
-        // Handle Play Again button
-        let playAgainX = width * 0.85;
-        let playAgainWidth = isMobileDevice() ? 150 : 200;
-        let playAgainHeight = isMobileDevice() ? 50 : 60;
-        if (touch.x >= playAgainX - playAgainWidth/2 && 
-            touch.x <= playAgainX + playAgainWidth/2 && 
-            touch.y >= height/8 - playAgainHeight/2 && 
-            touch.y <= height/8 + playAgainHeight/2) {
-                    resetGame();
-            startGame();
-      return false;
-    }
-
-        // Handle privacy policy link
-        let privacyLinkY = height * 0.9;
-        if (touch.x >= width/2 - 100 && 
-            touch.x <= width/2 + 100 && 
-            touch.y >= privacyLinkY - 15 && 
-            touch.y <= privacyLinkY + 15) {
-            showPrivacyPolicy = true;
-        return false;
-        }
-        
-        // Handle privacy policy checkbox
-        let emailBoxY = height/8 + 100;
-        let privacyY = emailBoxY + 50 + 20;  // emailBoxY + emailBoxHeight + 20
-        let checkboxSize = 24;
-        let privacyX = width * 0.1;
-        
-        if (touch.x >= privacyX && 
-            touch.x <= privacyX + checkboxSize + 200 &&  // Include text area
-            touch.y >= privacyY - checkboxSize/2 && 
-            touch.y <= privacyY + checkboxSize/2) {
-            privacyPolicyAccepted = !privacyPolicyAccepted;
-        return false;
-      }
-      
-        // Handle email input touch
-        let emailBoxX = width * 0.1;
-        let emailBoxWidth = width * 0.8;
+    // Convert touch coordinates to canvas coordinates
+    const touch = {
+        x: mouseX,
+        y: mouseY
+    };
+    
+    // Check if we're in the email input area
+    if (gameState === 'gameOver' || gameState === 'win') {
+        let emailBoxX = width/2;
+        let emailBoxY = height/2 + 100;
+        let emailBoxWidth = 300;
         let emailBoxHeight = 50;
-    
-        if (touch.x >= emailBoxX &&
-            touch.x <= emailBoxX + emailBoxWidth &&
-            touch.y >= emailBoxY &&
-            touch.y <= emailBoxY + emailBoxHeight) {
-      isEmailInputActive = true;
-            emailInputCursor = playerEmail.length;
-            const input = createEmailInput(playerEmail);
-            if (input) {
-                input.focus();
+        let emailTouchArea = 20;
+        
+        if (touch.x >= emailBoxX - emailBoxWidth/2 - emailTouchArea && 
+            touch.x <= emailBoxX + emailBoxWidth/2 + emailTouchArea && 
+            touch.y >= emailBoxY - emailTouchArea && 
+            touch.y <= emailBoxY + emailBoxHeight + emailTouchArea) {
+            
+            isEmailInputActive = true;
+            
+            // Show keyboard on mobile devices
+            if (isMobileDevice()) {
+                // Use our improved email input creation
+                const tempInput = createEmailInput(playerEmail);
+                
+                // Position it properly when needed (but keep it invisible)
+                tempInput.style.top = '50%';
+                tempInput.style.left = '50%';
+                tempInput.style.transform = 'translate(-50%, -50%)';
+                tempInput.style.width = '300px';
+                tempInput.style.height = '40px';
+                tempInput.style.zIndex = '9999';
+                tempInput.style.pointerEvents = 'auto'; // Make it receive input events
+                
+                // Focus it
+                tempInput.focus();
+                
+                // Listen for input and update the game's email field
+                tempInput.addEventListener('input', function(e) {
+                    playerEmail = e.target.value;
+                    emailInputCursor = playerEmail.length;
+                    console.log("Email updated:", playerEmail);
+                });
+                
+                // Clean up when done
+                tempInput.addEventListener('blur', function() {
+                    setTimeout(function() {
+                        tempInput.style.pointerEvents = 'none';
+                        tempInput.style.top = '-1000px'; // Move off-screen again
+                    }, 100);
+                });
             }
-      return false;
+            
+            console.log("Email input touched");
+            return false;
+        } else if (isEmailInputActive) {
+            // Only deactivate if we're not touching the submit button
+            let submitBtnX = width/2;
+            let submitBtnY = emailBoxY + 70;
+            let submitBtnWidth = 250;
+            let submitBtnHeight = 45;
+            let submitTouchArea = 50; // Very large touch area
+            
+            if (!(touch.x >= submitBtnX - submitBtnWidth/2 - submitTouchArea && 
+                touch.x <= submitBtnX + submitBtnWidth/2 + submitTouchArea && 
+                touch.y >= submitBtnY - submitTouchArea && 
+                touch.y <= submitBtnY + submitBtnHeight + submitTouchArea)) {
+                isEmailInputActive = false;
+            }
         }
         
-        // Handle submit button
+        // IMPROVED: Check if submit button was touched with much larger touch area
         let submitBtnX = width/2;
-        let submitBtnY = privacyY + 50;
-        let submitBtnWidth = width * 0.6;
-        let submitBtnHeight = 50;
+        let submitBtnY = emailBoxY + 70;
+        let submitBtnWidth = 250;
+        let submitBtnHeight = 45;
+        let submitTouchArea = 70; // Increased from 50 to 70 for even more generous touch area
         
-        if (touch.x >= submitBtnX - submitBtnWidth/2 && 
-            touch.x <= submitBtnX + submitBtnWidth/2 && 
-            touch.y >= submitBtnY - submitBtnHeight/2 && 
-            touch.y <= submitBtnY + submitBtnHeight/2) {
-            if (privacyPolicyAccepted) {
-                submitScoreToLeaderboard();
-            }
-      return false;
+        console.log("Touch at:", touch.x, touch.y);
+        console.log("Submit button bounds:", 
+                    submitBtnX - submitBtnWidth/2 - submitTouchArea, 
+                    submitBtnX + submitBtnWidth/2 + submitTouchArea, 
+                    submitBtnY - submitTouchArea, 
+                    submitBtnY + submitBtnHeight + submitTouchArea);
+        
+        if (touch.x >= submitBtnX - submitBtnWidth/2 - submitTouchArea && 
+            touch.x <= submitBtnX + submitBtnWidth/2 + submitTouchArea && 
+            touch.y >= submitBtnY - submitTouchArea && 
+            touch.y <= submitBtnY + submitBtnHeight + submitTouchArea) {
+            
+            // Add visual feedback for touch
+            push();
+            fill(highlightTextColor);
+            noStroke();
+            rect(submitBtnX - submitBtnWidth/2, submitBtnY, submitBtnWidth, submitBtnHeight, 8);
+            fill('#ffffff');
+            textAlign(CENTER, CENTER);
+            textSize(smallFontSize + 3); // Slightly larger text for feedback
+            text("SUBMIT", submitBtnX, submitBtnY + submitBtnHeight/2);
+            pop();
+            
+            console.log("Submit button touched - calling submitScoreToLeaderboard with email:", playerEmail);
+            isEmailInputActive = false; // Deactivate input field
+            
+            // Add a small delay to allow the touch feedback to be visible
+            setTimeout(() => {
+                // Direct submission for clearer debugging
+                submitEmailToLeaderboard();
+            }, 100);
+            
+            return false;
         }
     }
     
-    // ... rest of the function ...
+    return false; // Prevent default touch behavior
 }
 
 // Modified function to create a more browser-friendly email input
@@ -4679,32 +4719,28 @@ function createMobilePrivacyOverlay() {
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(0, 0, 0, 0.5);
         z-index: 9999;
         display: flex;
         justify-content: center;
         align-items: center;
         font-family: Arial, sans-serif;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: none;
     `;
     
     // Create popup container
     const popup = document.createElement('div');
     popup.style.cssText = `
         background-color: white;
-        padding: 30px;
+        border: 2px solid black;
         border-radius: 20px;
-        width: 90%;
-        max-width: 500px;
+        width: 80%;
+        height: 80%;
         position: relative;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        margin: 20px;
-        box-sizing: border-box;
-        overflow: hidden;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
     `;
     
     // Create close button
@@ -4712,26 +4748,22 @@ function createMobilePrivacyOverlay() {
     closeButton.innerHTML = '✕';
     closeButton.style.cssText = `
         position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 40px;
-        height: 40px;
-        border-radius: 20px;
+        top: 10px;
+        left: 10px;
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
         background-color: #FF1493;
         color: white;
         border: none;
-        font-size: 24px;
+        font-size: 20px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10000;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
     `;
-    closeButton.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    closeButton.onclick = function() {
         showPrivacyPolicy = false;
         overlay.remove();
     };
@@ -4742,47 +4774,44 @@ function createMobilePrivacyOverlay() {
     title.style.cssText = `
         text-align: center;
         margin-top: 0;
-        margin-bottom: 30px;
-        color: #333;
-        font-size: 28px;
+        margin-bottom: 20px;
+        color: black;
+        font-size: 24px;
         font-weight: bold;
         padding-top: 20px;
-        width: 100%;
     `;
     
     // Create content
     const content = document.createElement('p');
     content.textContent = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
     content.style.cssText = `
-        margin: 0 0 30px 0;
+        margin: 0;
         color: #666;
-        font-size: 18px;
-        line-height: 1.6;
-        text-align: center;
-        width: 100%;
+        font-size: 16px;
+        line-height: 1.5;
+        text-align: left;
+        padding: 0 30px;
     `;
     
     // Create accept button
     const acceptButton = document.createElement('button');
     acceptButton.textContent = 'I Accept';
     acceptButton.style.cssText = `
-        display: block;
-        width: 100%;
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
         padding: 15px;
         background-color: #FF1493;
         color: white;
         border: none;
-        border-radius: 12px;
+        border-radius: 10px;
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
-        margin-top: 15px;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
     `;
-    acceptButton.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    acceptButton.onclick = function() {
         privacyPolicyAccepted = true;
         showPrivacyPolicy = false;
         overlay.remove();
@@ -4794,18 +4823,5 @@ function createMobilePrivacyOverlay() {
     popup.appendChild(content);
     popup.appendChild(acceptButton);
     overlay.appendChild(popup);
-    
-    // Add touch event listeners
-    overlay.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }, { passive: false });
-    
-    // Add to document
     document.body.appendChild(overlay);
-    
-    // Force a reflow and ensure visibility
-    overlay.style.display = 'none';
-    overlay.offsetHeight; // Force reflow
-    overlay.style.display = 'flex';
 }
