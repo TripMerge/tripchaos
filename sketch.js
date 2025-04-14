@@ -2623,8 +2623,11 @@ function touchStarted() {
         const closeButtonX = popupX + 10;
         const closeButtonY = popupY + 10;
         
-        if (mouseX >= closeButtonX && mouseX <= closeButtonX + closeButtonSize &&
-            mouseY >= closeButtonY && mouseY <= closeButtonY + closeButtonSize) {
+        // Make touch area larger for mobile
+        const touchArea = isMobileDevice() ? 20 : 0;
+        
+        if (mouseX >= closeButtonX - touchArea && mouseX <= closeButtonX + closeButtonSize + touchArea &&
+            mouseY >= closeButtonY - touchArea && mouseY <= closeButtonY + closeButtonSize + touchArea) {
             showPrivacyPolicy = false;
             return false;
         }
@@ -2635,8 +2638,8 @@ function touchStarted() {
         const buttonX = popupX + (popupWidth - buttonWidth) / 2;
         const buttonY = popupY + popupHeight - buttonHeight - 30;
         
-        if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
-            mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+        if (mouseX >= buttonX - touchArea && mouseX <= buttonX + buttonWidth + touchArea &&
+            mouseY >= buttonY - touchArea && mouseY <= buttonY + buttonHeight + touchArea) {
             privacyPolicyAccepted = true;
             showPrivacyPolicy = false;
             return false;
@@ -4439,10 +4442,32 @@ function mousePressed() {
         const closeButtonX = popupX + 10;
         const closeButtonY = popupY + 10;
         
-        // Check if close button was clicked
-        if (mouseX > closeButtonX && mouseX < closeButtonX + closeButtonSize &&
-            mouseY > closeButtonY && mouseY < closeButtonY + closeButtonSize) {
+        // Make touch area larger for mobile
+        const touchArea = isMobileDevice() ? 20 : 0;
+        
+        if (mouseX >= closeButtonX - touchArea && mouseX <= closeButtonX + closeButtonSize + touchArea &&
+            mouseY >= closeButtonY - touchArea && mouseY <= closeButtonY + closeButtonSize + touchArea) {
             showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // Check if touch is on accept button
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        if (mouseX >= buttonX - touchArea && mouseX <= buttonX + buttonWidth + touchArea &&
+            mouseY >= buttonY - touchArea && mouseY <= buttonY + buttonHeight + touchArea) {
+            privacyPolicyAccepted = true;
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // If touch is within popup but not on buttons, prevent other interactions
+        if (mouseX >= popupX && mouseX <= popupX + popupWidth &&
+            mouseY >= popupY && mouseY <= popupY + popupHeight) {
+            return false;
         }
     }
     // ... rest of the mousePressed function ...
