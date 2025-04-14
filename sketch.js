@@ -2612,6 +2612,40 @@ function touchStarted(event) {
     // Get the first touch
     let touch = touches[0];
     
+    // Handle privacy policy popup close button
+    if (showPrivacyPolicy) {
+        // Calculate popup dimensions
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
+        // Close button dimensions
+        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
+        
+        // Check if close button was touched
+        if (touch.x > closeButtonX && touch.x < closeButtonX + closeButtonSize &&
+            touch.y > closeButtonY && touch.y < closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // Check if accept button was touched
+        const buttonWidth = isMobileDevice() ? 200 : 150;
+        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        
+        if (touch.x > buttonX && touch.x < buttonX + buttonWidth &&
+            touch.y > buttonY && touch.y < buttonY + buttonHeight) {
+            privacyPolicyAccepted = true;
+            showPrivacyPolicy = false;
+            return false;
+        }
+    }
+    
     // Handle game over screen interactions
     if (gameState === 'gameOver' || gameState === 'win') {
         // Email input box dimensions
