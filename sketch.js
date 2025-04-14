@@ -2759,6 +2759,30 @@ function touchStarted() {
         }
     }
     
+    // Handle game controls
+    if (gameState === 'playing') {
+        if (isMobileDevice()) {
+            // Mobile controls
+            let leftButtonX = 50;
+            let rightButtonX = width - 150;
+            let buttonY = height - 100;
+            let buttonWidth = 100;
+            let buttonHeight = 100;
+            
+            if (canvasTouch.x >= leftButtonX && canvasTouch.x <= leftButtonX + buttonWidth &&
+                canvasTouch.y >= buttonY && canvasTouch.y <= buttonY + buttonHeight) {
+                isMovingLeft = true;
+                return false;
+            }
+            
+            if (canvasTouch.x >= rightButtonX && canvasTouch.x <= rightButtonX + buttonWidth &&
+                canvasTouch.y >= buttonY && canvasTouch.y <= buttonY + buttonHeight) {
+                isMovingRight = true;
+                return false;
+            }
+        }
+    }
+    
     return false; // Prevent default touch behavior
 }
 
@@ -2911,10 +2935,10 @@ function drawMeter(label, value, x, y) {
 
 // Draw game over screen with improved readability
 function drawGameOverScreen() {
-  if (showLeaderboard) {
-    drawLeaderboardScreen();
-    return;
-  }
+    if (showLeaderboard) {
+        drawLeaderboardScreen();
+        return;
+    }
 
     // Draw solid pink background
     background('#FF69B4');
@@ -2978,10 +3002,24 @@ function drawGameOverScreen() {
     let playAgainX = width * 0.85;
     let playAgainWidth = isMobileDevice() ? 150 : 200;
     let playAgainHeight = isMobileDevice() ? 50 : 60;
-    let isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
+    let isPlayAgainHovering = false;
+    
+    if (isMobileDevice() && touches.length > 0) {
+        let touch = touches[0];
+        let canvasTouch = {
+            x: touch.x - (windowWidth - width) / 2,
+            y: touch.y - (windowHeight - height) / 2
+        };
+        isPlayAgainHovering = (canvasTouch.x >= playAgainX - playAgainWidth/2 && 
+                             canvasTouch.x <= playAgainX + playAgainWidth/2 && 
+                             canvasTouch.y >= topY - playAgainHeight/2 && 
+                             canvasTouch.y <= topY + playAgainHeight/2);
+    } else {
+        isPlayAgainHovering = (mouseX >= playAgainX - playAgainWidth/2 && 
                              mouseX <= playAgainX + playAgainWidth/2 && 
                              mouseY >= topY - playAgainHeight/2 && 
                              mouseY <= topY + playAgainHeight/2);
+    }
     
     push();
     strokeWeight(4);
@@ -3050,10 +3088,24 @@ function drawGameOverScreen() {
     let submitBtnY = privacyY + 50;
     let submitBtnWidth = width * 0.6;
     let submitBtnHeight = 50;
-    let isSubmitBtnHovering = mouseX >= submitBtnX - submitBtnWidth/2 && 
+    let isSubmitBtnHovering = false;
+    
+    if (isMobileDevice() && touches.length > 0) {
+        let touch = touches[0];
+        let canvasTouch = {
+            x: touch.x - (windowWidth - width) / 2,
+            y: touch.y - (windowHeight - height) / 2
+        };
+        isSubmitBtnHovering = (canvasTouch.x >= submitBtnX - submitBtnWidth/2 && 
+                             canvasTouch.x <= submitBtnX + submitBtnWidth/2 && 
+                             canvasTouch.y >= submitBtnY - submitBtnHeight/2 && 
+                             canvasTouch.y <= submitBtnY + submitBtnHeight/2);
+    } else {
+        isSubmitBtnHovering = (mouseX >= submitBtnX - submitBtnWidth/2 && 
                              mouseX <= submitBtnX + submitBtnWidth/2 && 
                              mouseY >= submitBtnY - submitBtnHeight/2 && 
-                             mouseY <= submitBtnY + submitBtnHeight/2;
+                             mouseY <= submitBtnY + submitBtnHeight/2);
+    }
     
     push();
     strokeWeight(4);
