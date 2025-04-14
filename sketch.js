@@ -4686,6 +4686,7 @@ function createMobilePrivacyOverlay() {
         align-items: center;
         font-family: Arial, sans-serif;
         -webkit-tap-highlight-color: transparent;
+        touch-action: none;
     `;
     
     // Create popup container
@@ -4701,6 +4702,9 @@ function createMobilePrivacyOverlay() {
         margin: 20px;
         box-sizing: border-box;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     `;
     
     // Create close button
@@ -4708,15 +4712,15 @@ function createMobilePrivacyOverlay() {
     closeButton.innerHTML = '✕';
     closeButton.style.cssText = `
         position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 60px;
-        height: 60px;
-        border-radius: 30px;
+        top: 15px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
         background-color: #FF1493;
         color: white;
         border: none;
-        font-size: 32px;
+        font-size: 24px;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -4743,6 +4747,7 @@ function createMobilePrivacyOverlay() {
         font-size: 28px;
         font-weight: bold;
         padding-top: 20px;
+        width: 100%;
     `;
     
     // Create content
@@ -4754,6 +4759,7 @@ function createMobilePrivacyOverlay() {
         font-size: 18px;
         line-height: 1.6;
         text-align: center;
+        width: 100%;
     `;
     
     // Create accept button
@@ -4762,15 +4768,15 @@ function createMobilePrivacyOverlay() {
     acceptButton.style.cssText = `
         display: block;
         width: 100%;
-        padding: 20px;
+        padding: 15px;
         background-color: #FF1493;
         color: white;
         border: none;
-        border-radius: 15px;
-        font-size: 22px;
+        border-radius: 12px;
+        font-size: 18px;
         font-weight: bold;
         cursor: pointer;
-        margin-top: 20px;
+        margin-top: 15px;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
     `;
@@ -4795,8 +4801,11 @@ function createMobilePrivacyOverlay() {
         e.stopPropagation();
     }, { passive: false });
     
+    // Add to document
     document.body.appendChild(overlay);
     
-    // Force a reflow to ensure the overlay is visible
-    overlay.offsetHeight;
+    // Force a reflow and ensure visibility
+    overlay.style.display = 'none';
+    overlay.offsetHeight; // Force reflow
+    overlay.style.display = 'flex';
 }
