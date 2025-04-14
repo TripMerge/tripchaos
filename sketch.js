@@ -4573,3 +4573,106 @@ function submitEmailToLeaderboard() {
   
   submitScoreToLeaderboard();
 }
+
+function createPrivacyPolicyOverlay() {
+    // Remove any existing overlay
+    const existingOverlay = document.querySelector('.privacy-policy-overlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
+    
+    // Create overlay container
+    const overlay = document.createElement('div');
+    overlay.className = 'privacy-policy-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    overlay.style.zIndex = '1000';
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    
+    // Create popup container
+    const popup = document.createElement('div');
+    popup.style.backgroundColor = 'white';
+    popup.style.padding = '20px';
+    popup.style.borderRadius = '20px';
+    popup.style.width = '90%';
+    popup.style.maxWidth = '500px';
+    popup.style.position = 'relative';
+    
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '✕';
+    closeButton.style.position = 'absolute';
+    closeButton.style.top = '10px';
+    closeButton.style.left = '10px';
+    closeButton.style.width = '44px';
+    closeButton.style.height = '44px';
+    closeButton.style.borderRadius = '10px';
+    closeButton.style.backgroundColor = '#FF1493';
+    closeButton.style.color = 'white';
+    closeButton.style.border = 'none';
+    closeButton.style.fontSize = '24px';
+    closeButton.style.cursor = 'pointer';
+    closeButton.onclick = function() {
+        showPrivacyPolicy = false;
+        overlay.remove();
+    };
+    
+    // Create title
+    const title = document.createElement('h2');
+    title.textContent = 'Privacy Policy';
+    title.style.textAlign = 'center';
+    title.style.marginTop = '0';
+    title.style.marginBottom = '20px';
+    
+    // Create content
+    const content = document.createElement('p');
+    content.textContent = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
+    content.style.marginBottom = '20px';
+    
+    // Create accept button
+    const acceptButton = document.createElement('button');
+    acceptButton.textContent = 'I Accept';
+    acceptButton.style.display = 'block';
+    acceptButton.style.width = '200px';
+    acceptButton.style.height = '60px';
+    acceptButton.style.margin = '0 auto';
+    acceptButton.style.backgroundColor = '#FF1493';
+    acceptButton.style.color = 'white';
+    acceptButton.style.border = 'none';
+    acceptButton.style.borderRadius = '10px';
+    acceptButton.style.fontSize = '20px';
+    acceptButton.style.cursor = 'pointer';
+    acceptButton.onclick = function() {
+        privacyPolicyAccepted = true;
+        showPrivacyPolicy = false;
+        overlay.remove();
+    };
+    
+    // Assemble the popup
+    popup.appendChild(closeButton);
+    popup.appendChild(title);
+    popup.appendChild(content);
+    popup.appendChild(acceptButton);
+    overlay.appendChild(popup);
+    
+    // Add to document
+    document.body.appendChild(overlay);
+}
+
+function drawPrivacyPolicyPopup() {
+    if (!showPrivacyPolicy) return;
+    
+    if (isMobileDevice()) {
+        createPrivacyPolicyOverlay();
+        return;
+    }
+    
+    // Desktop version (existing code)
+    // ... existing code ...
+}
