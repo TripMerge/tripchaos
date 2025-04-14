@@ -2759,30 +2759,6 @@ function touchStarted() {
         }
     }
     
-    // Handle game controls
-    if (gameState === 'playing') {
-        if (isMobileDevice()) {
-            // Mobile controls
-            let leftButtonX = 50;
-            let rightButtonX = width - 150;
-            let buttonY = height - 100;
-            let buttonWidth = 100;
-            let buttonHeight = 100;
-            
-            if (canvasTouch.x >= leftButtonX && canvasTouch.x <= leftButtonX + buttonWidth &&
-                canvasTouch.y >= buttonY && canvasTouch.y <= buttonY + buttonHeight) {
-                isMovingLeft = true;
-                return false;
-            }
-            
-            if (canvasTouch.x >= rightButtonX && canvasTouch.x <= rightButtonX + buttonWidth &&
-                canvasTouch.y >= buttonY && canvasTouch.y <= buttonY + buttonHeight) {
-                isMovingRight = true;
-                return false;
-            }
-        }
-    }
-    
     return false; // Prevent default touch behavior
 }
 
