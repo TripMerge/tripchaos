@@ -4044,14 +4044,20 @@ function touchStarted() {
     if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
         let touch = touches[0];
         
+        // Convert touch coordinates to canvas coordinates
+        const canvasTouch = {
+            x: touch.x - (windowWidth - width) / 2,
+            y: touch.y - (windowHeight - height) / 2
+        };
+        
         // Handle Play Again button
         let playAgainX = width * 0.85;
         let playAgainWidth = isMobileDevice() ? 150 : 200;
         let playAgainHeight = isMobileDevice() ? 50 : 60;
-        if (touch.x >= playAgainX - playAgainWidth/2 && 
-            touch.x <= playAgainX + playAgainWidth/2 && 
-            touch.y >= height/8 - playAgainHeight/2 && 
-            touch.y <= height/8 + playAgainHeight/2) {
+        if (canvasTouch.x >= playAgainX - playAgainWidth/2 && 
+            canvasTouch.x <= playAgainX + playAgainWidth/2 && 
+            canvasTouch.y >= height/8 - playAgainHeight/2 && 
+            canvasTouch.y <= height/8 + playAgainHeight/2) {
             resetGame();
             startGame();
             return false;
@@ -4059,10 +4065,10 @@ function touchStarted() {
 
         // Handle privacy policy link
         let privacyLinkY = height * 0.9;
-        if (touch.x >= width/2 - 100 && 
-            touch.x <= width/2 + 100 && 
-            touch.y >= privacyLinkY - 15 && 
-            touch.y <= privacyLinkY + 15) {
+        if (canvasTouch.x >= width/2 - 100 && 
+            canvasTouch.x <= width/2 + 100 && 
+            canvasTouch.y >= privacyLinkY - 15 && 
+            canvasTouch.y <= privacyLinkY + 15) {
             showPrivacyPolicy = true;
             return false;
         }
@@ -4073,10 +4079,10 @@ function touchStarted() {
         let checkboxSize = 24;
         let privacyX = width * 0.1;
         
-        if (touch.x >= privacyX && 
-            touch.x <= privacyX + checkboxSize + 200 &&  // Include text area
-            touch.y >= privacyY - checkboxSize/2 && 
-            touch.y <= privacyY + checkboxSize/2) {
+        if (canvasTouch.x >= privacyX && 
+            canvasTouch.x <= privacyX + checkboxSize + 200 &&  // Include text area
+            canvasTouch.y >= privacyY - checkboxSize/2 && 
+            canvasTouch.y <= privacyY + checkboxSize/2) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
             return false;
         }
@@ -4086,10 +4092,10 @@ function touchStarted() {
         let emailBoxWidth = width * 0.8;
         let emailBoxHeight = 50;
         
-        if (touch.x >= emailBoxX &&
-            touch.x <= emailBoxX + emailBoxWidth &&
-            touch.y >= emailBoxY &&
-            touch.y <= emailBoxY + emailBoxHeight) {
+        if (canvasTouch.x >= emailBoxX &&
+            canvasTouch.x <= emailBoxX + emailBoxWidth &&
+            canvasTouch.y >= emailBoxY &&
+            canvasTouch.y <= emailBoxY + emailBoxHeight) {
             isEmailInputActive = true;
             
             // Show keyboard on mobile devices
@@ -4135,10 +4141,10 @@ function touchStarted() {
         let submitBtnWidth = width * 0.6;
         let submitBtnHeight = 50;
         
-        if (touch.x >= submitBtnX - submitBtnWidth/2 && 
-            touch.x <= submitBtnX + submitBtnWidth/2 && 
-            touch.y >= submitBtnY - submitBtnHeight/2 && 
-            touch.y <= submitBtnY + submitBtnHeight/2) {
+        if (canvasTouch.x >= submitBtnX - submitBtnWidth/2 && 
+            canvasTouch.x <= submitBtnX + submitBtnWidth/2 && 
+            canvasTouch.y >= submitBtnY - submitBtnHeight/2 && 
+            canvasTouch.y <= submitBtnY + submitBtnHeight/2) {
             if (privacyPolicyAccepted) {
                 submitScoreToLeaderboard();
             }
