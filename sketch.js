@@ -2606,108 +2606,107 @@ function makeDecision(optionIndex) {
 
 // Single touchStarted function that handles all touch events
 function touchStarted() {
-    // Handle privacy policy link click first
-    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
-        let touch = touches[0];
-        const privacyLinkY = height * 0.9;
+    if (gameState === 'gameOver') {
+        // Get canvas position
+        let canvas = document.querySelector('canvas');
+        let canvasRect = canvas.getBoundingClientRect();
         
-        // Make the click area larger for mobile
-        const clickAreaWidth = isMobileDevice() ? 300 : 100;  // Increased width for mobile
-        const clickAreaHeight = isMobileDevice() ? 50 : 15;   // Increased height for mobile
+        // Check if touch is on privacy policy link
+        let privacyLinkX = canvasRect.left + canvasRect.width * 0.1;
+        let privacyLinkY = canvasRect.top + canvasRect.height/8 + 200;
+        let privacyLinkWidth = canvasRect.width * 0.8;
+        let privacyLinkHeight = 30;
         
-        if (touch.x >= width/2 - clickAreaWidth/2 && 
-            touch.x <= width/2 + clickAreaWidth/2 && 
-            touch.y >= privacyLinkY - clickAreaHeight/2 && 
-            touch.y <= privacyLinkY + clickAreaHeight/2) {
+        if (mouseX >= privacyLinkX && mouseX <= privacyLinkX + privacyLinkWidth &&
+            mouseY >= privacyLinkY && mouseY <= privacyLinkY + privacyLinkHeight) {
             showPrivacyPolicy = true;
             return false;
         }
-
-        // Handle privacy policy checkbox click
-        let checkboxX = width * 0.1;
-        let checkboxY = height/8 + 160;  // Position below email input
+        
+        // Check if touch is on close button of privacy policy
+        if (showPrivacyPolicy) {
+            let closeButtonX = canvasRect.left + canvasRect.width * 0.8;
+            let closeButtonY = canvasRect.top + canvasRect.height * 0.1;
+            let closeButtonSize = 30;
+            
+            if (mouseX >= closeButtonX && mouseX <= closeButtonX + closeButtonSize &&
+                mouseY >= closeButtonY && mouseY <= closeButtonY + closeButtonSize) {
+                showPrivacyPolicy = false;
+                return false;
+            }
+        }
+        
+        // Check if touch is on email input box
+        let emailBoxX = canvasRect.left + canvasRect.width * 0.1;
+        let emailBoxY = canvasRect.top + canvasRect.height/8 + 100;
+        let emailBoxWidth = canvasRect.width * 0.8;
+        let emailBoxHeight = 50;
+        
+        if (mouseX >= emailBoxX && mouseX <= emailBoxX + emailBoxWidth &&
+            mouseY >= emailBoxY && mouseY <= emailBoxY + emailBoxHeight) {
+            // For mobile, create a temporary input
+            const tempInput = createEmailInput(playerEmail);
+            return false;
+        }
+        
+        // Check if touch is on privacy policy checkbox
+        let checkboxX = canvasRect.left + canvasRect.width * 0.1;
+        let checkboxY = canvasRect.top + canvasRect.height/8 + 200;
         let checkboxSize = 20;
         
-        if (touch.x >= checkboxX && 
-            touch.x <= checkboxX + checkboxSize && 
-            touch.y >= checkboxY && 
-            touch.y <= checkboxY + checkboxSize) {
+        if (mouseX >= checkboxX && mouseX <= checkboxX + checkboxSize &&
+            mouseY >= checkboxY && mouseY <= checkboxY + checkboxSize) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
+            return false;
+        }
+        
+        // Check if touch is on submit button
+        let submitButtonX = canvasRect.left + canvasRect.width * 0.1;
+        let submitButtonY = canvasRect.top + canvasRect.height/8 + 250;
+        let submitButtonWidth = canvasRect.width * 0.8;
+        let submitButtonHeight = 50;
+        
+        if (mouseX >= submitButtonX && mouseX <= submitButtonX + submitButtonWidth &&
+            mouseY >= submitButtonY && mouseY <= submitButtonY + submitButtonHeight) {
+            if (privacyPolicyAccepted) {
+                submitScoreToLeaderboard();
+            }
+            return false;
+        }
+        
+        // Check if touch is on play again button
+        let playAgainButtonX = canvasRect.left + canvasRect.width * 0.1;
+        let playAgainButtonY = canvasRect.top + canvasRect.height/8 + 50;
+        let playAgainButtonWidth = canvasRect.width * 0.8;
+        let playAgainButtonHeight = 50;
+        
+        if (mouseX >= playAgainButtonX && mouseX <= playAgainButtonX + playAgainButtonWidth &&
+            mouseY >= playAgainButtonY && mouseY <= playAgainButtonY + playAgainButtonHeight) {
+            resetGame();
             return false;
         }
     }
     
-    // Handle email input touch
-    if (gameState === 'gameOver' || gameState === 'win') {
-      // Email input box dimensions
-      let emailBoxX = width * 0.1;
-      let emailBoxY = height/8 + 100;
-      let emailBoxWidth = width * 0.8;
-      let emailBoxHeight = 50;
-      
-      // Check if touch is within the email input box
-      if (touch.x >= emailBoxX &&
-          touch.x <= emailBoxX + emailBoxWidth &&
-          touch.y >= emailBoxY &&
-          touch.y <= emailBoxY + emailBoxHeight) {
-        
-        // Prevent default behavior
-        event.preventDefault();
-        
-        // Only create input for mobile devices
-        if (isMobileDevice()) {
-          isEmailInputActive = true;
-          emailInputCursor = playerEmail.length;
-          const tempInput = createEmailInput(playerEmail);
-          if (tempInput) {
-            tempInput.focus();
-          }
-        } else {
-          // On desktop, just activate the input state
-          isEmailInputActive = true;
-          emailInputCursor = playerEmail.length;
-        }
-        
-                return false;
-            }
-      
-      // Check if submit button was touched
-      let submitBtnX = width/2;
-      let submitBtnY = emailBoxY + 70;
-      let submitBtnWidth = 250;
-      let submitBtnHeight = 45;
-      let submitTouchArea = 70;
-      
-      if (touch.x >= submitBtnX - submitBtnWidth/2 - submitTouchArea && 
-          touch.x <= submitBtnX + submitBtnWidth/2 + submitTouchArea && 
-          touch.y >= submitBtnY - submitTouchArea && 
-          touch.y <= submitBtnY + submitBtnHeight + submitTouchArea) {
-        
-        if (privacyPolicyAccepted) {
-          submitScoreToLeaderboard();
-        }
-        
-        return false;
-      }
-    }
-    
     // Handle game controls
-    if (gameState === 'playing' && touches.length > 0) {
-        let touch = touches[0];
-        
-        // Check if touch is within the game area
-        if (touch.x >= 0 && touch.x <= width && touch.y >= 0 && touch.y <= height) {
-            // Handle jump button
-            if (touch.x >= width * 0.8 && touch.y >= height * 0.7) {
-                player.jump();
+    if (gameState === 'playing') {
+        if (isMobile) {
+            // Mobile controls
+            let leftButtonX = canvasRect.left + 50;
+            let rightButtonX = canvasRect.left + canvasRect.width - 150;
+            let buttonY = canvasRect.top + canvasRect.height - 100;
+            let buttonWidth = 100;
+            let buttonHeight = 100;
+            
+            if (mouseX >= leftButtonX && mouseX <= leftButtonX + buttonWidth &&
+                mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+                isMovingLeft = true;
                 return false;
             }
             
-            // Handle left/right movement
-            if (touch.x < width/2) {
-                player.moveLeft();
-            } else {
-                player.moveRight();
+            if (mouseX >= rightButtonX && mouseX <= rightButtonX + buttonWidth &&
+                mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+                isMovingRight = true;
+                return false;
             }
         }
     }
