@@ -731,14 +731,14 @@ function draw() {
             }
         } else {
             // Draw semi-transparent overlay
-            push();
-            fill(0, 0, 0, 200);
-            noStroke();
-            rect(0, 0, width, height);
-            pop();
-            
-            // Draw the popup
-            drawPrivacyPolicyPopup();
+        push();
+        fill(0, 0, 0, 200);
+        noStroke();
+        rect(0, 0, width, height);
+        pop();
+        
+        // Draw the popup
+        drawPrivacyPolicyPopup();
         }
     }
 
@@ -2694,8 +2694,8 @@ function touchStarted() {
         if (mouseX >= checkboxX && mouseX <= checkboxX + checkboxSize &&
             mouseY >= checkboxY && mouseY <= checkboxY + checkboxSize) {
             privacyPolicyAccepted = !privacyPolicyAccepted;
-            return false;
-        }
+                return false;
+            }
         
         // Check if touch is on submit button
         let submitButtonX = canvasRect.left + canvasRect.width * 0.1;
@@ -4050,8 +4050,6 @@ function touchStarted() {
             y: touch.y - (windowHeight - height) / 2
         };
         
-        console.log("Touch detected at:", canvasTouch.x, canvasTouch.y); // Debug log
-        
         // Handle Play Again button
         let playAgainX = width * 0.85;
         let playAgainWidth = isMobileDevice() ? 150 : 200;
@@ -4060,7 +4058,6 @@ function touchStarted() {
             canvasTouch.x <= playAgainX + playAgainWidth/2 && 
             canvasTouch.y >= height/8 - playAgainHeight/2 && 
             canvasTouch.y <= height/8 + playAgainHeight/2) {
-            console.log("Play Again button touched"); // Debug log
             resetGame();
             startGame();
             return false;
@@ -4072,7 +4069,6 @@ function touchStarted() {
             canvasTouch.x <= width/2 + 100 && 
             canvasTouch.y >= privacyLinkY - 15 && 
             canvasTouch.y <= privacyLinkY + 15) {
-            console.log("Privacy policy link touched"); // Debug log
             showPrivacyPolicy = true;
             return false;
         }
@@ -4087,7 +4083,6 @@ function touchStarted() {
             canvasTouch.x <= privacyX + checkboxSize + 200 &&  // Include text area
             canvasTouch.y >= privacyY - checkboxSize/2 && 
             canvasTouch.y <= privacyY + checkboxSize/2) {
-            console.log("Privacy checkbox touched"); // Debug log
             privacyPolicyAccepted = !privacyPolicyAccepted;
             return false;
         }
@@ -4101,38 +4096,30 @@ function touchStarted() {
             canvasTouch.x <= emailBoxX + emailBoxWidth &&
             canvasTouch.y >= emailBoxY &&
             canvasTouch.y <= emailBoxY + emailBoxHeight) {
-            console.log("Email input touched"); // Debug log
             isEmailInputActive = true;
             
             // Show keyboard on mobile devices
             if (isMobileDevice()) {
-                // Use our improved email input creation
                 const tempInput = createEmailInput(playerEmail);
-                
-                // Position it properly when needed (but keep it invisible)
                 tempInput.style.top = '50%';
                 tempInput.style.left = '50%';
                 tempInput.style.transform = 'translate(-50%, -50%)';
                 tempInput.style.width = '300px';
                 tempInput.style.height = '40px';
                 tempInput.style.zIndex = '9999';
-                tempInput.style.pointerEvents = 'auto'; // Make it receive input events
+                tempInput.style.pointerEvents = 'auto';
                 
-                // Focus it
                 tempInput.focus();
                 
-                // Listen for input and update the game's email field
                 tempInput.addEventListener('input', function(e) {
                     playerEmail = e.target.value;
                     emailInputCursor = playerEmail.length;
-                    console.log("Email updated:", playerEmail);
                 });
                 
-                // Clean up when done
                 tempInput.addEventListener('blur', function() {
                     setTimeout(function() {
                         tempInput.style.pointerEvents = 'none';
-                        tempInput.style.top = '-1000px'; // Move off-screen again
+                        tempInput.style.top = '-1000px';
                     }, 100);
                 });
             }
@@ -4149,7 +4136,6 @@ function touchStarted() {
             canvasTouch.x <= submitBtnX + submitBtnWidth/2 && 
             canvasTouch.y >= submitBtnY - submitBtnHeight/2 && 
             canvasTouch.y <= submitBtnY + submitBtnHeight/2) {
-            console.log("Submit button touched"); // Debug log
             if (privacyPolicyAccepted) {
                 submitScoreToLeaderboard();
             }
@@ -4234,7 +4220,7 @@ function createEmailInput(value) {
     
     // Add to document and focus
     document.body.appendChild(input);
-    input.focus();
+        input.focus();
     isEmailInputActive = true;
     
     return input;
@@ -4399,78 +4385,78 @@ function drawPrivacyPolicyPopup() {
         const popupY = (height - popupHeight) / 2;
         
         // Semi-transparent background
-        push();
+    push();
         fill(0, 0, 0, 127);
-        rect(0, 0, width, height);
-        pop();
-        
+    rect(0, 0, width, height);
+    pop();
+    
         // Draw popup background
-        push();
-        fill(255);
-        stroke(0);
-        strokeWeight(2);
-        rect(popupX, popupY, popupWidth, popupHeight, 20);
-        pop();
-        
+    push();
+    fill(255);
+    stroke(0);
+    strokeWeight(2);
+    rect(popupX, popupY, popupWidth, popupHeight, 20);
+    pop();
+    
         // Draw close button
         const closeButtonSize = 30;
-        const closeButtonX = popupX + 10;
-        const closeButtonY = popupY + 10;
-        
-        push();
-        fill('#FF1493');
-        noStroke();
-        rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
-        pop();
-        
-        push();
-        fill(255);
+    const closeButtonX = popupX + 10;
+    const closeButtonY = popupY + 10;
+    
+    push();
+    fill('#FF1493');
+    noStroke();
+    rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
+    pop();
+    
+    push();
+    fill(255);
         textSize(20);
-        textAlign(CENTER, CENTER);
-        text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
-        pop();
-        
-        // Draw title
-        push();
-        fill(0);
+    textAlign(CENTER, CENTER);
+    text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
+    pop();
+    
+    // Draw title
+    push();
+    fill(0);
         textSize(24);
-        textAlign(CENTER, CENTER);
-        textStyle(BOLD);
-        text("Privacy Policy", popupX + popupWidth/2, popupY + 40);
-        pop();
-        
-        // Draw content
-        push();
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    text("Privacy Policy", popupX + popupWidth/2, popupY + 40);
+    pop();
+    
+    // Draw content
+    push();
         textSize(16);
-        textStyle(NORMAL);
-        textAlign(LEFT, TOP);
+    textStyle(NORMAL);
+    textAlign(LEFT, TOP);
         const margin = 30;
-        const contentWidth = popupWidth - (margin * 2);
-        const contentX = popupX + margin;
-        const contentY = popupY + 80;
-        
-        const policyText = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
-        text(policyText, contentX, contentY, contentWidth);
-        pop();
-        
-        // Draw accept button
+    const contentWidth = popupWidth - (margin * 2);
+    const contentX = popupX + margin;
+    const contentY = popupY + 80;
+    
+    const policyText = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
+    text(policyText, contentX, contentY, contentWidth);
+    pop();
+    
+    // Draw accept button
         const buttonWidth = 200;
         const buttonHeight = 50;
-        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
-        const buttonY = popupY + popupHeight - buttonHeight - 30;
-        
-        push();
-        fill('#FF1493');
-        noStroke();
-        rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
-        pop();
-        
-        push();
-        fill(255);
+    const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+    const buttonY = popupY + popupHeight - buttonHeight - 30;
+    
+    push();
+    fill('#FF1493');
+    noStroke();
+    rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
+    pop();
+    
+    push();
+    fill(255);
         textSize(20);
-        textAlign(CENTER, CENTER);
-        text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
-        pop();
+    textAlign(CENTER, CENTER);
+    text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
+    pop();
     }
 }
 
@@ -4479,13 +4465,13 @@ function mousePressed() {
 
     const popupWidth = width * 0.8;
     const popupHeight = height * 0.8;
-    const popupX = (width - popupWidth) / 2;
-    const popupY = (height - popupHeight) / 2;
-
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
+        
     // Close button hit detection
     const closeButtonSize = 30;
-    const closeButtonX = popupX + 10;
-    const closeButtonY = popupY + 10;
+        const closeButtonX = popupX + 10;
+        const closeButtonY = popupY + 10;
     if (mouseX >= closeButtonX && mouseX <= closeButtonX + closeButtonSize &&
         mouseY >= closeButtonY && mouseY <= closeButtonY + closeButtonSize) {
         showPrivacyPolicy = false;
@@ -4499,7 +4485,7 @@ function mousePressed() {
     const buttonY = popupY + popupHeight - buttonHeight - 30;
     if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
         mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
-        showPrivacyPolicy = false;
+            showPrivacyPolicy = false;
         // Handle email submission here if needed
         return;
     }
