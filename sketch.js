@@ -2637,7 +2637,7 @@ function touchStarted() {
         
         // Check if touch is on close button
         if (canvasTouch.x >= closeButtonX - touchArea && canvasTouch.x <= closeButtonX + closeButtonSize + touchArea &&
-            canvasTouch.y >= closeButtonY - touchArea && canvasTouch.y <= closeButtonY + closeButtonSize + touchArea) {
+            canvasTouch.y >= closeButtonY - touchArea && canvasTouch.y <= closeButtonY + closeButtonSize) {
             showPrivacyPolicy = false;
             return false;
         }
@@ -4076,15 +4076,61 @@ function keyTyped() {
 
 // Add touch support for mobile
 function touchStarted() {
-    if ((gameState === 'gameOver' || gameState === 'win') && touches.length > 0) {
-        let touch = touches[0];
+    if (touches.length === 0) return false;
+    
+    let touch = touches[0];
+    
+    // Convert touch coordinates to canvas coordinates
+    const canvasTouch = {
+        x: touch.x - (windowWidth - width) / 2,
+        y: touch.y - (windowHeight - height) / 2
+    };
+    
+    // Handle privacy policy popup first if it's showing
+    if (showPrivacyPolicy) {
+        // Calculate popup dimensions based on device type
+        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
+        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+        const popupX = (width - popupWidth) / 2;
+        const popupY = (height - popupHeight) / 2;
         
-        // Convert touch coordinates to canvas coordinates
-        const canvasTouch = {
-            x: touch.x - (windowWidth - width) / 2,
-            y: touch.y - (windowHeight - height) / 2
-        };
+        // Close button is in the left corner
+        const closeButtonSize = isMobileDevice() ? 60 : 30;
+        const closeButtonX = popupX + 20;
+        const closeButtonY = popupY + 20;
         
+        // Make touch area larger for mobile
+        const touchArea = isMobileDevice() ? 20 : 0;
+        
+        // Check if touch is on close button
+        if (canvasTouch.x >= closeButtonX - touchArea && canvasTouch.x <= closeButtonX + closeButtonSize + touchArea &&
+            canvasTouch.y >= closeButtonY - touchArea && canvasTouch.y <= closeButtonY + closeButtonSize) {
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // Check if touch is on accept button
+        const buttonWidth = isMobileDevice() ? popupWidth * 0.8 : 150;
+        const buttonHeight = isMobileDevice() ? 80 : 50;
+        const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+        const buttonY = popupY + popupHeight - buttonHeight - 40;
+        
+        if (canvasTouch.x >= buttonX - touchArea && canvasTouch.x <= buttonX + buttonWidth + touchArea &&
+            canvasTouch.y >= buttonY - touchArea && canvasTouch.y <= buttonY + buttonHeight + touchArea) {
+            privacyPolicyAccepted = true;
+            showPrivacyPolicy = false;
+            return false;
+        }
+        
+        // If touch is within popup but not on buttons, prevent other interactions
+        if (canvasTouch.x >= popupX && canvasTouch.x <= popupX + popupWidth &&
+            canvasTouch.y >= popupY && canvasTouch.y <= popupY + popupHeight) {
+            return false;
+        }
+    }
+    
+    // Handle game over screen
+    if (gameState === 'gameOver' || gameState === 'win') {
         // Handle Play Again button
         let playAgainX = width * 0.85;
         let playAgainWidth = isMobileDevice() ? 150 : 200;
