@@ -4340,7 +4340,7 @@ function colorShift(hexColor) {
 function drawPrivacyPolicyPopup() {
     if (!showPrivacyPolicy) return;
     
-    // Create semi-transparent overlay
+    // Create semi-transparent overlay with higher z-index
     push();
     fill(0, 0, 0, 200);
     noStroke();
@@ -4361,7 +4361,7 @@ function drawPrivacyPolicyPopup() {
     rect(popupX, popupY, popupWidth, popupHeight, 20);
     pop();
     
-    // Draw close button in left corner
+    // Draw close button in left corner with larger touch area for mobile
     const closeButtonSize = isMobileDevice() ? 44 : 30;
     const closeButtonX = popupX + 10;
     const closeButtonY = popupY + 10;
@@ -4407,7 +4407,7 @@ function drawPrivacyPolicyPopup() {
     text(policyText, contentX, contentY, contentWidth);
     pop();
     
-    // Draw accept button
+    // Draw accept button with larger touch area for mobile
     const buttonWidth = isMobileDevice() ? 200 : 150;
     const buttonHeight = isMobileDevice() ? 60 : 50;
     const buttonX = popupX + (popupWidth - buttonWidth) / 2;
