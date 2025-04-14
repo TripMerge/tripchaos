@@ -723,15 +723,23 @@ function draw() {
 
     // Draw privacy policy popup if active (this should be drawn last to appear on top)
     if (showPrivacyPolicy) {
-        // Draw semi-transparent overlay to darken the background
-        push();
-        fill(0, 0, 0, 200);
-        noStroke();
-        rect(0, 0, width, height);
-        pop();
-        
-        // Draw the popup
-        drawPrivacyPolicyPopup();
+        if (isMobileDevice()) {
+            // Check if overlay already exists
+            const existingOverlay = document.querySelector('.mobile-privacy-overlay');
+            if (!existingOverlay) {
+                createMobilePrivacyOverlay();
+            }
+        } else {
+            // Draw semi-transparent overlay
+            push();
+            fill(0, 0, 0, 200);
+            noStroke();
+            rect(0, 0, width, height);
+            pop();
+            
+            // Draw the popup
+            drawPrivacyPolicyPopup();
+        }
     }
 
     // Only show hover effects when privacy policy is not open
@@ -745,12 +753,6 @@ function draw() {
             mouseX < restartButtonX + buttonWidth/2 && 
             mouseY > restartButtonY - buttonHeight/2 && 
             mouseY < restartButtonY + buttonHeight/2) {
-            cursor(HAND);
-        }
-
-        let privacyLinkY = height * 0.9;
-        if (mouseX >= width/2 - 100 && mouseX <= width/2 + 100 && 
-            mouseY >= privacyLinkY - 15 && mouseY <= privacyLinkY + 15) {
             cursor(HAND);
         }
     }
@@ -787,6 +789,7 @@ function drawStartScreen() {
     for(let y = height * 0.75; y < height; y += 25) {
         line(0, y, width, y);
     }
+    pop();
     
     // Brick pattern at the top of the ground
     noStroke();
@@ -4345,137 +4348,127 @@ function colorShift(hexColor) {
 function drawPrivacyPolicyPopup() {
     if (!showPrivacyPolicy) return;
     
-    // Create semi-transparent overlay with higher z-index
-    push();
-    fill(0, 0, 0, 200);
-    noStroke();
-    rect(0, 0, width, height);
-    pop();
-    
-    // Calculate popup dimensions based on device type
-    const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
-    const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
-    const popupX = (width - popupWidth) / 2;
-    const popupY = (height - popupHeight) / 2;
-    
-    // Draw popup background with shadow
-    push();
-    fill(255);
-    stroke(0);
-    strokeWeight(2);
-    rect(popupX, popupY, popupWidth, popupHeight, 20);
-    pop();
-    
-    // Draw close button in left corner with larger touch area for mobile
-    const closeButtonSize = isMobileDevice() ? 80 : 30; // Much larger for mobile
-    const closeButtonX = popupX + 30; // Further from edge
-    const closeButtonY = popupY + 30; // Further from edge
-    
-    // Draw close button background
-    push();
-    fill('#FF1493');
-    noStroke();
-    rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 15);
-    pop();
-    
-    // Draw close button text
-    push();
-    fill(255);
-    textSize(isMobileDevice() ? 40 : 20); // Much larger for mobile
-    textAlign(CENTER, CENTER);
-    text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
-    pop();
-    
-    // Draw title
-    push();
-    fill(0);
-    textSize(isMobileDevice() ? 36 : 20); // Larger for mobile
-    textAlign(CENTER, CENTER);
-    textStyle(BOLD);
-    text("Privacy Policy", popupX + popupWidth/2, popupY + 80); // Moved down
-    pop();
-    
-    // Draw content
-    push();
-    textSize(isMobileDevice() ? 24 : 14); // Larger for mobile
-    textStyle(NORMAL);
-    textAlign(LEFT, TOP);
-    const margin = isMobileDevice() ? 40 : 30;
-    const contentWidth = popupWidth - (margin * 2);
-    const contentX = popupX + margin;
-    const contentY = popupY + 140; // Moved down
-    
-    // Privacy policy text
-    const policyText = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
-    
-    // Draw text with word wrapping
-    text(policyText, contentX, contentY, contentWidth);
-    pop();
-    
-    // Draw accept button with larger touch area for mobile
-    const buttonWidth = isMobileDevice() ? popupWidth * 0.9 : 150; // Wider for mobile
-    const buttonHeight = isMobileDevice() ? 100 : 50; // Taller for mobile
-    const buttonX = popupX + (popupWidth - buttonWidth) / 2;
-    const buttonY = popupY + popupHeight - buttonHeight - 50; // Moved up
-    
-    // Button background
-    push();
-    fill('#FF1493');
-    noStroke();
-    rect(buttonX, buttonY, buttonWidth, buttonHeight, 20); // Larger border radius
-    pop();
-    
-    // Button text
-    push();
-    fill(255);
-    textSize(isMobileDevice() ? 32 : 18); // Larger for mobile
-    textAlign(CENTER, CENTER);
-    text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
-    pop();
-}
-
-function mousePressed() {
-    if (showPrivacyPolicy) {
-        // Calculate popup dimensions
-        const popupWidth = isMobileDevice() ? width * 0.95 : width * 0.8;
-        const popupHeight = isMobileDevice() ? height * 0.9 : height * 0.8;
+    if (isMobileDevice()) {
+        createMobilePrivacyOverlay();
+    } else {
+        // Desktop version
+        const popupWidth = width * 0.8;
+        const popupHeight = height * 0.8;
         const popupX = (width - popupWidth) / 2;
         const popupY = (height - popupHeight) / 2;
         
-        // Close button dimensions
-        const closeButtonSize = isMobileDevice() ? 44 : 30;
+        // Semi-transparent background
+        push();
+        fill(0, 0, 0, 127);
+        rect(0, 0, width, height);
+        pop();
+        
+        // Draw popup background
+        push();
+        fill(255);
+        stroke(0);
+        strokeWeight(2);
+        rect(popupX, popupY, popupWidth, popupHeight, 20);
+        pop();
+        
+        // Draw close button
+        const closeButtonSize = 30;
         const closeButtonX = popupX + 10;
         const closeButtonY = popupY + 10;
         
-        // Make touch area larger for mobile
-        const touchArea = isMobileDevice() ? 20 : 0;
+        push();
+        fill('#FF1493');
+        noStroke();
+        rect(closeButtonX, closeButtonY, closeButtonSize, closeButtonSize, 10);
+        pop();
         
-        if (mouseX >= closeButtonX - touchArea && mouseX <= closeButtonX + closeButtonSize + touchArea &&
-            mouseY >= closeButtonY - touchArea && mouseY <= closeButtonY + closeButtonSize + touchArea) {
-            showPrivacyPolicy = false;
-            return false;
-        }
+        push();
+        fill(255);
+        textSize(20);
+        textAlign(CENTER, CENTER);
+        text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
+        pop();
         
-        // Check if touch is on accept button
-        const buttonWidth = isMobileDevice() ? 200 : 150;
-        const buttonHeight = isMobileDevice() ? 60 : 50;
+        // Draw title
+        push();
+        fill(0);
+        textSize(24);
+        textAlign(CENTER, CENTER);
+        textStyle(BOLD);
+        text("Privacy Policy", popupX + popupWidth/2, popupY + 40);
+        pop();
+        
+        // Draw content
+        push();
+        textSize(16);
+        textStyle(NORMAL);
+        textAlign(LEFT, TOP);
+        const margin = 30;
+        const contentWidth = popupWidth - (margin * 2);
+        const contentX = popupX + margin;
+        const contentY = popupY + 80;
+        
+        const policyText = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
+        text(policyText, contentX, contentY, contentWidth);
+        pop();
+        
+        // Draw accept button
+        const buttonWidth = 200;
+        const buttonHeight = 50;
         const buttonX = popupX + (popupWidth - buttonWidth) / 2;
         const buttonY = popupY + popupHeight - buttonHeight - 30;
         
-        if (mouseX >= buttonX - touchArea && mouseX <= buttonX + buttonWidth + touchArea &&
-            mouseY >= buttonY - touchArea && mouseY <= buttonY + buttonHeight + touchArea) {
-            privacyPolicyAccepted = true;
-            showPrivacyPolicy = false;
-            return false;
-        }
+        push();
+        fill('#FF1493');
+        noStroke();
+        rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
+        pop();
         
-        // If touch is within popup but not on buttons, prevent other interactions
-        if (mouseX >= popupX && mouseX <= popupX + popupWidth &&
-            mouseY >= popupY && mouseY <= popupY + popupHeight) {
-            return false;
-        }
+        push();
+        fill(255);
+        textSize(20);
+        textAlign(CENTER, CENTER);
+        text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
+        pop();
     }
-    // ... rest of the mousePressed function ...
+}
+
+function mousePressed() {
+    if (!showPrivacyPolicy || isMobileDevice()) return;
+
+    const popupWidth = width * 0.8;
+    const popupHeight = height * 0.8;
+    const popupX = (width - popupWidth) / 2;
+    const popupY = (height - popupHeight) / 2;
+
+    // Close button hit detection
+    const closeButtonSize = 30;
+    const closeButtonX = popupX + 10;
+    const closeButtonY = popupY + 10;
+    if (mouseX >= closeButtonX && mouseX <= closeButtonX + closeButtonSize &&
+        mouseY >= closeButtonY && mouseY <= closeButtonY + closeButtonSize) {
+        showPrivacyPolicy = false;
+        return;
+    }
+
+    // Accept button hit detection
+    const buttonWidth = 200;
+    const buttonHeight = 50;
+    const buttonX = popupX + (popupWidth - buttonWidth) / 2;
+    const buttonY = popupY + popupHeight - buttonHeight - 30;
+    if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
+        mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+        showPrivacyPolicy = false;
+        // Handle email submission here if needed
+        return;
+    }
+}
+
+function touchStarted() {
+    if (!showPrivacyPolicy || !isMobileDevice()) return;
+    // Mobile touch handling is done in createMobilePrivacyOverlay()
+    // through the click event listeners on the HTML elements
+    return false;
 }
 
 // ... existing code ...
@@ -4670,14 +4663,109 @@ function createPrivacyPolicyOverlay() {
     document.body.appendChild(overlay);
 }
 
-function drawPrivacyPolicyPopup() {
-    if (!showPrivacyPolicy) return;
-    
-    if (isMobileDevice()) {
-        createPrivacyPolicyOverlay();
-        return;
+function createMobilePrivacyOverlay() {
+    // Remove any existing overlay
+    const existingOverlay = document.querySelector('.mobile-privacy-overlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
     }
     
-    // Desktop version (existing code)
-    // ... existing code ...
+    // Create overlay container
+    const overlay = document.createElement('div');
+    overlay.className = 'mobile-privacy-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+    
+    // Create popup container
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+        background-color: white;
+        padding: 20px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    `;
+    
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '✕';
+    closeButton.style.cssText = `
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        background-color: #FF1493;
+        color: white;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+    `;
+    closeButton.onclick = function() {
+        showPrivacyPolicy = false;
+        overlay.remove();
+    };
+    
+    // Create title
+    const title = document.createElement('h2');
+    title.textContent = 'Privacy Policy';
+    title.style.cssText = `
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 24px;
+    `;
+    
+    // Create content
+    const content = document.createElement('p');
+    content.textContent = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
+    content.style.cssText = `
+        margin: 0 0 20px 0;
+        color: #666;
+        font-size: 16px;
+        line-height: 1.5;
+    `;
+    
+    // Create accept button
+    const acceptButton = document.createElement('button');
+    acceptButton.textContent = 'I Accept';
+    acceptButton.style.cssText = `
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background-color: #FF1493;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        cursor: pointer;
+        margin-top: 20px;
+    `;
+    acceptButton.onclick = function() {
+        privacyPolicyAccepted = true;
+        showPrivacyPolicy = false;
+        overlay.remove();
+    };
+    
+    // Assemble the popup
+    popup.appendChild(closeButton);
+    popup.appendChild(title);
+    popup.appendChild(content);
+    popup.appendChild(acceptButton);
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
 }
