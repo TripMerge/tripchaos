@@ -4050,6 +4050,8 @@ function touchStarted() {
             y: touch.y - (windowHeight - height) / 2
         };
         
+        console.log("Touch detected at:", canvasTouch.x, canvasTouch.y); // Debug log
+        
         // Handle Play Again button
         let playAgainX = width * 0.85;
         let playAgainWidth = isMobileDevice() ? 150 : 200;
@@ -4058,6 +4060,7 @@ function touchStarted() {
             canvasTouch.x <= playAgainX + playAgainWidth/2 && 
             canvasTouch.y >= height/8 - playAgainHeight/2 && 
             canvasTouch.y <= height/8 + playAgainHeight/2) {
+            console.log("Play Again button touched"); // Debug log
             resetGame();
             startGame();
             return false;
@@ -4069,6 +4072,7 @@ function touchStarted() {
             canvasTouch.x <= width/2 + 100 && 
             canvasTouch.y >= privacyLinkY - 15 && 
             canvasTouch.y <= privacyLinkY + 15) {
+            console.log("Privacy policy link touched"); // Debug log
             showPrivacyPolicy = true;
             return false;
         }
@@ -4083,6 +4087,7 @@ function touchStarted() {
             canvasTouch.x <= privacyX + checkboxSize + 200 &&  // Include text area
             canvasTouch.y >= privacyY - checkboxSize/2 && 
             canvasTouch.y <= privacyY + checkboxSize/2) {
+            console.log("Privacy checkbox touched"); // Debug log
             privacyPolicyAccepted = !privacyPolicyAccepted;
             return false;
         }
@@ -4096,6 +4101,7 @@ function touchStarted() {
             canvasTouch.x <= emailBoxX + emailBoxWidth &&
             canvasTouch.y >= emailBoxY &&
             canvasTouch.y <= emailBoxY + emailBoxHeight) {
+            console.log("Email input touched"); // Debug log
             isEmailInputActive = true;
             
             // Show keyboard on mobile devices
@@ -4130,8 +4136,6 @@ function touchStarted() {
                     }, 100);
                 });
             }
-            
-            console.log("Email input touched");
             return false;
         }
         
@@ -4145,6 +4149,7 @@ function touchStarted() {
             canvasTouch.x <= submitBtnX + submitBtnWidth/2 && 
             canvasTouch.y >= submitBtnY - submitBtnHeight/2 && 
             canvasTouch.y <= submitBtnY + submitBtnHeight/2) {
+            console.log("Submit button touched"); // Debug log
             if (privacyPolicyAccepted) {
                 submitScoreToLeaderboard();
             }
