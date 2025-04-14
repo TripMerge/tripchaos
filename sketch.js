@@ -4680,22 +4680,24 @@ function createMobilePrivacyOverlay() {
         width: 100%;
         height: 100%;
         background-color: rgba(0, 0, 0, 0.7);
-        z-index: 1000;
+        z-index: 9999;
         display: flex;
         justify-content: center;
         align-items: center;
+        font-family: Arial, sans-serif;
     `;
     
     // Create popup container
     const popup = document.createElement('div');
     popup.style.cssText = `
         background-color: white;
-        padding: 20px;
+        padding: 30px;
         border-radius: 20px;
         width: 90%;
         max-width: 500px;
         position: relative;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        margin: 20px;
     `;
     
     // Create close button
@@ -4704,15 +4706,19 @@ function createMobilePrivacyOverlay() {
     closeButton.style.cssText = `
         position: absolute;
         top: 20px;
-        left: 20px;
+        right: 20px;
         width: 60px;
         height: 60px;
-        border-radius: 15px;
+        border-radius: 30px;
         background-color: #FF1493;
         color: white;
         border: none;
         font-size: 32px;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
     `;
     closeButton.onclick = function() {
         showPrivacyPolicy = false;
