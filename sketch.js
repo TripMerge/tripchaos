@@ -2610,44 +2610,49 @@ function touchStarted() {
     let canvas = document.querySelector('canvas');
     let canvasRect = canvas.getBoundingClientRect();
     
+    // Convert touch coordinates to canvas coordinates
+    let touchX = mouseX;
+    let touchY = mouseY;
+    
     // Handle privacy policy popup first if it's showing
     if (showPrivacyPolicy) {
         // Calculate popup dimensions based on device type
         const popupWidth = isMobileDevice() ? canvasRect.width * 0.95 : canvasRect.width * 0.8;
         const popupHeight = isMobileDevice() ? canvasRect.height * 0.9 : canvasRect.height * 0.8;
-        const popupX = canvasRect.left + (canvasRect.width - popupWidth) / 2;
-        const popupY = canvasRect.top + (canvasRect.height - popupHeight) / 2;
+        const popupX = (canvasRect.width - popupWidth) / 2;
+        const popupY = (canvasRect.height - popupHeight) / 2;
         
         // Close button is in the left corner
-        const closeButtonSize = isMobileDevice() ? 44 : 30;
-        const closeButtonX = popupX + 10;
-        const closeButtonY = popupY + 10;
+        const closeButtonSize = isMobileDevice() ? 60 : 30;
+        const closeButtonX = popupX + 20;
+        const closeButtonY = popupY + 20;
         
         // Make touch area larger for mobile
         const touchArea = isMobileDevice() ? 20 : 0;
         
-        if (mouseX >= closeButtonX - touchArea && mouseX <= closeButtonX + closeButtonSize + touchArea &&
-            mouseY >= closeButtonY - touchArea && mouseY <= closeButtonY + closeButtonSize + touchArea) {
+        // Check if touch is on close button
+        if (touchX >= closeButtonX - touchArea && touchX <= closeButtonX + closeButtonSize + touchArea &&
+            touchY >= closeButtonY - touchArea && touchY <= closeButtonY + closeButtonSize + touchArea) {
             showPrivacyPolicy = false;
             return false;
         }
         
         // Check if touch is on accept button
-        const buttonWidth = isMobileDevice() ? 200 : 150;
-        const buttonHeight = isMobileDevice() ? 60 : 50;
+        const buttonWidth = isMobileDevice() ? popupWidth * 0.8 : 150;
+        const buttonHeight = isMobileDevice() ? 80 : 50;
         const buttonX = popupX + (popupWidth - buttonWidth) / 2;
-        const buttonY = popupY + popupHeight - buttonHeight - 30;
+        const buttonY = popupY + popupHeight - buttonHeight - 40;
         
-        if (mouseX >= buttonX - touchArea && mouseX <= buttonX + buttonWidth + touchArea &&
-            mouseY >= buttonY - touchArea && mouseY <= buttonY + buttonHeight + touchArea) {
+        if (touchX >= buttonX - touchArea && touchX <= buttonX + buttonWidth + touchArea &&
+            touchY >= buttonY - touchArea && touchY <= buttonY + buttonHeight + touchArea) {
             privacyPolicyAccepted = true;
             showPrivacyPolicy = false;
             return false;
         }
         
         // If touch is within popup but not on buttons, prevent other interactions
-        if (mouseX >= popupX && mouseX <= popupX + popupWidth &&
-            mouseY >= popupY && mouseY <= popupY + popupHeight) {
+        if (touchX >= popupX && touchX <= popupX + popupWidth &&
+            touchY >= popupY && touchY <= popupY + popupHeight) {
             return false;
         }
     }
@@ -4362,9 +4367,9 @@ function drawPrivacyPolicyPopup() {
     pop();
     
     // Draw close button in left corner with larger touch area for mobile
-    const closeButtonSize = isMobileDevice() ? 44 : 30;
-    const closeButtonX = popupX + 10;
-    const closeButtonY = popupY + 10;
+    const closeButtonSize = isMobileDevice() ? 60 : 30; // Increased size for mobile
+    const closeButtonX = popupX + 20; // Moved further from edge
+    const closeButtonY = popupY + 20; // Moved further from edge
     
     // Draw close button background
     push();
@@ -4376,7 +4381,7 @@ function drawPrivacyPolicyPopup() {
     // Draw close button text
     push();
     fill(255);
-    textSize(isMobileDevice() ? 24 : 20);
+    textSize(isMobileDevice() ? 32 : 20); // Larger text for mobile
     textAlign(CENTER, CENTER);
     text('✕', closeButtonX + closeButtonSize/2, closeButtonY + closeButtonSize/2);
     pop();
@@ -4384,21 +4389,21 @@ function drawPrivacyPolicyPopup() {
     // Draw title
     push();
     fill(0);
-    textSize(isMobileDevice() ? 24 : 20);
+    textSize(isMobileDevice() ? 32 : 20); // Larger text for mobile
     textAlign(CENTER, CENTER);
     textStyle(BOLD);
-    text("Privacy Policy", popupX + popupWidth/2, popupY + 40);
+    text("Privacy Policy", popupX + popupWidth/2, popupY + 60); // Moved down for mobile
     pop();
     
     // Draw content
     push();
-    textSize(isMobileDevice() ? 16 : 14);
+    textSize(isMobileDevice() ? 20 : 14); // Larger text for mobile
     textStyle(NORMAL);
     textAlign(LEFT, TOP);
-    const margin = isMobileDevice() ? 20 : 30;
+    const margin = isMobileDevice() ? 30 : 30;
     const contentWidth = popupWidth - (margin * 2);
     const contentX = popupX + margin;
-    const contentY = popupY + 80;
+    const contentY = popupY + 120; // Moved down for mobile
     
     // Privacy policy text
     const policyText = "By submitting your email, you agree to receive updates about TripMerge's launch and travel planning tools. We respect your privacy and will never share your information with third parties.";
@@ -4408,22 +4413,22 @@ function drawPrivacyPolicyPopup() {
     pop();
     
     // Draw accept button with larger touch area for mobile
-    const buttonWidth = isMobileDevice() ? 200 : 150;
-    const buttonHeight = isMobileDevice() ? 60 : 50;
+    const buttonWidth = isMobileDevice() ? popupWidth * 0.8 : 150; // Wider button for mobile
+    const buttonHeight = isMobileDevice() ? 80 : 50; // Taller button for mobile
     const buttonX = popupX + (popupWidth - buttonWidth) / 2;
-    const buttonY = popupY + popupHeight - buttonHeight - 30;
+    const buttonY = popupY + popupHeight - buttonHeight - 40; // Moved up for mobile
     
     // Button background
     push();
     fill('#FF1493');
     noStroke();
-    rect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
+    rect(buttonX, buttonY, buttonWidth, buttonHeight, 15); // Larger border radius for mobile
     pop();
     
     // Button text
     push();
     fill(255);
-    textSize(isMobileDevice() ? 20 : 18);
+    textSize(isMobileDevice() ? 28 : 18); // Larger text for mobile
     textAlign(CENTER, CENTER);
     text("I Accept", buttonX + buttonWidth/2, buttonY + buttonHeight/2);
     pop();
