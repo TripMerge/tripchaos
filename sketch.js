@@ -4138,10 +4138,6 @@ function createEmailInput(value) {
     input.classList.add('game-email-input');
     input.value = value || '';
     
-    // Add mobile-specific attributes to ensure keyboard appears
-    input.setAttribute('autofocus', 'true');
-    input.setAttribute('enterkeyhint', 'done');
-    
     // Position input relative to canvas
     let canvas = document.querySelector('canvas');
     let canvasRect = canvas.getBoundingClientRect();
@@ -4190,7 +4186,7 @@ function createEmailInput(value) {
     
     // Add to document and focus
     document.body.appendChild(input);
-    input.focus();
+        input.focus();
     isEmailInputActive = true;
     
     return input;
