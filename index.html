@@ -78,10 +78,11 @@
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         
+        /* Base canvas styles */
         canvas {
             position: absolute;
             left: 50%;
-            top: 45%;
+            top: 50%;
             transform: translate(-50%, -50%);
             width: auto;
             height: auto;
@@ -482,7 +483,7 @@
             /* Notched device adjustments */
             @media screen and (max-width: 926px) and (orientation: landscape) {
                 canvas {
-                    transform: translate(-50%, calc(-50% - env(safe-area-inset-top, 0px) / 2));
+                    transform: translate(-50%, -50%);
                     max-height: calc(85vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
                 }
                 
@@ -495,7 +496,7 @@
         /* Add mobile-specific adjustments */
         @media (max-width: 768px) {
             canvas {
-                top: 38%;
+                top: 50%;
                 max-height: 85vh;
             }
         }
@@ -503,7 +504,7 @@
         /* Add even more adjustment for shorter screens */
         @media (max-height: 600px) {
             canvas {
-                top: 40%;
+                top: 50%;
                 max-height: 80vh;
             }
         }
@@ -521,13 +522,13 @@
 
         @media screen and (min-height: 800px) {
             canvas {
-                top: 40%;
+                top: 50%;
             }
         }
 
         @media screen and (min-height: 1000px) {
             canvas {
-                top: 45%;
+                top: 50%;
             }
         }
 
